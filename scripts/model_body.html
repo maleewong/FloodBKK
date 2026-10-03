@@ -337,6 +337,19 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   el('path',{d:p1,fill:'none',stroke:'var(--accent)','stroke-width':2},g);el('path',{d:p2,fill:'none',stroke:'var(--s2)','stroke-width':1.6,'stroke-dasharray':'4 3'},g);
   el('line',{x1:l,x2:w-r,y1:h-b,y2:h-b,stroke:'var(--axis)'},g);
   $('#cCal').insertAdjacentHTML('afterbegin','<div class="chips"><span><i class="dot" style="background:var(--accent)"></i>สูบจริง (ล้าน ลบ.ม./วัน)</span><span><i class="dot" style="background:var(--s2)"></i>จากสมการที่ปรับเทียบ</span><span><i class="dot" style="background:var(--seq-1);border-radius:2px"></i>ฝนเฉลี่ยทั้งเมือง (มม., แกนขวา)</span></div>');
+  // hover: vertical guide + tooltip with the day's values
+  const host=$('#cCal');host.style.position='relative';const tp=document.createElement('div');tp.className='tip';tp.hidden=true;host.appendChild(tp);
+  const cross=el('line',{y1:t,y2:h-b,stroke:'var(--ink-2)','stroke-dasharray':'3 3',visibility:'hidden'},g);
+  const dot1=el('circle',{r:3.5,fill:'var(--accent)',visibility:'hidden'},g),dot2=el('circle',{r:3,fill:'var(--s2)',visibility:'hidden'},g);
+  const hit=el('rect',{x:l,y:t,width:w-l-r,height:h-t-b,fill:'transparent',style:'cursor:crosshair'},g);
+  const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  hit.addEventListener('mousemove',e=>{const bb=g.getBoundingClientRect();const sx=(e.clientX-bb.left)/bb.width*w;const i=Math.max(0,Math.min(n-1,Math.floor((sx-l)/bw)));const d=s[i];
+    const x=l+i*bw+bw/2;cross.setAttribute('x1',x);cross.setAttribute('x2',x);cross.setAttribute('visibility','visible');
+    dot1.setAttribute('cx',x);dot1.setAttribute('cy',y(d[2]));dot1.setAttribute('visibility','visible');dot2.setAttribute('cx',x);dot2.setAttribute('cy',y(d[3]));dot2.setAttribute('visibility','visible');
+    const err=d[2]?(d[3]-d[2])/d[2]*100:null;
+    tp.innerHTML=`<b>${+d[0].slice(8,10)} ${MON[+d[0].slice(5,7)-1]} ${+d[0].slice(0,4)+543}</b><br>ฝนเฉลี่ยทั้งเมือง ${fmt(d[1],1)} มม.<br>สูบจริง ${fmt(d[2],2)} ล้าน ลบ.ม.<br>จากสมการ ${fmt(d[3],2)} ล้าน ลบ.ม.${err!=null?` (${err>=0?'+':''}${fmt(err,0)}%)`:''}`;
+    tp.hidden=false;const hb=host.getBoundingClientRect();let px=e.clientX-hb.left+14;if(px+tp.offsetWidth>hb.width)px=e.clientX-hb.left-tp.offsetWidth-14;tp.style.left=Math.max(0,px)+'px';tp.style.top=Math.max(0,e.clientY-hb.top-tp.offsetHeight-10)+'px'});
+  hit.addEventListener('mouseleave',()=>{tp.hidden=true;[cross,dot1,dot2].forEach(x=>x.setAttribute('visibility','hidden'))});
 })();
 
 // ---------- assumptions table ----------
@@ -422,6 +435,23 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
 (()=>{const V=M.ver;if(!V){$('#verPanel').hidden=true;return}
   const t=(head,rows)=>`<div class="tbl"><table><thead><tr>${head.map((h,i)=>`<th class="${rows[0]&&typeof rows[0][i]==='number'?'':'l'}">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${typeof c==='number'?'num':'l'}" style="white-space:normal">${esc(typeof c==='number'?fmt(c,c%1?2:0):c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const pc=V.pump_capacity,lv=V.levels,h=V.history,c=V.case2018;
+  // 5. rain that fell vs water actually pumped out (data only, no model)
+  function balanceHTML(){const B=M.balance;if(!B||!B.series.length)return '';const S=B.series,A=B.A_km2,base=B.base_m3_day/1e6;
+    const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dd=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
+    const row=(label,a,b)=>{const w=S.slice(a,b+1);const mm=w.reduce((x,r)=>x+r[1],0),rv=mm*A/1000,pv=w.reduce((x,r)=>x+r[2],0)/1e6,ex=Math.max(0,pv-base*w.length);
+      return [label,fmt(mm,0),fmt(rv,1),fmt(pv,1),rv>0.05?fmt(ex/rv*100,0)+'%':'–']};
+    // rain events: consecutive days with >= 10 mm city-mean rain, counted with the 2 days after
+    const ev=[];for(let k=0;k<S.length;k++){if(S[k][1]>=10){let e=k;while(e+1<S.length&&S[e+1][1]>=10)e++;ev.push([k,Math.min(S.length-1,e+2)]);k=e}}
+    const rows=ev.sort((x,y)=>S.slice(y[0],y[1]+1).reduce((a,r)=>a+r[1],0)-S.slice(x[0],x[1]+1).reduce((a,r)=>a+r[1],0)).slice(0,6)
+      .map(([a,b])=>row(`${dd(S[a][0])} – ${dd(S[b][0])}`,a,b));
+    const n=S.length,a30=Math.max(0,n-30);
+    rows.push(row(`30 วันล่าสุด (${dd(S[a30][0])} – ${dd(S[n-1][0])})`,a30,n-1));
+    const head=['ช่วง','ฝนเฉลี่ย (มม.)','ฝนที่ตกลงพื้นที่ (ล้าน ลบ.ม.)','สูบออกจริง (ล้าน ลบ.ม.)','สูบออกเทียบฝน'];
+    return `<div><h3>5. ฝนที่ตกกับน้ำที่สูบออกจริง (ตรวจวัด)</h3>
+      <p class="note" style="margin:0 0 6px">เฉพาะ ${B.n_tel} สถานีสูบที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม. · ช่วงฝน = วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน · สูบออกเทียบฝน หักน้ำพื้นฐาน (น้ำเสีย/น้ำซึม) วันละ ${fmt(base,2)} ล้าน ลบ.ม. ออกก่อน</p>
+      <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <p class="note" style="margin:6px 0 0">ต่ำกว่า 100%: ส่วนที่เหลือซึมลงดิน ระเหย ยังค้างในคลองหรือทุ่ง หรือออกทางอื่น (สถานีที่ไม่มีมาตรวัด ทางออกด้านใต้) · เกิน 100%: สูบน้ำที่ค้างจากฝนก่อนหน้า หรือน้ำที่ไหลมาจากนอกพื้นที่รับน้ำ</p></div>`}
   $('#ver').innerHTML=`
   <div><h3>1. ตัวแก้สมการ</h3><p class="note" style="margin:0"><span class="ok">ผ่าน</span> · ${esc(V.lp_check.text)}</p></div>
   <div><h3>2. กำลังสูบ: ข้อมูลออนไลน์เทียบแผนปฏิบัติการฯ 2557</h3><p class="note" style="margin:0 0 6px">ตรงกันภายใน ±10% ${pc.within10} จาก ${pc.n} สถานีที่จับคู่ชื่อได้ ส่วนที่ต่างน่าจะมาจากการปรับปรุงสถานีหลังปี 2557 จึงใช้ข้อมูลรายงานเติมสถานีที่ไม่มีข้อมูลออนไลน์ได้</p>
@@ -429,9 +459,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   <div><h3>3. ข้อเท็จจริงจากรายงาน 2557 เทียบกับข้อมูลในโมเดล</h3>${t(['เรื่อง','รายงาน 2557','ข้อมูลที่ใช้ตอนนี้'],V.report2557)}</div>
   <div><h3>4. ระดับเตือนภัย/วิกฤต: ปัจจุบันเทียบปี 2557</h3><p class="note" style="margin:0 0 6px">จับคู่ชื่อได้ ${lv.n} จุด ตรงกัน (±5 ซม.) ${lv.same} จุด บางจุดน่าจะเป็นคนละตำแหน่งวัด แต่ประตูระบายน้ำฝั่งตะวันออกหลายแห่ง (คลองสามวา คลองสองสายใต้) เกณฑ์ปัจจุบันต่ำกว่าปี 2557 ราว 0.4–0.9 ม. สถานะ "วิกฤต" ฝั่งตะวันออกตอนนี้จึงอาจมาจากเกณฑ์ที่เข้มขึ้นส่วนหนึ่ง</p>
     ${t(['สถานีปัจจุบัน','เตือน','วิกฤต','เตือน 2557','วิกฤต 2557','สถานะตอนนี้'],lv.rows)}</div>
-  <div><h3>5. ย้อนหลังวันฝนตกจริง: โมเดลเทียบปริมาณสูบที่วัดได้</h3><p class="note" style="margin:0 0 6px">${esc(h.text)} · ไม่นับ ${h.not_reporting.length} สถานีที่รายงานศูนย์ตลอด 94 วัน (${esc(h.not_reporting.join(', '))})</p>
-    ${t(['ช่วงฝน','สหสัมพันธ์รายสถานี (r)','ฝั่งตะวันออก วัดได้ / โมเดล (ล้าน ลบ.ม.)','ฝั่งตะวันตก วัดได้ / โมเดล'],h.rows)}
-    <p class="note" style="margin:6px 0 0">ปริมาณรวมใกล้เคียงเพราะปรับเทียบจากข้อมูลชุดเดียวกัน แต่การกระจายรายสถานียังอ่อน (r 0.3–0.6): โมเดลส่งน้ำไปสถานีฝั่งตะวันออกมากเกินจริง เพราะเลือกทางที่สั้นที่สุดเสมอ ขณะที่การเดินเครื่องจริงมีแผนควบคุมระดับน้ำของแต่ละสถานี (แผน ก./ข./ค. ในรายงาน 2557)</p></div>
+  ${balanceHTML()}
   <div><h3>6. กรณีศึกษาเดิม: ฝน 10 ม.ค. 2561</h3><p class="note" style="margin:0 0 6px">${esc(c.text)}</p>
     ${t(['ความเร็วน้ำในคลอง (ม./วิ.)','โมเดลนี้ระบายได้ (ลบ.ม./วิ.) จาก 277'],c.rows)}<p class="note" style="margin:6px 0 0">${esc(c.note)}</p></div>`;
 })();

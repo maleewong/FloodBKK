@@ -19,6 +19,28 @@ def utc_to_local(s):
     return (datetime.fromisoformat(s[:16]) + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M') if s else None
 
 
+def balance(cal):
+    """rain that fell vs water actually pumped out, per day, from the data only (no model).
+    rain: city-wide areal mean (published 50 wettest of 124 gauges, others at half the 50th value)
+    pumped: stations with a flow meter (any non-zero day); their service area comes from calibration.json"""
+    import csv, collections
+    if not (os.path.exists(P('rain_daily_top50.csv')) and os.path.exists(P('pump_daily.csv'))): return None
+    rd = collections.defaultdict(list)
+    for r in csv.DictReader(open(P('rain_daily_top50.csv'), encoding='utf-8-sig')):
+        if r['rf24h_mm']: rd[r['day']].append(float(r['rf24h_mm']))
+    rows = list(csv.DictReader(open(P('pump_daily.csv'), encoding='utf-8-sig')))
+    tot = collections.Counter()
+    for r in rows: tot[r['code']] += float(r['discharged_m3'] or 0)
+    pv = collections.defaultdict(float)
+    for r in rows:
+        if tot[r['code']] > 0: pv[r['day']] += float(r['discharged_m3'] or 0)
+    def areal(v):
+        v = sorted(v, reverse=True); return (sum(v) + (124 - len(v)) * min(v) / 2) / 124
+    days = sorted(set(pv))
+    return dict(A_km2=cal['A_tel_km2'], base_m3_day=cal['base_m3_day'], n_tel=sum(1 for c in tot if tot[c] > 0),
+                series=[[d, round(areal(rd[d]), 1) if d in rd else 0.0, round(pv[d])] for d in days])
+
+
 def main():
     net = json.load(open(P('network.json')))
     cal = json.load(open(P('calibration.json')))
@@ -45,6 +67,7 @@ def main():
                  edges=[[e['u'], e['v'], e['n'], e['c'], e['L'], e['cap0'], e['g'], e.get('st')] for e in net['edges']],
                  pumps=net['pumps'], outlets=net['outlets'], cp=net['chao_phraya'], drained=net['drained'], source=net['source']),
         cal={k: v for k, v in cal.items()},
+        balance=balance(cal),
         plan=json.load(open(P('plan.json'), encoding='utf-8')) if os.path.exists(P('plan.json')) else None,
         plan_alt=({k: v['days'] for k, v in json.load(open(P('plan_v068.json'), encoding='utf-8')).items() if isinstance(v, dict) and 'days' in v}
                   if os.path.exists(P('plan_v068.json')) else None),
