@@ -572,22 +572,21 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const t=(head,rows)=>`<div class="tbl"><table><thead><tr>${head.map((h,i)=>`<th class="${rows[0]&&typeof rows[0][i]==='number'?'':'l'}">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${typeof c==='number'?'num':'l'}" style="white-space:normal">${esc(typeof c==='number'?fmt(c,c%1?2:0):c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const pc=V.pump_capacity,lv=V.levels,h=V.history,c=V.case2018;
   // 5. rain that fell vs water actually pumped out (data only, no model)
-  function balanceHTML(){const B=M.balance;if(!B||!B.series.length)return '';const S=B.series,A=B.A_km2,base=B.base_m3_day/1e6;
+  function balanceHTML(){const B=M.balance;if(!B||!B.series.length)return '';const S=B.series,A=B.A_km2;
     const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     const dd=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
-    const row=(label,a,b)=>{const w=S.slice(a,b+1);const mm=w.reduce((x,r)=>x+r[1],0),rv=mm*A/1000,pv=w.reduce((x,r)=>x+r[2],0)/1e6,ex=Math.max(0,pv-base*w.length);
-      return [label,fmt(mm,0),fmt(rv,1),fmt(pv,1),rv>0.05?fmt(ex/rv*100,0)+'%':'–']};
+    const row=(label,a,b)=>{const w=S.slice(a,b+1);const mm=w.reduce((x,r)=>x+r[1],0),rv=mm*A/1000,pv=w.reduce((x,r)=>x+r[2],0)/1e6;
+      return [label,fmt(mm,0),fmt(rv,1),fmt(pv,1)]};
     // rain events: consecutive days with >= 10 mm city-mean rain, counted with the 2 days after
     const ev=[];for(let k=0;k<S.length;k++){if(S[k][1]>=10){let e=k;while(e+1<S.length&&S[e+1][1]>=10)e++;ev.push([k,Math.min(S.length-1,e+2)]);k=e}}
     const rows=ev.sort((x,y)=>S.slice(y[0],y[1]+1).reduce((a,r)=>a+r[1],0)-S.slice(x[0],x[1]+1).reduce((a,r)=>a+r[1],0)).slice(0,6)
       .map(([a,b])=>row(`${dd(S[a][0])} – ${dd(S[b][0])}`,a,b));
     const n=S.length,a30=Math.max(0,n-30);
     rows.push(row(`30 วันล่าสุด (${dd(S[a30][0])} – ${dd(S[n-1][0])})`,a30,n-1));
-    const head=['ช่วง','ฝนเฉลี่ย (มม.)','ฝนที่ตกลงพื้นที่ (ล้าน ลบ.ม.)','สูบออกจริง (ล้าน ลบ.ม.)','สูบออกเทียบฝน'];
+    const head=['ช่วง','ฝนเฉลี่ย (มม.)','ฝนที่ตกลงพื้นที่ (ล้าน ลบ.ม.)','สูบออกจริง (ล้าน ลบ.ม.)'];
     return `<div><h3>5. ฝนที่ตกกับน้ำที่สูบออกจริง (ตรวจวัด)</h3>
-      <p class="note" style="margin:0 0 6px">เฉพาะ ${B.n_tel} สถานีสูบที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม. · ช่วงฝน = วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน · สูบออกเทียบฝน หักน้ำพื้นฐาน (น้ำเสีย/น้ำซึม) วันละ ${fmt(base,2)} ล้าน ลบ.ม. ออกก่อน</p>
-      <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-      <p class="note" style="margin:6px 0 0">ต่ำกว่า 100%: ส่วนที่เหลือซึมลงดิน ระเหย ยังค้างในคลองหรือทุ่ง หรือออกทางอื่น (สถานีที่ไม่มีมาตรวัด ทางออกด้านใต้) · เกิน 100%: สูบน้ำที่ค้างจากฝนก่อนหน้า หรือน้ำที่ไหลมาจากนอกพื้นที่รับน้ำ</p></div>`}
+      <p class="note" style="margin:0 0 6px">เฉพาะ ${B.n_tel} สถานีสูบที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม. · ช่วงฝน = วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน</p>
+      <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
   $('#ver').innerHTML=`
   <div><h3>1. ตัวแก้สมการ</h3><p class="note" style="margin:0"><span class="ok">ผ่าน</span> · ${esc(V.lp_check.text)}</p></div>
   <div><h3>2. กำลังสูบ: ข้อมูลออนไลน์เทียบแผนปฏิบัติการฯ 2557</h3><p class="note" style="margin:0 0 6px">ตรงกันภายใน ±10% ${pc.within10} จาก ${pc.n} สถานีที่จับคู่ชื่อได้ ส่วนที่ต่างน่าจะมาจากการปรับปรุงสถานีหลังปี 2557 จึงใช้ข้อมูลรายงานเติมสถานีที่ไม่มีข้อมูลออนไลน์ได้</p>
