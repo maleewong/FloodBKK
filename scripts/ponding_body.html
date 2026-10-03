@@ -1,0 +1,391 @@
+<style>
+/* field page: summary strip, controls | animated map | hotspot card, then priority table */
+[hidden]{display:none!important}
+.nav{display:flex;gap:6px;flex-wrap:wrap;font-size:13px}
+.nav a{color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;background:var(--surface)}
+.nav a[aria-current="page"]{background:var(--accent-soft);color:var(--ink);font-weight:600;border-color:var(--accent)}
+.hdr-r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.mgrid{display:grid;grid-template-columns:260px minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:1180px){.mgrid{grid-template-columns:250px minmax(0,1fr)}.mgrid>.insp{grid-column:1/-1}}
+@media (max-width:760px){.mgrid{grid-template-columns:1fr}.mgrid>.mapcol{order:-1}}
+.mgrid>*{min-width:0}
+.ctl{display:grid;gap:12px;align-content:start}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:4px 10px;cursor:pointer}
+.presets button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.levers{display:grid;gap:12px}
+.ctl .lev{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:13px;color:var(--ink);align-items:baseline}
+.lev .pb{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
+.lev output{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.lev input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.resbox{display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:12.5px;border-top:1px solid var(--line);padding-top:10px}
+.resbox span:nth-child(odd){color:var(--muted)}.resbox span:nth-child(even){font-family:var(--mono);color:var(--ink);text-align:right}
+.opts{display:grid;gap:8px}
+.opt{font:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:var(--r);padding:10px 12px;cursor:pointer;display:grid;gap:4px}
+.opt b{color:var(--ink);font-size:14px}.opt .how{font-size:12.5px}
+.opt .res{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;font-size:12.5px;margin-top:4px}
+.opt .res span:nth-child(odd){color:var(--muted)}.opt .res span:nth-child(even){font-family:var(--mono);color:var(--ink)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gsum{display:grid;gap:6px;font-size:12.5px}.gsum ul{margin:2px 0 0;padding-left:16px;color:var(--ink-2)}.gsum li{cursor:pointer}
+.ctl details label{font-size:13px;color:var(--ink-2);display:flex;gap:6px;align-items:center;margin-top:4px}
+.ctl fieldset{border:0;margin:0;padding:0;display:grid;gap:6px}
+.ctl legend{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+.ctl label{font-size:13px;color:var(--ink-2);display:flex;gap:6px;align-items:center}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;font-size:13px}
+.row output{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.row input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.src{font-size:11px;color:var(--muted);grid-column:1/-1}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r);padding:6px 12px;cursor:pointer}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mapwrap{position:relative}
+.zoom{position:absolute;right:8px;top:8px;display:grid;gap:4px;z-index:4}
+.zoom button{width:30px;height:30px;font:inherit;font-size:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r);cursor:pointer}
+#map{touch-action:none;cursor:grab;background:var(--bg);border-radius:var(--r);display:block;width:100%}
+#map.drag{cursor:grabbing}#map.adding{cursor:crosshair}
+.fchip{font-size:11px;font-weight:600;border:1px solid;border-radius:999px;padding:0 7px;white-space:nowrap}
+.dl{fill:none;stroke:var(--line);stroke-width:.8}
+.cp{fill:none;stroke:var(--river);stroke-linecap:round}
+.cn{fill:none;stroke:var(--canal);stroke-linecap:round;opacity:.75}
+.fl{fill:none;stroke-linecap:round;pointer-events:none;stroke-dasharray:3 7;animation:flow 1.1s linear infinite}
+.pl{fill:none;stroke-linecap:round;pointer-events:none;stroke-dasharray:2 5;animation:flow .8s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.tr{fill:var(--crit);opacity:.55;pointer-events:none}
+.hs{cursor:pointer}
+.hs .halo{fill:var(--crit);opacity:.18;animation:pulse 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{50%{opacity:.4;transform:scale(1.25)}}
+.hs .ring{fill:var(--crit);fill-opacity:.12;stroke:var(--crit);stroke-width:1.2}
+.hs.sel .ring{stroke:var(--ink);stroke-width:2}
+.pm{stroke:var(--surface);stroke-width:1.2}
+@media (prefers-reduced-motion:reduce){.fl,.pl,.hs .halo{animation:none}}
+.insp h3{font-size:.95rem;margin:0}
+.q{font-size:12.5px;color:var(--ink-2);border-left:2px solid var(--line);padding-left:8px;margin:0}
+.edit{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-size:13px}
+.edit input{font:inherit;font-size:13px;width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+.steps{margin:0;padding-left:20px;display:grid;gap:4px;font-size:13.5px}
+.tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:var(--bg);white-space:nowrap}
+.howto{display:grid;gap:6px;font-size:13px}
+</style>
+<style>
+:root{--river:#2f5f8a;--canal:#36586f}
+:root[data-theme="light"]{--river:#6ea8d6;--canal:#8fb3cf}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html" aria-current="page">จำลองสถานการณ์</a></nav>
+      <h1 style="margin-top:10px">จำลองสถานการณ์: สูบน้ำท่วมขังในชุมชน</h1>
+      <p class="sub">เริ่มจากสถานการณ์ปัจจุบัน ลองปรับแล้วดูผลบนแผนที่</p>
+    </div>
+    <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
+  </header>
+
+  <section class="strip" id="strip" aria-label="สรุป"></section>
+
+  <section class="mgrid">
+    <div class="panel ctl" id="ctl">
+      <div class="presets" id="presets"></div>
+      <div class="levers" id="levers"></div>
+      <div class="resbox" id="resbox" aria-live="polite"></div>
+      <div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)</div>
+      <div id="gateSum" class="gsum"></div>
+      <details><summary class="note">ชั้นแผนที่</summary>
+        <label><input type="checkbox" id="lyDem" checked> ความสูงพื้นดิน (DEM)</label>
+        <label><input type="checkbox" id="lyFl" checked> บริเวณที่น่าจะท่วม</label>
+        <label><input type="checkbox" id="lyTr" checked> รายงาน Traffy</label>
+        <label><input type="checkbox" id="lyGt" checked> ประตูระบายน้ำ</label>
+        <label><input type="checkbox" id="lyCn" checked> คลอง</label>
+      </details>
+      <p class="note" id="runNote"></p>
+    </div>
+
+    <div class="panel mapcol">
+      <div class="panel-h"><h2>เส้นทางสูบออกที่แนะนำ</h2><span class="note">ลากเพื่อเลื่อน · เลื่อนล้อเมาส์เพื่อซูม · คลิกวงกลมเพื่อดูคำแนะนำ</span></div>
+      <div class="mapwrap" id="mapbox">
+        <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งหมด" style="font-size:12px">⤢</button></div>
+        <svg id="map" role="img" aria-label="แผนที่จุดน้ำท่วมขังและเส้นทางสูบออก"></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <aside class="panel insp" id="insp" aria-live="polite"></aside>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>ลำดับความเร่งด่วน</h2><span class="note">คะแนน = ความลึก × จำนวนวัน × จำนวนรายงาน · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="tbl"><table id="tHot"></table></div>
+  </section>
+
+  <details class="panel howto">
+    <summary><b>วิธีคิดและข้อจำกัด</b></summary>
+    <ol class="steps">
+      <li>รวมรายงานน้ำท่วมจาก Traffy Fondue ที่ยังไม่ปิดเรื่องในช่วง 5 วันล่าสุด จุดที่อยู่ใกล้กัน (ไม่เกิน 250 ม.) จัดเป็นจุดท่วมขังเดียวกัน</li>
+      <li>ความลึกอ่านจากข้อความในรายงาน (ซม., เมตร, ระดับเข่า/เอว) ใช้ค่ามัธยฐาน พื้นที่ใช้ขอบเขตหมู่บ้านจาก OpenStreetMap ที่มีรายงานอยู่ข้างใน ปริมาณน้ำ = พื้นที่ × ความลึก × สัดส่วนพื้นที่ที่น้ำขัง</li>
+      <li>หาคลองสายหลักที่อยู่ใกล้ (ไม่เกิน 2 กม.) เลือกคลองที่ใกล้และระดับน้ำไม่เกินเกณฑ์เตือนก่อน ถือว่าต้องสูบข้ามคันทุกจุด เพราะรายงานบอกว่าน้ำในคลองลดแล้วแต่น้ำในหมู่บ้านไม่ลด (หมู่บ้านมีคันหรือถนนล้อม) ส่วน DEM ในเขตอาคารหนาแน่นสูงเกินจริง 1–3 ม. จึงไม่ใช้ตัดสินว่าไหลเองได้</li>
+      <li>แก้ปัญหาการไหลต้นทุนต่ำสุด (min-cost flow) จากหมู่บ้านลงคลองแล้วไปสถานีสูบ ค่าเริ่มต้นให้น้ำในชุมชนใช้ความจุคลองได้เต็ม (น้ำในคลองและทุ่งรอระบายทีหลัง) หรือเลือกใช้เฉพาะความจุที่เหลือจากแผนระบาย 30 วัน ซึ่งจะเห็นว่าคลองฝั่งตะวันออกเต็มแล้ว</li>
+      <li>จำนวนเครื่อง = อัตราสูบที่ต้องการ ÷ ขนาดเครื่อง ถ้าเครื่องไม่พอ จัดให้จุดที่คะแนนสูงก่อน</li>
+    </ol>
+    <p class="note" id="caveat"></p>
+  </details>
+
+  <footer>
+    <div><b>ที่มาของข้อมูล</b>: <span id="srcLine"></span></div>
+  </footer>
+</div>
+
+<script id="data" type="application/json">__PONDING__</script>
+<script>
+__SOLVER__
+__GATES_JS__
+(()=>{
+const D=JSON.parse(document.getElementById('data').textContent);
+const $=s=>document.querySelector(s), NS='http://www.w3.org/2000/svg';
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const fmt=(v,d=0)=>v==null||isNaN(v)?'–':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const thDT=s=>s?s.replace(/^(\d+)-(\d+)-(\d+)/,(m,y,mo,d)=>`${+d}/${+mo}/${+y+543}`):'–';
+const short=s=>String(s).replace(/^สถานีสูบน้ำ|^สถานีสุบน้ำ/,'ส.').replace(/^อาคารสูบน้ำ/,'อาคารสูบ ').replace(/\*$/,'').trim();
+const N=D.net.nodes,E=D.net.edges,PU=D.net.pumps,OU=D.net.outlets,NM=D.net.names;
+$('#stamp').textContent=`รายงานถึง ${D.pond.fetched.replace(/^(\d+)-(\d+)-(\d+)/,(m,y,mo,d)=>`${+d}/${+mo}/${+y+543}`)} น. · ระดับน้ำ ${thDT(D.fetched)} น.`;
+$('#srcLine').textContent=`${D.pond.source} · ระดับน้ำ/สถานีสูบ: สำนักการระบายน้ำ กทม. · คลอง/หมู่บ้าน: OpenStreetMap · DEM: ${D.dem.source}`;
+$('#caveat').textContent=`ข้อจำกัด: DEM เป็นแบบจำลองพื้นผิว (มีหลังคาบ้านและต้นไม้) ที่ปรับให้ใกล้พื้นดินแล้วแต่ยังคลาดได้ราว 1 ม. จึงใช้บอกทิศทางและพื้นที่ต่ำแบบคร่าว ๆ ความลึกและพื้นที่มาจากรายงานประชาชน ระดับน้ำในคลองใช้สถานีที่ใกล้ที่สุด ควรยืนยันหน้างานก่อนตั้งเครื่องสูบ`;
+
+// ---------- hotspots (editable copy) ----------
+let HOT=D.pond.hotspots.map(h=>({...h,user:false}));
+const prm={T:48,U:0.25,F:120,K:0.7,minN:8,adding:false,share:1,neck:1,vm:'dem',stale:false};
+const NECK=new Set(D.necks||[]);
+const vol=h=>prm.vm==='dem'&&h.vol_dem&&!h.edited?h.vol_dem:h.area_km2*1e6*h.depth*prm.K;
+const FR={'ยืนยัน':['var(--crit)','ยังท่วม'],'น่าจะยังท่วม':['var(--serious)','น่าจะยังท่วม'],'อาจลดแล้ว':['var(--down)','อาจลดแล้ว']};
+const ageTxt=a=>a==null?'–':a<1?'< 1 ชม.':a<48?`${fmt(a)} ชม.`:`${fmt(a/24,1)} วัน`;
+const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const dTxt=(s,short)=>{const m=s&&s.match(/^(\d+)-(\d+)-(\d+) (\d+:\d+)/);return m?(short?`${+m[3]} ${MON[+m[2]-1]} ${m[4]}`:`${+m[3]} ${MON[+m[2]-1]} ${+m[1]+543} เวลา ${m[4]} น.`):'–'};
+const freshChip=h=>h.fresh?`<span class="fchip" style="border-color:${FR[h.fresh][0]};color:${FR[h.fresh][0]}">${FR[h.fresh][1]}</span>`:'';
+const score=h=>h.depth*(h.days||5)*Math.log2(2+h.n);
+
+// ---------- map ----------
+const svg=$('#map'),W=1000;let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;const kx=Math.cos(13.75*Math.PI/180);
+const walk=(c,f)=>Array.isArray(c[0])?c.forEach(x=>walk(x,f)):f(c);
+D.geo.forEach(g=>walk(g[2],([x,y])=>{minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}));
+const pad=10,sx=(W-2*pad)/((maxX-minX)*kx),H=Math.round((maxY-minY)*sx+2*pad);
+const P=([x,y])=>[pad+(x-minX)*kx*sx,pad+(maxY-y)*sx];
+const line=pts=>'M'+pts.map(c=>P(c).map(v=>v.toFixed(1)).join(',')).join('L');
+const full={x:0,y:0,w:W,h:H};let vb={...full};
+svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.aspectRatio=`${W}/${H}`;
+const gDem=el('g',{},svg),gD=el('g',{},svg),gR=el('g',{},svg),gC=el('g',{},svg),gF=el('g',{},svg),gTr=el('g',{},svg),gG=el('g',{},svg),gH=el('g',{},svg),gP=el('g',{},svg);
+// DEM shading
+(()=>{const m=D.dem,bin=atob(m.b64),z=new Int16Array(m.w*m.h);for(let i=0;i<z.length;i++){z[i]=(bin.charCodeAt(2*i)|(bin.charCodeAt(2*i+1)<<8))<<16>>16}
+  const wb=atob(m.water);const isW=i=>(wb.charCodeAt(i>>3)>>(7-(i&7)))&1;
+  const cv=document.createElement('canvas');cv.width=m.w;cv.height=m.h;const cx=cv.getContext('2d');const im=cx.createImageData(m.w,m.h);
+  const stops=[[-50,[10,32,60]],[60,[16,70,96]],[120,[38,92,92]],[180,[70,96,72]],[260,[104,98,70]],[400,[132,118,86]]];
+  const col=v=>{if(v<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){if(v<=stops[i][0]){const [a,ca]=stops[i-1],[b,cb]=stops[i];const t=(v-a)/(b-a);return ca.map((c,k)=>c+(cb[k]-c)*t)}}return stops[stops.length-1][1]};
+  for(let i=0;i<z.length;i++){const c=isW(i)?[8,20,34]:col(z[i]);im.data[4*i]=c[0];im.data[4*i+1]=c[1];im.data[4*i+2]=c[2];im.data[4*i+3]=255}
+  cx.putImageData(im,0,0);const [x0,y0]=P([m.lon0,m.lat0]),[x1,y1]=P([m.lon0+m.w*m.cell,m.lat0-m.h*m.cell]);
+  el('image',{href:cv.toDataURL(),x:x0,y:y0,width:x1-x0,height:y1-y0,preserveAspectRatio:'none',opacity:.85},gDem);
+  window.__demZ=z;})();
+// estimated flooded cells (water surface from the reports, ground from the DEM)
+const gFl=el('g',{},svg);svg.insertBefore(gFl,gD);
+(()=>{const f=D.pond.flood;if(!f||!f.idx.length)return;const cv=document.createElement('canvas');cv.width=f.w;cv.height=f.h;const cx=cv.getContext('2d');const im=cx.createImageData(f.w,f.h);
+  f.idx.forEach((k,j)=>{const d=Math.min(1,f.cm[j]/120);im.data[4*k]=40+20*(1-d);im.data[4*k+1]=150+60*(1-d);im.data[4*k+2]=255;im.data[4*k+3]=Math.round(45+125*d)});
+  cx.putImageData(im,0,0);const [x0,y0]=P([f.lon0,f.lat0]),[x1,y1]=P([f.lon0+f.w*f.cell,f.lat0-f.h*f.cell]);
+  el('image',{href:cv.toDataURL(),x:x0,y:y0,width:x1-x0,height:y1-y0,preserveAspectRatio:'none'},gFl)})();
+const demAt=(lon,lat)=>{const m=D.dem;const i=Math.round((lon-m.lon0)/m.cell),j=Math.round((m.lat0-lat)/m.cell);if(i<0||j<0||i>=m.w||j>=m.h)return null;return window.__demZ[j*m.w+i]/100};
+D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),class:'dl','vector-effect':'non-scaling-stroke'},gD));
+D.net.cp.forEach(pts=>el('path',{d:line(pts),class:'cp','stroke-width':5,'vector-effect':'non-scaling-stroke'},gR));
+// waterways outside Bangkok (OSM, display only)
+const OUTER=D.outer||{paths:[],bg:[]};const outerBy={};OUTER.paths.forEach(o=>outerBy[o.node]=o);
+OUTER.bg.forEach(a=>{const pts=[];for(let i=0;i<a.length;i+=2)pts.push([a[i],a[i+1]]);el('path',{d:line(pts),class:'cn',style:'opacity:.35','stroke-width':.7,'vector-effect':'non-scaling-stroke'},gC)});
+const outerTxt=node=>{const o=outerBy[node];return o?` → นอกเขต: ${o.via.slice(0,4).map(esc).join(' → ')} → <b>${esc(o.end)}</b> (${fmt(o.km,0)} กม.)`:''};
+E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),class:'cn','stroke-width':e[3]==='A'?1.4:.8,'vector-effect':'non-scaling-stroke'},gC)});
+D.pond.points.forEach(p=>{const [x,y]=P([p[0],p[1]]);el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:.9,class:'tr'},gTr)});
+[['lyDem',gDem],['lyFl',gFl],['lyTr',gTr],['lyCn',gC],['lyGt',gG]].forEach(([id,g])=>$('#'+id).addEventListener('change',e=>g.style.display=e.target.checked?'':'none'));
+// zoom / pan
+function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);const s=Math.sqrt(vb.w/W);
+  svg.querySelectorAll('[data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${s.toFixed(3)})`))}
+const clamp=()=>{vb.x=Math.max(-W*.1,Math.min(W*1.1-vb.w,vb.x));vb.y=Math.max(-H*.1,Math.min(H*1.1-vb.h,vb.y))};
+function zoomAt(f,cx,cy){const nw=Math.min(W,Math.max(W/60,vb.w/f)),nh=nw*H/W;vb={x:cx-(cx-vb.x)*nw/vb.w,y:cy-(cy-vb.y)*nh/vb.h,w:nw,h:nh};clamp();setVB()}
+const toSvg=e=>{const b=svg.getBoundingClientRect();return [vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h]};
+const toLL=([x,y])=>[(x-pad)/(kx*sx)+minX,maxY-(y-pad)/sx];
+svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=toSvg(e);zoomAt(e.deltaY<0?1.25:0.8,x,y)},{passive:false});
+let drag=null,moved=false;
+svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
+window.addEventListener('pointermove',e=>{if(!drag)return;const b=svg.getBoundingClientRect();if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4){moved=true;svg.classList.add('drag')}
+  if(moved){vb.x=drag.vb.x-(e.clientX-drag.x)/b.width*vb.w;vb.y=drag.vb.y-(e.clientY-drag.y)/b.height*vb.h;clamp();setVB()}});
+window.addEventListener('pointerup',()=>{drag=null;svg.classList.remove('drag')});
+svg.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();return}
+  if(prm.adding){const [lon,lat]=toLL(toSvg(e));addHot(lon,lat);prm.adding=false;$('#addBtn').setAttribute('aria-pressed','false');svg.classList.remove('adding')}},true);
+$('#zIn').onclick=()=>zoomAt(1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zOut').onclick=()=>zoomAt(1/1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zReset').onclick=()=>{vb={...full};setVB()};
+const zoomTo=(lon,lat,w=W/12)=>{const [x,y]=P([lon,lat]);vb={x:x-w/2,y:y-w*H/W/2,w,h:w*H/W};clamp();setVB()};
+const tip=$('#tip');
+function showTip(e,html){tip.innerHTML=html;tip.hidden=false;const b=$('#mapbox').getBoundingClientRect();let x=e.clientX-b.left+14,y=e.clientY-b.top+14;
+  if(x+tip.offsetWidth>b.width)x=e.clientX-b.left-tip.offsetWidth-10;if(y+tip.offsetHeight>b.height)y=e.clientY-b.top-tip.offsetHeight-10;tip.style.left=Math.max(0,x)+'px';tip.style.top=Math.max(0,y)+'px'}
+const hideTip=()=>tip.hidden=true;
+
+// add a hotspot by hand
+function addHot(lon,lat){
+  // candidate canals: nearest A/B canal nodes, one per canal name, within 2 km
+  const kxm=111320*kx,kym=110574;const c=[];const seen=new Set();
+  const cand=N.map((n,i)=>[i,Math.hypot((n[0]-lon)*kxm,(n[1]-lat)*kym)]).filter(x=>x[1]<2000).sort((a,b)=>a[1]-b[1]);
+  for(const [i,d] of cand){const e=adj[i].find(a=>E[a[0]][3]!=='C');if(!e)continue;const nm=NM[E[e[0]][2]]||'คลองไม่มีชื่อ';if(seen.has(nm))continue;seen.add(nm);
+    const st=N[i][2]&&D.st[N[i][2]];c.push({node:i,canal:nm,cls:E[e[0]][3],dist:Math.round(d),level:st&&st[4]!=='ขัดข้อง'?st[1]:null,warn:st?st[2]:null,station:st?st[0]:null});if(c.length>=4)break}
+  const h={id:'U'+(HOT.filter(h=>h.user).length+1),name:'จุดที่เพิ่มเอง '+(HOT.filter(h=>h.user).length+1),estates:[],district:'',lon:+lon.toFixed(5),lat:+lat.toFixed(5),n:prm.minN,depth:0.5,depth_n:0,days:null,
+    area_km2:0.2,ground:demAt(lon,lat),cands:c,ring:null,quotes:[],user:true};
+  HOT.push(h);run();showHot(h.id)}
+
+// adjacency
+const adj=N.map(()=>[]);E.forEach((e,i)=>{adj[e[0]].push([i,e[1],1]);adj[e[1]].push([i,e[0],-1])});
+const pumpAt={};PU.forEach((p,i)=>pumpAt[p.node]=i);const outAt={};OU.forEach((o,i)=>outAt[o.node]=i);
+
+// ---------- model: min-cost flow on the capacity left after the 30-day plan (day 1) ----------
+let R=null,timer=null;
+function schedule(){clearTimeout(timer);$('#runNote').textContent='กำลังคำนวณ…';timer=setTimeout(run,120)}
+function compute(prm){const t0=performance.now();
+  const hs=HOT.filter(h=>h.user||(h.n>=prm.minN&&(prm.stale||h.fresh!=='อาจลดแล้ว')));const n=N.length,nh=hs.length,S=n+nh,T=S+1;
+  const g=new MCF(n+nh+2);const vr=1;
+  const keep=1-prm.share;const eArc=E.map((e,k)=>{const f=keep*(D.plan.flow[k]||0),cap=e[5]*(NECK.has(NM[e[2]])?prm.neck:1);const cst=Math.max(1,Math.round(e[4]/500));
+    return [g.add(e[0],e[1],Math.max(0,cap-f),cst),g.add(e[1],e[0],Math.max(0,cap+f),cst)]});
+  const pArc=PU.map((p,i)=>p.internal?null:g.add(p.node,T,Math.max(0,p.cap*0.85-keep*(D.plan.pump[i]||0)),1));
+  const oArc=OU.map((o,i)=>g.add(o.node,T,Math.max(0,5-keep*(D.plan.outlet[i]||0)),3));
+  const hsArc=hs.map((h,j)=>{const q=vol(h)/(prm.T*3600);const src=g.add(S,n+j,q,0);const un=g.add(n+j,T,q,1e6);
+    const cs=h.cands.map(c=>{const ws=h.ground==null?null:h.ground+h.depth;const grav=false;const high=c.level!=null&&c.warn!=null?Math.max(0,c.level-c.warn):0;const cost=Math.round(c.dist/100)+Math.round(high*20)+(c.cls==='A'?0:2);return [c,g.add(n+j,c.node,q,cost),grav?-1:1]});
+    return {h,q,src,un,cs}});
+  const res=g.solve(S,T);const f=k=>res.arcFlow[k>>1];
+  const ef=eArc.map(([a,b])=>f(a)-f(b));
+  const out=hsArc.map(o=>{const served=o.q-f(o.un);const used=o.cs.map(([c,a,head])=>({c,q:f(a),head})).filter(x=>x.q>1e-4).sort((a,b)=>b.q-a.q);
+    return {...o,served,used}});
+  // fleet: units needed, allocate by priority
+  out.forEach(o=>{o.need=Math.ceil(o.served/prm.U-1e-9);o.score=score(o.h)});
+  let left=prm.F;out.slice().sort((a,b)=>b.score-a.score).forEach(o=>{o.alloc=Math.min(o.need,left);left-=o.alloc});
+  out.forEach(o=>{const rate=Math.min(o.served,o.alloc*prm.U);o.hours=rate>0?vol(o.h)/rate/3600:null;
+    // why a point is not cleared in time: canals around it cannot take the water, or not enough pumps were left for it
+    o.state=o.served<o.q*0.95?'canal':o.alloc<o.need?'pump':'ok'});
+  return {out,ef,pump:pArc.map(a=>a==null?0:f(a)),outl:oArc.map(a=>f(a)),ms:performance.now()-t0,left,prm:{...prm}}}
+function run(){R=compute(prm);$('#runNote').textContent=`คำนวณ ${fmt(R.ms,0)} มิลลิวินาที`;
+  draw();summary();table();results();if(sel)showHot(sel)}
+// ---------- three ready-made options (no sliders): what to do and what it gives ----------
+function optStats(r){const V=r.out.reduce((a,o)=>a+vol(o.h),0);const T=r.prm.T*3600;
+  const done=r.out.reduce((a,o)=>a+Math.min(vol(o.h),Math.min(o.served,o.alloc*r.prm.U)*T),0);
+  const cnt=k=>r.out.filter(o=>o.state===k).length;
+  return {pct:done/V,n:r.out.length,inT:r.out.filter(o=>o.hours!=null&&o.hours<=r.prm.T+1e-6).length,pump:cnt('pump'),canal:cnt('canal')}}
+// ---------- simulator: levers come from the problems seen in the current situation ----------
+let NEED=0,BASE=null;
+const LEV=[
+  {k:'F',t:'เครื่องสูบเคลื่อนที่',min:0,max:1200,step:10,f:v=>`${fmt(v)} เครื่อง`,pb:()=>`ต้องใช้ ${fmt(NEED)} · มีราว ${BASE.F} (สมมติ)`},
+  {k:'share',t:'แบ่งความจุคลองให้ชุมชน',min:0,max:1,step:0.05,f:v=>`${Math.round(v*100)}%`,pb:()=>'100% = ชุมชนก่อน · 0% = ใช้เฉพาะที่เหลือจากแผนหลัก'},
+  {k:'neck',t:'ขยายคลองคอขวด',min:1,max:2,step:0.1,f:v=>`×${(+v).toFixed(1)}`,pb:()=>[...NECK].slice(0,3).join(', ')},
+  {k:'T',t:'เป้าหมาย สูบหมดภายใน',min:12,max:120,step:12,f:v=>`${v} ชม.`,pb:()=>''}];
+const PRESET=()=>[['ตอนนี้',{F:BASE.F,share:1,neck:1,T:48}],['ระดมเครื่อง',{F:NEED,share:1,neck:1,T:48}],['ไม่แย่งคลองแผนหลัก',{F:NEED,share:0,neck:1,T:48}],['ขยายคอขวด',{F:NEED,share:0,neck:2,T:48}]];
+function syncLev(){LEV.forEach(l=>{$('#l_'+l.k).value=prm[l.k];$('#o_'+l.k).textContent=l.f(prm[l.k])})}
+function results(){const r=R,st=optStats(r);
+  $('#resbox').innerHTML=`<span>สูบออกได้ใน ${r.prm.T} ชม.</span><span>${fmt(st.pct*100)}%</span><span>จุดที่สูบหมดทัน</span><span>${st.inT}/${st.n}</span><span>ติดที่เครื่องไม่พอ</span><span>${st.pump} จุด</span><span>ติดที่คลองรับไม่ได้</span><span>${st.canal} จุด</span>`}
+function buildOptions(){BASE={...prm};NEED=compute({...prm,F:1e6}).out.reduce((a,o)=>a+o.need,0);
+  $('#levers').innerHTML=LEV.map(l=>`<label class="lev"><span>${l.t}</span><output id="o_${l.k}"></output>${l.pb()?`<span class="pb">${esc(l.pb())}</span>`:''}<input type="range" id="l_${l.k}" min="${l.min}" max="${l.max}" step="${l.step}"></label>`).join('');
+  LEV.forEach(l=>$('#l_'+l.k).addEventListener('input',e=>{prm[l.k]=+e.target.value;$('#o_'+l.k).textContent=l.f(prm[l.k]);$('#presets').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));schedule()}));
+  $('#presets').innerHTML=PRESET().map(([t],i)=>`<button type="button" data-i="${i}" aria-pressed="${i===0}">${esc(t)}</button>`).join('');
+  $('#presets').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;Object.assign(prm,PRESET()[+b.dataset.i][1]);syncLev();
+    $('#presets').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));run()});
+  syncLev()}
+
+function trace(start){const seen=new Set([start]);const path=[];let cur=start,guard=0;
+  while(guard++<3000){if(pumpAt[cur]!=null&&R.pump[pumpAt[cur]]>1e-4)return {path,end:['p',pumpAt[cur]]};if(outAt[cur]!=null&&R.outl[outAt[cur]]>1e-4)return {path,end:['o',outAt[cur]]};
+    let best=null,bf=1e-4;for(const [ei,nb,dir] of adj[cur]){const fl=R.ef[ei]*dir;if(fl>bf&&!seen.has(nb)){bf=fl;best=[ei,nb]}}if(!best)return {path,end:null};path.push(best[0]);seen.add(best[1]);cur=best[1]}return {path,end:null}}
+
+function draw(){gF.innerHTML='';gH.innerHTML='';gP.innerHTML='';
+  const mx=Math.max(...R.ef.map(Math.abs),0.01);
+  R.ef.forEach((x,i)=>{const a=Math.abs(x);if(a<0.01)return;const pts=x>0?E[i][6]:[...E[i][6]].reverse();
+    el('path',{d:line(pts),fill:'none',stroke:'var(--warn)','stroke-width':(1.2+3.5*Math.sqrt(a/mx)).toFixed(2),'stroke-linecap':'round','vector-effect':'non-scaling-stroke',opacity:.9},gF);
+    el('path',{d:line(pts),class:'fl',stroke:'var(--bg)','stroke-width':1.2,'vector-effect':'non-scaling-stroke'},gF)});
+  // continue past the Bangkok boundary: where the outlet water goes (OSM, display only)
+  OU.forEach((o,i)=>{const op=outerBy[o.node];if(!op||!(R.outl[i]>1e-3))return;
+    el('path',{d:line(op.xy),fill:'none',stroke:'var(--warn)','stroke-width':1.6,'stroke-dasharray':'2 4','stroke-linecap':'round','vector-effect':'non-scaling-stroke',opacity:.75},gF);
+    el('path',{d:line(op.xy),class:'fl',stroke:'var(--bg)','stroke-width':1,'vector-effect':'non-scaling-stroke'},gF);
+    const [x,y]=P(op.xy[op.xy.length-1]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);el('circle',{r:4,fill:'var(--warn)',stroke:'var(--bg)','stroke-width':1.2},g);
+    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(op.end)}</b><br>ปลายทางของ${esc(o.name.replace('ทางออกขอบเขต ',''))} นอกเขต กทม. (${fmt(op.km,0)} กม. ตามแผนที่ OSM)`));g.addEventListener('mouseleave',hideTip)});
+  // hotspot -> canal pump lines
+  R.out.forEach(o=>o.used.forEach(u=>{const a=P([o.h.lon,o.h.lat]),b=P([N[u.c.node][0],N[u.c.node][1]]);
+    el('path',{d:`M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`,class:'pl',stroke:u.head>0?'var(--s2)':'var(--ok)','stroke-width':2.2,'vector-effect':'non-scaling-stroke'},gF)}));
+  // pumps receiving extra
+  PU.forEach((p,i)=>{if(p.internal)return;const [x,y]=P([N[p.node][0],N[p.node][1]]);const v=R.pump[i];const s=3+Math.sqrt(p.cap)*1.1;
+    const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);el('path',{d:`M0,${-s}L${s*.9},${s*.6}L${-s*.9},${s*.6}Z`,class:'pm',fill:v>0.05?'var(--accent)':'var(--down)'},g);
+    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>รับน้ำจากชุมชนเพิ่ม ${fmt(v,2)} ลบ.ม./วิ.`));g.addEventListener('mouseleave',hideTip)});
+  // hotspots
+  const vmax=Math.max(...R.out.map(o=>vol(o.h)),1);
+  R.out.forEach(o=>{const h=o.h;const g=el('g',{class:'hs'+(sel===h.id?' sel':''),tabindex:0},gH);
+    if(h.ring)el('path',{d:line(h.ring)+'Z',class:'ring','vector-effect':'non-scaling-stroke'},g);
+    const [x,y]=P([h.lon,h.lat]);const r=4+10*Math.sqrt(vol(h)/vmax);const m=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},g);
+    el('circle',{r:r*1.6,class:'halo'},m);el('circle',{r,fill:o.state==='ok'?'var(--ok)':o.state==='pump'?'var(--crit)':'var(--surface)',stroke:o.state==='canal'?'var(--crit)':'var(--bg)','stroke-width':o.state==='canal'?2:1.2},m);
+    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(h.name)}</b><br>${esc(h.district)} · ลึก ~${fmt(h.depth*100)} ซม. · ${fmt(vol(h)/1e3)} พัน ลบ.ม.`));g.addEventListener('mouseleave',hideTip);
+    g.addEventListener('click',()=>showHot(h.id))});
+  setVB();
+  $('#legend').innerHTML=`<span>จุดน้ำท่วมขัง (ขนาด = ปริมาณน้ำ):</span><span><i class="dot" style="background:var(--ok)"></i>สูบได้ตามแผน</span><span><i class="dot" style="background:var(--crit)"></i>เครื่องไม่พอ</span><span><i class="dot" style="background:var(--surface);box-shadow:inset 0 0 0 2px var(--crit)"></i>คลองใกล้เคียงรับน้ำไม่ได้</span><span><i class="dot" style="background:var(--s2);border-radius:1px;height:3px;width:14px"></i>สูบข้ามคันลงคลอง</span>
+   <span><i class="dot" style="background:var(--warn);border-radius:1px;height:3px;width:14px"></i>น้ำที่เพิ่มในคลองไปสถานีสูบ</span><span>▲ สถานีสูบที่รับน้ำเพิ่ม</span><span style="flex-basis:100%;height:0"></span>
+   <span>พื้นดิน (DEM, ม.)</span><span class="ramp">${['#0a203c','#104660','#265c5c','#466048','#686246','#847656'].map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="num">−0.5 · 0.6 · 1.2 · 1.8 · 2.6 · ≥4</span><span><i class="dot" style="background:var(--crit);opacity:.6;width:5px;height:5px"></i>รายงาน Traffy</span><span><i class="dot" style="background:#3cb4ff;border-radius:2px"></i>บริเวณที่น่าจะท่วม (ต่ำกว่าระดับน้ำที่รายงาน, ช่อง 120 ม.)</span><span><i class="dot" style="background:var(--ink-2);border-radius:1px;width:12px;height:5px"></i>ประตูระบายน้ำ ทึบ = เปิด · โปร่ง = ปิด · วงประ <span style="color:var(--accent)">ควรเปิด</span>/<span style="color:var(--crit)">ควรปิด</span></span><span>เส้นประปลายทาง = ทางน้ำนอกเขต กทม. ถึงทะเล/แม่น้ำ</span>`;
+}
+
+function summary(){const o=R.out;const cnt=f=>HOT.filter(h=>!h.user&&h.n>=prm.minN&&h.fresh===f).length;
+  const vA=o.reduce((a,x)=>a+x.h.area_km2*1e6*x.h.depth*prm.K,0),vD=o.reduce((a,x)=>a+(x.h.vol_dem||x.h.area_km2*1e6*x.h.depth*prm.K),0);const V=o.reduce((a,x)=>a+vol(x.h),0),need=o.reduce((a,x)=>a+x.need,0),alloc=o.reduce((a,x)=>a+x.alloc,0);
+  const short_=o.filter(x=>x.alloc<x.need).length;const served=o.reduce((a,x)=>a+x.served,0),q=o.reduce((a,x)=>a+x.q,0);
+  const hrs=o.map(x=>x.hours).filter(x=>x!=null);const worst=hrs.length?Math.max(...hrs):null;
+  $('#strip').innerHTML=`
+  <div class="kpi"><div class="eyebrow">จุดน้ำท่วมขังที่ยังมีรายงาน</div><div class="v">${o.length}<small>จุด · ${fmt(D.pond.n_reports)} รายงาน</small></div><div class="chips"><span>ยังท่วม ${cnt('ยืนยัน')} · น่าจะยังท่วม ${cnt('น่าจะยังท่วม')} · อาจลดแล้ว ${cnt('อาจลดแล้ว')}${prm.stale?'':' (ไม่นับ)'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">ปริมาณน้ำขัง (ประมาณ)</div><div class="v">${fmt(V/1e6,2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ช่วง ${fmt(Math.min(vA,vD)/1e6,1)}–${fmt(Math.max(vA,vD)/1e6,1)} ล้าน ลบ.ม. (หมู่บ้าน / DEM) · สูบหมดใน ${prm.T} ชม. ต้องการ ${fmt(q,1)} ลบ.ม./วิ.</span></div></div>
+  <div class="kpi"><div class="eyebrow">เครื่องสูบเคลื่อนที่ที่ต้องใช้</div><div class="v" style="color:${need>prm.F?'var(--crit)':'inherit'}">${fmt(need)}<small>เครื่อง (${prm.U.toFixed(2)} ลบ.ม./วิ.) มี ${prm.F}</small></div><div class="chips"><span>${short_?`${short_} จุดได้เครื่องไม่ครบ`:'เครื่องพอทุกจุด'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">คลองรับน้ำเพิ่มได้</div><div class="v">${fmt(served/q*100||0)}<small>% ของน้ำที่ต้องสูบออก</small></div><div class="chips"><span>${worst?`จุดที่ช้าที่สุดหมดใน ${fmt(worst/24,1)} วัน`:''}</span></div></div>`;
+}
+
+function table(){const rows=R.out.slice().sort((a,b)=>b.score-a.score);
+  $('#tHot').innerHTML=`<thead><tr><th class="l">จุด</th><th class="l">เขต</th><th class="l">สถานะ</th><th>รายงานล่าสุด</th><th>รายงาน</th><th>ลึก (ซม.)</th><th>ท่วมมาแล้ว (วัน)</th><th>น้ำ (พัน ลบ.ม.)</th><th class="l">สูบลงคลอง</th><th>เครื่อง (ต้องการ/ได้)</th><th>หมดใน (ชม.)</th></tr></thead><tbody>${rows.map(o=>{const u=o.used[0];
+   return `<tr data-id="${esc(o.h.id)}"><td class="l" style="white-space:normal">${esc(o.h.name)} <span class="note">${esc(o.h.id)}</span></td><td class="l">${esc(o.h.district)}</td><td class="l">${freshChip(o.h)}</td><td class="num">${dTxt(o.h.last_time,1)}</td><td class="num">${o.h.n}</td><td class="num">${fmt(o.h.depth*100)}</td><td class="num" title="${o.h.first_time?'รายงานแรกของรอบนี้ '+dTxt(o.h.first_time):''}">${o.h.days??'–'}${o.h.first_time?` <span class="note">(ตั้งแต่ ${dTxt(o.h.first_time,1).replace(/ \d+:\d+$/,'')})</span>`:''}</td><td class="num">${fmt(vol(o.h)/1e3)}</td>
+   <td class="l">${u?`${esc(u.c.canal)} ${fmt(u.c.dist)} ม.`:'<span style="color:var(--crit)">คลองใกล้เคียงรับไม่ได้</span>'}</td><td class="num" style="color:${o.alloc<o.need?'var(--crit)':'inherit'}">${o.need}/${o.alloc}</td><td class="num">${o.hours?fmt(o.hours):'–'}</td></tr>`}).join('')}</tbody>`}
+$('#tHot').addEventListener('click',e=>{const tr=e.target.closest('tr[data-id]');if(!tr)return;const h=HOT.find(x=>x.id===tr.dataset.id);zoomTo(h.lon,h.lat);showHot(h.id);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})});
+
+let sel=null;const insp=$('#insp');
+function showHot(id){sel=id;const o=R.out.find(x=>x.h.id===id);if(!o){insp.innerHTML='<p class="note">จุดนี้มีรายงานน้อยกว่าเกณฑ์ที่ตั้งไว้</p>';return}const h=o.h;
+  gH.querySelectorAll('.hs').forEach(g=>g.classList.remove('sel'));
+  const ws=(h.ground??null)!=null?h.ground+h.depth:null;
+  const steps=[];const u0=o.used[0];
+  if(u0){const t=trace(u0.c.node);const names=[];t.path.forEach(ei=>{const n=NM[E[ei][2]]||'คลองไม่มีชื่อ';if(names[names.length-1]!==n)names.push(n)});
+    const end=t.end?(t.end[0]==='p'?short(PU[t.end[1]].name):OU[t.end[1]].name):'สถานีสูบปลายคลอง';
+    if(o.alloc===0)steps.push(`ต้องการเครื่องสูบ ${o.need} เครื่อง แต่เครื่องที่มีถูกจัดให้จุดที่เร่งด่วนกว่าแล้ว (เพิ่มจำนวนเครื่องที่มีทางซ้ายเพื่อดูผล) ปลายทางที่ดีที่สุดคือ<b>${esc(u0.c.canal)}</b> ห่าง ${fmt(u0.c.dist)} ม.`);else steps.push(`ตั้งเครื่องสูบ ${o.alloc} เครื่อง (${fmt(o.alloc*prm.U,2)} ลบ.ม./วิ.) ที่ขอบ${esc(h.name)} สูบลง<b>${esc(u0.c.canal)}</b> ห่าง ${fmt(u0.c.dist)} ม.${u0.c.level!=null?` (น้ำในคลอง ${fmt(u0.c.level,2)} ม.รทก.${u0.c.warn!=null?(u0.c.level>u0.c.warn?' เกินเกณฑ์เตือน':' ต่ำกว่าเกณฑ์เตือน'):''})`:''}`);
+    steps.push(`น้ำในคลองไหลต่อ: ${names.map(esc).join(' → ')||esc(u0.c.canal)} → <b>${esc(end)}</b>${t.end&&t.end[0]==='o'?outerTxt(OU[t.end[1]].node):''}`);
+    if(o.used[1])steps.push(`ทางเลือกที่สอง: ${esc(o.used[1].c.canal)} (${fmt(o.used[1].c.dist)} ม.) รับได้อีก ${fmt(o.used[1].q,2)} ลบ.ม./วิ.`);
+    if(o.alloc>0&&o.alloc<o.need)steps.push(`<span style="color:var(--crit)">เครื่องสูบไม่พอ ต้องการ ${o.need} เครื่อง ได้ ${o.alloc} (จุดอื่นคะแนนสูงกว่า)</span>`);
+    if(o.served<o.q-1e-3)steps.push(`<span style="color:var(--crit)">คลองใกล้เคียงรับน้ำเพิ่มได้ ${fmt(o.served,2)} จาก ${fmt(o.q,2)} ลบ.ม./วิ. ต้องรอคลองลด หรือใช้เวลานานกว่าเป้าหมาย</span>`);
+    highlight([...t.path])}else{steps.push('ไม่มีคลองสายหลักภายใน 2 กม. ที่รับน้ำเพิ่มได้ ใช้รถสูบหรือระบายลงท่อระบายน้ำถนน');highlight([])}
+  insp.innerHTML=`<div class="eyebrow">จุดน้ำท่วมขัง ${esc(h.id)} · ${esc(h.district||'เพิ่มเอง')}</div><h2>${esc(h.name)}</h2>
+  ${h.estates&&h.estates.length?`<p class="note" style="margin:0">หมู่บ้านในพื้นที่ (OSM): ${h.estates.map(esc).join(', ')}</p>`:''}
+  <dl><dt>รายงาน</dt><dd class="num">${h.n} เรื่อง${h.days?` · ท่วมมาแล้ว ${h.days} วัน${h.first_time?` (รายงานแรกของรอบนี้ ${dTxt(h.first_time)})`:''}`:''}</dd>
+  <dt>สถานะ</dt><dd>${freshChip(h)} รายงานล่าสุด ${dTxt(h.last_time)}<br><span class="note">(ข้อมูล Traffy ถึง ${dTxt(D.pond.fetched)} · ใน 24 ชม. ${h.n24??'–'} เรื่อง · 48 ชม. ${h.n48??'–'} เรื่อง)</span></dd>
+  ${h.sensors&&h.sensors.length?`<dt>เซนเซอร์น้ำท่วมถนน (สนน.)</dt><dd>${h.sensors.map(x=>`${esc(x.name)} ${fmt(x.dist)} ม.: ${x.cm!=null?fmt(x.cm)+' ซม.':'–'} (${esc(x.status)})`).join('<br>')}</dd>`:''}
+  <dt>ปริมาณน้ำ</dt><dd class="num">${fmt(vol(h))} ลบ.ม.${h.vol_dem?`<br><span class="note">DEM: ${fmt(h.dem_area_km2,2)} ตร.กม. ลึกเฉลี่ย ${fmt(h.dem_depth*100)} ซม. = ${fmt(h.vol_dem/1e3)} พัน ลบ.ม. · หมู่บ้าน × ลึก × ${Math.round(prm.K*100)}%: ${fmt(h.area_km2*1e6*h.depth*prm.K/1e3)} พัน ลบ.ม.</span>`:''}</dd>
+  <dt>พื้นดิน (DEM, คร่าว ๆ)</dt><dd class="num">${h.ground!=null?fmt(h.ground,2)+' ม.':'–'}${ws!=null?` · ผิวน้ำ ~${fmt(ws,2)} ม.`:''}</dd>
+  ${u0&&u0.c.level!=null?`<dt>น้ำใน${esc(u0.c.canal)}</dt><dd class="num">${fmt(u0.c.level,2)} ม.รทก. (เตือน ${fmt(u0.c.warn,2)})<br><span class="note">${esc(u0.c.station||'')}</span></dd>`:''}
+  <dt>สูบหมดใน</dt><dd class="num">${o.hours?fmt(o.hours)+' ชม. ('+fmt(o.hours/24,1)+' วัน)':'–'}</dd></dl>
+  <div class="edit"><label for="eDep">ความลึก (ม.)</label><input id="eDep" type="number" min="0.05" max="2" step="0.05" value="${h.depth}"><label for="eArea">พื้นที่ (ตร.กม.)</label><input id="eArea" type="number" min="0.01" max="5" step="0.01" value="${h.area_km2}"></div>
+  <div class="eyebrow">คำแนะนำหน้างาน</div><ol class="steps">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+  ${h.quotes&&h.quotes.length?`<div class="eyebrow">จากรายงานประชาชน</div>${h.quotes.map(q=>`<p class="q">${esc(q)}…</p>`).join('')}`:''}`;
+  $('#eDep').addEventListener('change',e=>{h.depth=Math.max(0.05,+e.target.value||h.depth);h.edited=true;schedule()});
+  $('#eArea').addEventListener('change',e=>{h.area_km2=Math.max(0.01,+e.target.value||h.area_km2);h.edited=true;schedule()});
+  gH.querySelectorAll('.hs').forEach((g,i)=>{if(R.out[i]&&R.out[i].h.id===id)g.classList.add('sel')});
+}
+const gHL=el('g',{},svg);svg.insertBefore(gHL,gH);
+function highlight(path){gHL.innerHTML='';path.forEach(ei=>el('path',{d:line(E[ei][6]),fill:'none',stroke:'var(--ink)','stroke-width':3.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke',opacity:.8},gHL))}
+
+// gates: telemetry status + advice from the levels on both sides
+const GT=D.gates||[];
+drawGates(GT,gG,P,showTip,hideTip,esc,g=>zoomTo(g[3],g[2]));
+(()=>{const c=gateSummary(GT);const li=(arr)=>arr.slice(0,6).map(([g,a])=>`<li data-c="${esc(g[0])}">${esc(short(g[1]).replace(/^ปตร\./,''))} · ${a.open?'เปิด '+g[4]+' ม.':'ปิด'} · ${a.dh>0?'ในสูงกว่า':'นอกสูงกว่า'} ${Math.abs(a.dh).toFixed(2)} ม.</li>`).join('');
+  $('#gateSum').innerHTML=`<div>${GT.length} ประตูที่รายงานค่า · เปิด ${GT.filter(g=>g[4]>0).length} · ปิด ${GT.filter(g=>!(g[4]>0)).length}</div>
+   ${c.open.length?`<div><b style="color:var(--accent)">ควรเปิด ${c.open.length}</b><ul>${li(c.open)}</ul></div>`:''}
+   ${c.close.length?`<div><b style="color:var(--crit)">ควรหรี่/ปิด ${c.close.length}</b><ul>${li(c.close)}</ul></div>`:''}
+   ${!c.open.length&&!c.close.length?'<div class="note">ทุกประตูอยู่ในสถานะที่สอดคล้องกับระดับน้ำสองฝั่ง</div>':''}
+   <p class="note" style="margin:0">ดูจากระดับน้ำสองฝั่งเท่านั้น</p>`;
+  $('#gateSum').addEventListener('click',e=>{const l=e.target.closest('li[data-c]');if(!l)return;const g=GT.find(x=>x[0]===l.dataset.c);if(g){zoomTo(g[3],g[2]);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}})})();
+buildOptions();
+run();
+const first=R.out.slice().sort((a,b)=>b.score-a.score)[0];if(first){showHot(first.h.id)}
+})();
+</script>
+__UPDATE_BUTTON__

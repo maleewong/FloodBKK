@@ -1,0 +1,8 @@
+# update.py, build.py, build_model.py, render.py and serve.py use only the Python standard library.
+# The 30-day drainage plan (plan_lp.py) and the one-off network/calibration scripts need:
+numpy
+scipy
+networkx
+# flood ponding page (build_ponding.py):
+shapely
+scikit-learn

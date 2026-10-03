@@ -1,0 +1,96 @@
+# Fetch the latest BMA drainage data every 2 hours, recompute the 30-day plan and publish both pages to GitHub Pages.
+# One-time setup: repo Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+name: update-and-publish
+
+on:
+  schedule:
+    - cron: "7 */2 * * *"     # every 2 hours at minute 7 (UTC)
+  workflow_dispatch:          # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # data that grows between runs (latest snapshot, pump history, 48 h hourly levels)
+      - name: Restore data from the previous run
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/snapshot.json
+            data/idmap.json
+            data/pump_raw.json
+            data/wr_raw.json
+            data/traffy_flood.json
+            data/forecast_raw.json
+          key: live-${{ github.run_id }}
+          restore-keys: live-
+
+      - name: Fetch latest data and rebuild
+        id: fetch
+        continue-on-error: true
+        run: |
+          H=$(date -u +%H)
+          # the 48 h hourly levels (~270 requests) only every 6 hours, to keep the load on the BMA site low
+          if [ $((10#$H % 6)) -eq 0 ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python scripts/update.py --hourly
+          else
+            python scripts/update.py
+          fi
+
+      - name: Rebuild from the data on disk (download failed)
+        if: steps.fetch.outcome == 'failure'
+        run: python scripts/update.py --offline
+
+      - name: Save data for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/snapshot.json
+            data/idmap.json
+            data/pump_raw.json
+            data/wr_raw.json
+            data/traffy_flood.json
+            data/forecast_raw.json
+          key: live-${{ github.run_id }}
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp bkk_drainage.html _site/index.html
+          cp bkk_drainage.html bkk_model.html bkk_forecast.html bkk_ponding.html _site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
