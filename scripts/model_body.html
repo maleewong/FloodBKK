@@ -86,6 +86,7 @@
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html" aria-current="page">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">สถานการณ์ปัจจุบัน: ระบายน้ำที่ค้างอยู่อย่างไร</h1>
+       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
@@ -94,7 +95,7 @@
 
   <section class="mgrid">
     <div class="panel">
-      <div class="panel-h"><h2>เส้นทางระบายตามแผน (วันแรก)</h2><span class="note" id="mapNote"></span></div>
+      <div class="panel-h"><h2>เส้นทางระบายตามแผน (วันแรก)<span class="src p">โมเดล</span></h2><span class="note" id="mapNote"></span></div>
       <div class="mapwrap" id="mapbox">
         <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งเมือง" style="font-size:12px">⤢</button></div>
         <svg id="map" role="img" aria-label="แผนที่เส้นทางระบายน้ำตามแผน"></svg>
@@ -104,35 +105,35 @@
       <div class="legend" id="legend"></div>
     </div>
     <aside class="panel advice" aria-live="polite">
-      <div><div class="panel-h"><h2>คำแนะนำตอนนี้</h2></div><div class="recs" id="pRecs"></div></div>
-      <div><div class="eyebrow" id="aPumpH">สถานีที่ควรเพิ่มการสูบ</div><ul class="alist" id="aPump"></ul></div>
-      <div><div class="eyebrow">คลองคอขวด: ความยาวช่วงที่เต็ม (กม.) · น้ำไหล (ลบ.ม./วิ.)</div><ul class="alist" id="aNeck"></ul></div>
-      <div><div class="eyebrow">น้ำที่ยังค้างหลัง 3 วันตามแผน (ล้าน ลบ.ม.)</div><ul class="alist" id="aLeft"></ul></div>
-      <div><div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)</div><div id="gateSum" style="font-size:13px;display:grid;gap:4px"></div></div>
+      <div><div class="panel-h"><h2>คำแนะนำตอนนี้<span class="src p">โมเดล</span></h2></div><div class="recs" id="pRecs"></div></div>
+      <div><div class="eyebrow" id="aPumpH">สถานีที่ควรเพิ่มการสูบ</div><ul class="alist" id="aPump"></ul><p class="note" id="aTrend" style="margin:6px 0 0"></p></div>
+      <div><div class="eyebrow">คลองคอขวด: ความยาวช่วงที่เต็ม (กม.) · น้ำไหล (ลบ.ม./วิ.)<span class="src p">โมเดล</span></div><ul class="alist" id="aNeck"></ul></div>
+      <div><div class="eyebrow" id="aLeftH">น้ำที่ยังเกินระดับเตือนอีก 3 วัน (ล้าน ลบ.ม.)</div><ul class="alist" id="aLeft"></ul></div>
+      <div><div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)<span class="src m">ตรวจวัด</span></div><div id="gateSum" style="font-size:13px;display:grid;gap:4px"></div></div>
     </aside>
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>สถานะสถานีวัดน้ำรายเขต</h2><span class="note">เรียงจากเขตที่มีสถานีวิกฤตมากที่สุด · คลิกเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>สถานะสถานีวัดน้ำรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note">เรียงจากเขตที่มีสถานีวิกฤตมากที่สุด · คลิกเพื่อดูบนแผนที่</span></div>
     <div class="chips" id="stLeg"></div>
     <div class="sbars" id="stBars"></div>
   </section>
 
   <section class="panel" id="planPanel">
-    <div class="panel-h"><h2>ถ้าไม่มีฝนเพิ่ม ต้องใช้เวลาระบายอีกกี่วัน</h2><span class="note" id="planNote"></span></div>
+    <div class="panel-h"><h2>ถ้าไม่มีฝนเพิ่ม ต้องใช้เวลาระบายอีกกี่วัน<span class="src p">โมเดล</span></h2><span class="note" id="planNote"></span></div>
     <div class="pgrid">
       <div class="pdays" id="pDays"></div>
       <div class="chart" id="cPlan"></div>
     </div>
     <div class="grid2">
-      <div><div class="eyebrow">สูบตรงไหน (วันแรกของแผน)</div><div class="tbl" style="max-height:330px"><table id="tPlanPump"></table></div></div>
-      <div><div class="eyebrow">คอขวด (ไหลเต็มความจุใน 2 วันแรก)</div><div class="tbl" style="max-height:330px"><table id="tPlanNeck"></table></div></div>
+      <div><div class="eyebrow">สูบตรงไหน (วันแรกของแผน)<span class="src p">โมเดล</span></div><div class="tbl" style="max-height:330px"><table id="tPlanPump"></table></div></div>
+      <div><div class="eyebrow">คอขวด (ไหลเต็มความจุใน 2 วันแรก)<span class="src p">โมเดล</span></div><div class="tbl" style="max-height:330px"><table id="tPlanNeck"></table></div></div>
     </div>
     <p class="note" id="planCaveat"></p>
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>การปรับเทียบจากข้อมูลย้อนหลัง</h2><span class="note" id="calNote"></span></div>
+    <div class="panel-h"><h2>การปรับเทียบจากข้อมูลย้อนหลัง<span class="src m">ตรวจวัด</span><span class="src p">โมเดล</span></h2><span class="note" id="calNote"></span></div>
     <p class="callout" id="calText"></p>
     <div class="chart" id="cCal"></div>
   </section>
@@ -224,15 +225,19 @@ const yest={};((PL.current&&PL.current.pumps)||[]).forEach(p=>{yest[p.name]=p.us
 const yTxt=p=>p.src!=='telemetry'?'ไม่มีมาตรวัด':notRep.has(short(p.name))?'ไม่มีค่า':yest[short(p.name)]!=null?fmt(yest[short(p.name)],1):'–';
 const notRep=new Set(PL.not_reporting||[]);
 const MONS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const YD=(d=>d?`${+d.slice(8,10)} ${MONS[+d.slice(5,7)-1]}`:'เมื่อวาน')((PL.assumptions||{}).pump_day);   // the day of the measured pumping
-const YDY=(d=>d?`${YD} ${+d.slice(0,4)+543}`:'เมื่อวาน')((PL.assumptions||{}).pump_day);
+// measured pumping used for the "as now" scenario: average of the last 3 measured days (pump_days)
+const PD=(PL.assumptions||{}).pump_days||[(PL.assumptions||{}).pump_day].filter(Boolean);
+const dm=d=>`${+d.slice(8,10)} ${MONS[+d.slice(5,7)-1]}`;
+const YD=!PD.length?'เมื่อวาน':PD.length===1?dm(PD[0]):PD[0].slice(5,7)===PD[PD.length-1].slice(5,7)?`${+PD[0].slice(8,10)}–${dm(PD[PD.length-1])}`:`${dm(PD[0])}–${dm(PD[PD.length-1])}`;
+const YA=PD.length>1?`เฉลี่ย ${YD}`:`วันที่ ${YD}`;
+const YAY=PD.length?`${YA} ${+PD[PD.length-1].slice(0,4)+543}`:YA;
 const utilColor=u=>u>=0.99?'var(--crit)':u>=0.7?'var(--serious)':u>=0.3?'var(--warn)':'var(--s1)';
 const adj=N.map(()=>[]);E.forEach((e,i)=>{adj[e[0]].push([i,e[1],1]);adj[e[1]].push([i,e[0],-1])});
 const pumpAt={};PU.forEach((p,i)=>pumpAt[p.node]=i);const outAt={};OU.forEach((o,i)=>outAt[o.node]=i);
 // districts: water still left after 3 days of the plan
-const left={};((PL.plan&&PL.plan.left_day3)||[]).forEach(([d,v])=>left[d]=v);const rampL=[0.05,0.5,2,5,15];
+const left={},leftC={};((PL.plan&&PL.plan.left_day3)||[]).forEach(([d,v])=>left[d]=v);((PL.current&&PL.current.left_day3)||[]).forEach(([d,v])=>leftC[d]=v);const rampL=[0.05,0.5,2,5,15];
 dPaths.forEach(([id,p])=>{const v=left[DN[id]]||0;p.style.fill=`var(--seq-${rampL.filter(t=>v>=t).length})`;p.style.fillOpacity=.55;
-  p.addEventListener('mousemove',e=>showTip(e,`<b>เขต${esc(DN[id]||'–')}</b><br>น้ำค้างหลัง 3 วันตามแผน ${fmt(v,2)} ล้าน ลบ.ม.`));p.addEventListener('mouseleave',hideTip)});
+  p.addEventListener('mousemove',e=>showTip(e,`<b>เขต${esc(DN[id]||'–')}</b><br>น้ำเกินระดับเตือนที่ยังเหลืออีก 3 วัน (ไม่มีฝนเพิ่ม)<br>ถ้าสูบตามแผน ${fmt(v,1)} ล้าน ลบ.ม.<br>ถ้าสูบเท่า${YA} ${fmt(leftC[DN[id]]||0,1)} ล้าน ลบ.ม.<br><span style="opacity:.7">ผลโมเดล</span>`));p.addEventListener('mouseleave',hideTip)});
 const mx=Math.max(...F.map(Math.abs),1);
 F.forEach((f,i)=>{const p=ePath[i],a=Math.abs(f),cap=E[i][5],u=cap>0?Math.min(1,a/cap):0;
   if(a<0.05){p.setAttribute('stroke','var(--axis)');p.setAttribute('stroke-width',E[i][3]==='C'?0.6:1);p.setAttribute('opacity',.7);return}
@@ -241,7 +246,7 @@ F.forEach((f,i)=>{const p=ePath[i],a=Math.abs(f),cap=E[i][5],u=cap>0?Math.min(1,
 PU.forEach((p,i)=>{if(p.internal)return;const [x,y]=P(N[p.node]);const q=pumpPlan[p.id]||0,c=p.cap*avail,u=c?q/c:0,ye=yest[short(p.name)];
   const s=4+Math.sqrt(p.cap)*1.3;const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
   const m=el('path',{d:`M0,${-s}L${s*0.9},${s*0.6}L${-s*0.9},${s*0.6}Z`,class:'pm',fill:q>0.05?utilColor(u):'var(--axis)',tabindex:0},g);
-  m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>แผน: สูบ ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>${YD}: ${yTxt(p)}${p.src==='telemetry'&&ye!=null&&!notRep.has(short(p.name))?' ลบ.ม./วิ. (เฉลี่ยทั้งวัน)':''}`));m.addEventListener('mouseleave',hideTip);
+  m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>แผน: สูบ ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>สูบจริง ${YA}: ${yTxt(p)}${p.src==='telemetry'&&ye!=null&&!notRep.has(short(p.name))?' ลบ.ม./วิ.':''}`));m.addEventListener('mouseleave',hideTip);
   m.addEventListener('click',()=>{gH.innerHTML='';$('#pathNote').innerHTML=`<b>${esc(short(p.name))}</b>: แผนวันแรกสูบ ${fmt(q,1)} ลบ.ม./วิ. (${fmt(u*100)}% ของกำลังที่ใช้ได้)`})});
 OU.forEach((o,i)=>{const [x,y]=P(N[o.node]);const q=OD[i]||0;const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
   const m=el('rect',{x:-3.5,y:-3.5,width:7,height:7,transform:'rotate(45)',class:'ol',fill:q>0.05?'var(--seq-2)':'var(--down)',tabindex:0},g);
@@ -254,7 +259,7 @@ setVB();
 $('#legend').innerHTML=`<span>ความกว้างเส้น = ปริมาณน้ำวันแรกของแผน · สี = ใช้ความจุคลอง</span>
  <span><i class="dot" style="background:var(--s1)"></i>&lt; 30%</span><span><i class="dot" style="background:var(--warn)"></i>30–70%</span><span><i class="dot" style="background:var(--serious)"></i>70–99%</span><span><i class="dot" style="background:var(--crit)"></i>เต็ม (คอขวด)</span><span><i class="dot" style="background:var(--axis)"></i>ไม่มีน้ำไหล</span>
  <span style="flex-basis:100%;height:0"></span><span>▲ สถานีสูบ (ขนาด = กำลังสูบ, สี = % ที่แผนใช้) · ◆ ทางออกขอบเขต (สมมติ) · ▬ ประตูระบายน้ำ ทึบ = เปิด โปร่ง = ปิด วงประ = ควรเปลี่ยน · เส้นประ = ทางน้ำต่อนอกเขต กทม. ถึงทะเล/แม่น้ำ (OSM, แสดงทิศทางเท่านั้น)</span>
- <span>พื้นเขต = น้ำค้างหลัง 3 วัน</span><span class="ramp">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--seq-${i})"></i>`).join('')}</span><span class="num">0 · 0.05 · 0.5 · 2 · 5 · 15 ล้าน ลบ.ม.</span>`;
+ <span>สีพื้นเขต = น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า</span><span class="ramp">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--seq-${i})"></i>`).join('')}</span><span class="num">0 · 0.05 · 0.5 · 2 · 5 · 15 ล้าน ลบ.ม.</span>`;
 $('#mapNote').textContent=PL.made?`แผนคำนวณ ${thDT(PL.made)} น.`:'ยังไม่มีแผน';
 // click a canal: trace where its water goes
 function trace(start){const seen=new Set([start]);const path=[];let cur=start,guard=0;
@@ -287,23 +292,26 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const st=Object.values(M.st);const crit=st.filter(s=>s[4]==='วิกฤต').length,warn=st.filter(s=>s[4]==='เตือนภัย').length;
   const neck=(PL.plan.bottlenecks||[]).filter(b=>b.name!=='คลองไม่มีชื่อ').length;
   $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">น้ำเกินเกณฑ์เตือนภัย</div><div class="v">${fmt(tot,1)}<small>ล้าน ลบ.ม. เทียบเท่า</small></div><div class="sub2">${ZN.map(z=>`${esc(z)} ${fmt(PL.volume0[z],1)}`).join(' · ')}</div></div>
-  <div class="kpi"><div class="eyebrow">สถานีวัดน้ำ ${st.length} สถานี</div><div class="v" style="color:${crit?'var(--crit)':'inherit'}">${crit}<small>วิกฤต · ${warn} เตือนภัย</small></div>
+  <div class="kpi"><div class="eyebrow">น้ำเกินเกณฑ์เตือนภัย<span class="src p">โมเดล</span></div><div class="v">${fmt(tot,1)}<small>ล้าน ลบ.ม. เทียบเท่า</small></div><div class="sub2">${ZN.map(z=>`${esc(z)} ${fmt(PL.volume0[z],1)}`).join(' · ')}</div></div>
+  <div class="kpi"><div class="eyebrow">สถานีวัดน้ำ ${st.length} สถานี<span class="src m">ตรวจวัด</span></div><div class="v" style="color:${crit?'var(--crit)':'inherit'}">${crit}<small>วิกฤต · ${warn} เตือนภัย</small></div>
     <div class="bar">${STS.map(([k,c])=>{const n=st.filter(x=>x[4]===k).length;return n?`<span style="width:${n/st.length*100}%;background:var(${c})" title="${k} ${n}"></span>`:''}).join('')}</div>
     <div class="chips">${STS.map(([k,c])=>`<span><i class="dot" style="background:var(${c})"></i>${k} ${st.filter(x=>x[4]===k).length}</span>`).join('')}</div></div>
-  <div class="kpi"><div class="eyebrow">${esc(main)}: ลด 90% ถ้าทำแบบเดิม</div><div class="v">${dt(d('current'))}<small>วัน</small></div><div class="sub2">${YDY} สูบจริงราว ${Math.round(PL.assumptions.fleet_util_now*100)}% ของกำลังสูบรวม (สถานีที่มีมาตรวัด)</div></div>
-  <div class="kpi"><div class="eyebrow">ถ้าเดินเครื่องตามแผน</div><div class="v" style="color:var(--accent)">${dt(d('plan'))}<small>วัน</small></div><div class="sub2">สูบ ${Math.round(avail*100)}% ของกำลังสูบรวมทุกสถานี · คลองคอขวด ${neck} สาย</div></div>`})();
+  <div class="kpi"><div class="eyebrow">${esc(main)}: ลด 90% ถ้าสูบเท่าเดิม<span class="src p">โมเดล</span></div><div class="v">${dt(d('current'))}<small>วัน</small></div><div class="sub2">${YAY} สูบจริงราว ${Math.round(PL.assumptions.fleet_util_now*100)}% ของกำลังสูบรวม (สถานีที่มีมาตรวัด)</div></div>
+  <div class="kpi"><div class="eyebrow">ถ้าเดินเครื่องตามแผน<span class="src p">โมเดล</span></div><div class="v" style="color:var(--accent)">${dt(d('plan'))}<small>วัน</small></div><div class="sub2">สูบ ${Math.round(avail*100)}% ของกำลังสูบรวมทุกสถานี · คลองคอขวด ${neck} สาย</div></div>`})();
 
 // ---------- advice lists (clickable, zoom to place) ----------
 (()=>{if(!PL.plan)return;
   const pumps=PU.filter(p=>!p.internal).map(p=>{const q=pumpPlan[p.id]||0,ye=p.src==='telemetry'?yest[short(p.name)]:null;return {p,q,ye,gap:q-(ye||0)}}).filter(x=>x.q>0.5&&x.gap>1).sort((a,b)=>b.gap-a.gap).slice(0,10);
-  $('#aPumpH').textContent=`สถานีที่ควรเพิ่มการสูบ: แผน ลบ.ม./วิ. (เทียบ ${YDY} เฉลี่ยทั้งวัน)`;
-  $('#aPump').innerHTML=pumps.length?pumps.map(x=>`<li tabindex="0" data-n="${x.p.node}"><span>${esc(short(x.p.name))}</span><span class="num">${fmt(x.q,1)} <span class="note">(${YD}: ${yTxt(x.p)})</span></span></li>`).join(''):'<li>ทุกสถานีสูบใกล้เคียงแผนแล้ว</li>';
+  $('#aPumpH').innerHTML=`สถานีที่ควรเพิ่มการสูบ: แผน ลบ.ม./วิ. (สูบจริง${YA})<span class="src p">โมเดล</span>`;
+  const PM=(PL.assumptions||{}).pump_measured||[];
+  $('#aTrend').innerHTML=PM.length?`สูบจริงรวม สถานีที่มีมาตรวัด<span class="src m">ตรวจวัด</span><br>`+PM.map(([d,v,u])=>`${dm(d)} <b>${fmt(v,1)}</b> ล้าน ลบ.ม. (${Math.round(u*100)}%)`).join(' · ')+`<br><span style="opacity:.75">% = ของกำลังสูบเต็มวันของสถานีเหล่านั้น</span>`:'';
+  $('#aPump').innerHTML=pumps.length?pumps.map(x=>`<li tabindex="0" data-n="${x.p.node}"><span>${esc(short(x.p.name))}</span><span class="num">${fmt(x.q,1)} <span class="note">(จริง: ${yTxt(x.p)})</span></span></li>`).join(''):'<li>ทุกสถานีสูบใกล้เคียงแผนแล้ว</li>';
   const bn=PL.plan.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,8).map(b=>{let k=-1,v=-1;E.forEach((e,i)=>{if(NM[e[2]]===b.name&&Math.abs(F[i])>v){v=Math.abs(F[i]);k=i}});return {...b,k}});
   $('#aNeck').innerHTML=bn.length?bn.map(b=>`<li tabindex="0" data-k="${b.k}"><span>${esc(b.name)} <span class="note">${esc(b.district)}</span></span><span class="num">${fmt(b.km,1)} กม. · ${fmt(b.q,1)} ลบ.ม./วิ.</span></li>`).join(''):'<li>ไม่มีคลองที่ไหลเต็มความจุ</li>';
   const cen={};M.geo.forEach(([c,n,coords])=>{let sx=0,sy=0,k=0;walk(coords,([x,y])=>{sx+=x;sy+=y;k++});cen[n]=[sx/k,sy/k]});
   const lf=PL.plan.left_day3.filter(x=>x[0]!=='นอกเขต'&&x[1]>=0.05).slice(0,8);
-  $('#aLeft').innerHTML=lf.length?lf.map(([d,v])=>`<li tabindex="0" data-d="${esc(d)}"><span>เขต${esc(d)}</span><span class="num">${fmt(v,1)}</span></li>`).join(''):'<li>ระบายหมดภายใน 3 วัน</li>';
+  $('#aLeft').innerHTML=lf.length?lf.map(([d,v])=>`<li tabindex="0" data-d="${esc(d)}"><span>เขต${esc(d)}</span><span class="num">${fmt(v,1)} <span class="note">(${fmt(leftC[d]||0,1)})</span></span></li>`).join(''):'<li>ทุกเขตลดต่ำกว่าระดับเตือนได้ภายใน 3 วัน</li>';
+  $('#aLeftH').innerHTML=`น้ำที่ยังเกินระดับเตือนอีก 3 วัน (ล้าน ลบ.ม.): ตามแผน (สูบเท่า${YA})<span class="src p">โมเดล</span>`;
   const go=li=>{if(li.dataset.k){const k=+li.dataset.k;zoomTo(...N[E[k][0]].slice(0,2));showEdge(k)}else if(li.dataset.n){zoomTo(...N[+li.dataset.n].slice(0,2))}else if(li.dataset.d&&cen[li.dataset.d]){zoomTo(...cen[li.dataset.d],W/3)}
     $('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})};
   document.querySelectorAll('.alist').forEach(ul=>{ul.addEventListener('click',e=>{const li=e.target.closest('li[tabindex]');if(li)go(li)});ul.addEventListener('keydown',e=>{const li=e.target.closest('li[tabindex]');if(li&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(li)}})});
@@ -373,7 +381,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
 
 // ---------- 30-day plan (multi-period LP) ----------
 (()=>{const PL=M.plan;if(!PL){$('#planPanel').hidden=true;return}
-  const SC=[['current','ทำแบบเดิม','--down','สูบเท่ากับ '+YD+' (~'+Math.round(PL.assumptions.fleet_util_now*100)+'% ของกำลังสูบ)'],
+  const SC=[['current','ทำแบบเดิม','--down','สูบเท่า'+YA+' (~'+Math.round(PL.assumptions.fleet_util_now*100)+'% ของกำลังสูบ)'],
     ['plan','เดินเครื่องตามแผน LP','--accent','สูบ '+Math.round(PL.assumptions.avail*100)+'% ของกำลังสูบ ส่งน้ำตามเส้นทางที่ดีที่สุด'],
     ['mobile','+ เครื่องสูบเคลื่อนที่','--s1','เพิ่มที่ทางออกด้านใต้/ตะวันออก เป็นจุดละ 15 ลบ.ม./วิ.'],
     ['trunk','+ ขยายคลองสายหลัก ×2','--s2','ระยะยาว: '+PL.trunk_canals.join(' ')]];
@@ -381,7 +389,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const dd=(k,a)=>{const d=(a?alt[k]:PL[k].days)?.[z]?.['90%'];return d==null?'> 30':d};
   if(PL.fetched!==M.fetched)$('#planCaveat').insertAdjacentHTML('beforebegin',`<p class="callout" style="border-color:var(--warn)">แผนนี้คำนวณจากข้อมูล ${thDT(PL.fetched)} แต่ข้อมูลในหน้าเป็น ${thDT(M.fetched)} ยังไม่ได้คำนวณแผนใหม่ (เครื่องนี้ต้องมี numpy scipy networkx)</p>`);
   $('#planNote').textContent=`LP หลายช่วงเวลา ช่วงละ ${PL.dt_h} ชม. ${PL.steps} ช่วง · ข้อมูล ${thDT(PL.fetched)} · คำนวณ ${thDT(PL.made)}`;
-  $('#pDays').innerHTML=`<div class="eyebrow">${esc(z)} ลดน้ำส่วนเกิน 90% (วัน)</div>`+SC.map(([k,t,c,d])=>`<div class="pday"><i style="background:var(${c})"></i><span>${esc(t)}</span><b>${dd(k)}${alt[k]?`<small style="display:inline;font-size:12px;color:var(--muted)"> (${dd(k,1)})</small>`:''}</b><small>${esc(d)}</small></div>`).join('')+
+  $('#pDays').innerHTML=`<div class="eyebrow">${esc(z)} ลดน้ำส่วนเกิน 90% (วัน)<span class="src p">โมเดล</span></div>`+SC.map(([k,t,c,d])=>`<div class="pday"><i style="background:var(${c})"></i><span>${esc(t)}</span><b>${dd(k)}${alt[k]?`<small style="display:inline;font-size:12px;color:var(--muted)"> (${dd(k,1)})</small>`:''}</b><small>${esc(d)}</small></div>`).join('')+
     `<p class="note" style="margin:0">${Object.keys(alt).length?'ตัวเลขในวงเล็บ: ความเร็วน้ำ 0.68 ม./วิ. (เทียบกรณีศึกษา SWE ปี 2561) · ':''}โซนอื่น: ${Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง'&&k!==z).map(k=>`${k} ${PL.plan.days[k]?.['90%']??'–'} วัน`).join(' · ')}</p>`;
   // chart: total effective excess volume over days
   const w=640,h=230,l=46,r=16,t=12,b=30;const n=PL.steps+1;const ser=SC.map(([k,,c])=>[PL[k].series['รวมทั้งเมือง'],c]);
@@ -394,7 +402,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   el('line',{x1:l,x2:w-r,y1:ys(0),y2:ys(0),stroke:'var(--axis)'},g);
   $('#cPlan').insertAdjacentHTML('afterbegin',`<div class="chips"><span>น้ำส่วนเกินเกณฑ์เตือนภัยที่เหลือทั้งเมือง (ล้าน ลบ.ม. เทียบเท่า) · แกนนอน: วันนับจากตอนนี้</span></div>`);
   const P0=PL.plan,C0=PL.current;const cu={};C0.pumps.forEach(p=>cu[p.name]=p.use);
-  $('#tPlanPump').innerHTML=`<thead><tr><th>สถานีสูบ</th><th>แผน (ลบ.ม./วิ.)</th><th>${YD}</th><th>% กำลัง</th></tr></thead><tbody>${P0.pumps.filter(p=>p.use>0.5||cu[p.name]>0.5).map(p=>`<tr><td>${esc(short(p.name))}</td><td class="num">${fmt(p.use,1)}</td><td class="num">${(PU.find(q=>q.name===p.name)||{}).src!=='telemetry'?'ไม่มีมาตรวัด':PL.not_reporting&&PL.not_reporting.includes(p.name)?'ไม่มีค่า':fmt(cu[p.name]||0,1)}</td><td class="num">${fmt(p.util*100)}<span class="cellbar" style="width:${p.util*50}px;background:${utilColor(p.util)}"></span></td></tr>`).join('')}</tbody>`;
+  $('#tPlanPump').innerHTML=`<thead><tr><th>สถานีสูบ</th><th>แผน (ลบ.ม./วิ.)</th><th>สูบจริง ${YA}</th><th>% กำลัง</th></tr></thead><tbody>${P0.pumps.filter(p=>p.use>0.5||cu[p.name]>0.5).map(p=>`<tr><td>${esc(short(p.name))}</td><td class="num">${fmt(p.use,1)}</td><td class="num">${(PU.find(q=>q.name===p.name)||{}).src!=='telemetry'?'ไม่มีมาตรวัด':PL.not_reporting&&PL.not_reporting.includes(p.name)?'ไม่มีค่า':fmt(cu[p.name]||0,1)}</td><td class="num">${fmt(p.util*100)}<span class="cellbar" style="width:${p.util*50}px;background:${utilColor(p.util)}"></span></td></tr>`).join('')}</tbody>`;
   $('#tPlanNeck').innerHTML=`<thead><tr><th>คลอง</th><th class="l">เขต</th><th>ยาว (กม.)</th><th>ไหล (ลบ.ม./วิ.)</th></tr></thead><tbody>${P0.bottlenecks.map(b=>`<tr><td>${esc(b.name)}</td><td class="l">${esc(b.district)}</td><td class="num">${fmt(b.km,1)}</td><td class="num">${fmt(b.q,1)}</td></tr>`).join('')}</tbody>`;
   // computed values are shown bold (V), fixed general advice is muted (G); everything else is connecting text
   const Vc=x=>`<b class="cv">${esc(x)}</b>`,Gt=x=>`<span class="gen">${esc(x)}</span>`,list=a=>a.map(Vc).join(', ');
@@ -416,11 +424,11 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const neckLi=P0.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,4).map(b=>`<li>${Vc(b.name)} (${esc(b.district)}) ยาว ${fmt(b.km,1)} กม.</li>`).join('');
   const R2=tot<0.05?[['--ok','ทำอะไรตอนนี้',`ไม่มีน้ำเกินเกณฑ์เตือนภัย ${Gt('เดินเครื่องตามปกติและพร่องน้ำรอฝน')}`]]:[
     ['--crit','ทำอะไรตอนนี้',`<p>น้ำเกินเกณฑ์เตือนภัย ${Vc(pct(share))} อยู่${Vc(main)}${quick.length?` ส่วน${list(quick)}ลดได้${Vc('ภายใน 1 วัน')}`:''}</p>
-      <p>วันที่ ${esc(YDY)} สูบจริงราว ${Vc(Math.round(PL.assumptions.fleet_util_now*100)+'%')} ของกำลังสูบรวม ควรเพิ่มการสูบที่ ${list(pumpsNow)}${trunk.length?` โดยส่งน้ำผ่าน${list(trunk)}`:''}</p>`],
+      <p>${esc(YAY)} สูบจริงราว ${Vc(Math.round(PL.assumptions.fleet_util_now*100)+'%')} ของกำลังสูบรวม ควรเพิ่มการสูบที่ ${list(pumpsNow)}${trunk.length?` โดยส่งน้ำผ่าน${list(trunk)}`:''}</p>`],
     ['--warn','คอขวด',`<p>คลองที่น้ำไหลเต็มความจุ (ส่งน้ำได้ไม่ทัน)</p><ul>${neckLi||'<li>ไม่มี</li>'}</ul>
-      ${leftLi?`<p>น้ำที่ยังค้างหลัง 3 วัน แม้เดินเครื่องตามแผน</p><ul>${leftLi}</ul>`:''}`],
+      ${leftLi?`<p>เขตที่อีก 3 วันยังมีน้ำเกินระดับเตือน แม้สูบตามแผน</p><ul>${leftLi}</ul>`:''}`],
     ['--s1','ระยะสั้น',`<p>เวลาที่${esc(main)}ลดน้ำส่วนเกินได้ 90%</p><ul>
-      <li>สูบเท่าวันที่ ${esc(YD)} (แบบเดิม): ${ddT('current')}</li>
+      <li>สูบเท่า${esc(YA)} (แบบเดิม): ${ddT('current')}</li>
       <li>เพิ่มการสูบเป็น ${Math.round(PL.assumptions.avail*100)}% ของกำลังสูบ ตามแผน: ${ddT('plan')}</li>
       <li>+ เครื่องสูบเคลื่อนที่ที่ทางออกคลองด้านใต้/ตะวันออก${leftD.length?` (ใกล้${leftD.map(esc).join(' ')})`:''}: ${ddT('mobile')}</li></ul>
       <p>${Gt('ทั่วไป: ประสานหน่วยงานด้านท้ายน้ำ เปิดทางน้ำ เก็บผักตบตามแนวคอขวด พร่องน้ำในคลองหลักก่อนฝนรอบใหม่')}</p>`],
@@ -448,7 +456,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
     const n=S.length,a30=Math.max(0,n-30);
     rows.push(row(`30 วันล่าสุด (${dd(S[a30][0])} – ${dd(S[n-1][0])})`,a30,n-1));
     const head=['ช่วง','ฝนเฉลี่ย (มม.)','ฝนที่ตกลงพื้นที่ (ล้าน ลบ.ม.)','สูบออกจริง (ล้าน ลบ.ม.)'];
-    return `<div><h3>5. ฝนที่ตกกับน้ำที่สูบออกจริง (ตรวจวัด)</h3>
+    return `<div><h3>5. ฝนที่ตกกับน้ำที่สูบออกจริง<span class="src m">ตรวจวัด</span></h3>
       <p class="note" style="margin:0 0 6px">เฉพาะ ${B.n_tel} สถานีสูบที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม. · ช่วงฝน = วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน</p>
       <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
   $('#ver').innerHTML=`

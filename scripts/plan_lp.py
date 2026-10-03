@@ -65,8 +65,12 @@ base = cal['base_m3s_km2']
 pdays = collections.defaultdict(dict)
 for r in csv.DictReader(open(P('pump_daily.csv'), encoding='utf-8-sig')):
     pdays[r['day']][r['code']] = (float(r['capacity_m3'] or 0), float(r['discharged_m3'] or 0))
-last = sorted(pdays)[-1]; rep = {c: v for c, v in pdays[last].items() if v[1] > 0}
+days3 = sorted(pdays)[-3:]; last = days3[-1]                   # average of the last 3 measured days (less noisy than one day)
+_codes = {c for d in days3 for c, v in pdays[d].items() if v[1] > 0}
+rep = {c: (sum(pdays[d].get(c, (0, 0))[0] for d in days3) / len(days3), sum(pdays[d].get(c, (0, 0))[1] for d in days3) / len(days3)) for c in _codes}
 fleet = sum(v[1] for v in rep.values()) / max(1, sum(v[0] for v in rep.values()))
+pump_measured = [[d, round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / 1e6, 2),
+                  round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / max(1, sum(pdays[d].get(c, (0, 0))[0] for c in _codes)), 3)] for d in days3]
 def rate_now(p):
     return rep[p['id']][1] / 86400 if p['id'] in rep else p['cap'] * fleet
 
@@ -183,7 +187,7 @@ TRUNK = dict(list({b['name']: 2.0 for b in _neck if b['name'] != 'คลอง�
 LONG = solve(plan_cap, lam, 'plan+trunk x2', outlet=15.0, capmul=TRUNK)
 
 out = dict(not_reporting=cal.get('not_reporting', []), made=time.strftime('%Y-%m-%d %H:%M'), fetched=M['fetched'], dt_h=DT_H, steps=K,
-           assumptions=dict(v=V_MS, avail=AVAIL, outlet=OUTLET, base=base, fleet_util_now=round(fleet, 2), pump_day=last,
+           assumptions=dict(v=V_MS, avail=AVAIL, outlet=OUTLET, base=base, fleet_util_now=round(fleet, 2), pump_day=last, pump_days=days3, pump_measured=pump_measured,
                             lambda_zone={z: round(v, 1) for z, v in lam_z.items()}),
            volume0={z: round(s[0] / 1e6, 3) for z, s in CUR['zv'].items()},
            observed=dict(by_zone_days=obs_days, stations=sorted(obs.values(), key=lambda o: -(o['days'] or 999))),

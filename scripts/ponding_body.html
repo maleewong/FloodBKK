@@ -77,6 +77,7 @@
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html" aria-current="page">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">จำลองสถานการณ์: สูบน้ำท่วมขังในชุมชน</h1>
+       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src r">รายงานประชาชน</span> รายงาน Traffy Fondue · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
       <p class="sub">เริ่มจากสถานการณ์ปัจจุบัน ลองปรับแล้วดูผลบนแผนที่</p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
@@ -89,7 +90,7 @@
       <div class="presets" id="presets"></div>
       <div class="levers" id="levers"></div>
       <div class="resbox" id="resbox" aria-live="polite"></div>
-      <div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)</div>
+      <div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)<span class="src m">ตรวจวัด</span></div>
       <div id="gateSum" class="gsum"></div>
       <details><summary class="note">ชั้นแผนที่</summary>
         <label><input type="checkbox" id="lyDem" checked> ความสูงพื้นดิน (DEM)</label>
@@ -102,7 +103,7 @@
     </div>
 
     <div class="panel mapcol">
-      <div class="panel-h"><h2>เส้นทางสูบออกที่แนะนำ</h2><span class="note">ลากเพื่อเลื่อน · เลื่อนล้อเมาส์เพื่อซูม · คลิกวงกลมเพื่อดูคำแนะนำ</span></div>
+      <div class="panel-h"><h2>เส้นทางสูบออกที่แนะนำ<span class="src p">โมเดล</span></h2><span class="note">ลากเพื่อเลื่อน · เลื่อนล้อเมาส์เพื่อซูม · คลิกวงกลมเพื่อดูคำแนะนำ</span></div>
       <div class="mapwrap" id="mapbox">
         <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งหมด" style="font-size:12px">⤢</button></div>
         <svg id="map" role="img" aria-label="แผนที่จุดน้ำท่วมขังและเส้นทางสูบออก"></svg>
@@ -115,7 +116,7 @@
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ลำดับความเร่งด่วน</h2><span class="note">คะแนน = ความลึก × จำนวนวัน × จำนวนรายงาน · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>ลำดับความเร่งด่วน<span class="src r">รายงานประชาชน</span></h2><span class="note">คะแนน = ความลึก × จำนวนวัน × จำนวนรายงาน · คลิกแถวเพื่อดูบนแผนที่</span></div>
     <div class="tbl"><table id="tHot"></table></div>
   </section>
 
@@ -329,10 +330,10 @@ function summary(){const o=R.out;const cnt=f=>HOT.filter(h=>!h.user&&h.n>=prm.mi
   const short_=o.filter(x=>x.alloc<x.need).length;const served=o.reduce((a,x)=>a+x.served,0),q=o.reduce((a,x)=>a+x.q,0);
   const hrs=o.map(x=>x.hours).filter(x=>x!=null);const worst=hrs.length?Math.max(...hrs):null;
   $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">จุดน้ำท่วมขังที่ยังมีรายงาน</div><div class="v">${o.length}<small>จุด · ${fmt(D.pond.n_reports)} รายงาน</small></div><div class="chips"><span>ยังท่วม ${cnt('ยืนยัน')} · น่าจะยังท่วม ${cnt('น่าจะยังท่วม')} · อาจลดแล้ว ${cnt('อาจลดแล้ว')}${prm.stale?'':' (ไม่นับ)'}</span></div></div>
-  <div class="kpi"><div class="eyebrow">ปริมาณน้ำขัง (ประมาณ)</div><div class="v">${fmt(V/1e6,2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ช่วง ${fmt(Math.min(vA,vD)/1e6,1)}–${fmt(Math.max(vA,vD)/1e6,1)} ล้าน ลบ.ม. (หมู่บ้าน / DEM) · สูบหมดใน ${prm.T} ชม. ต้องการ ${fmt(q,1)} ลบ.ม./วิ.</span></div></div>
-  <div class="kpi"><div class="eyebrow">เครื่องสูบเคลื่อนที่ที่ต้องใช้</div><div class="v" style="color:${need>prm.F?'var(--crit)':'inherit'}">${fmt(need)}<small>เครื่อง (${prm.U.toFixed(2)} ลบ.ม./วิ.) มี ${prm.F}</small></div><div class="chips"><span>${short_?`${short_} จุดได้เครื่องไม่ครบ`:'เครื่องพอทุกจุด'}</span></div></div>
-  <div class="kpi"><div class="eyebrow">คลองรับน้ำเพิ่มได้</div><div class="v">${fmt(served/q*100||0)}<small>% ของน้ำที่ต้องสูบออก</small></div><div class="chips"><span>${worst?`จุดที่ช้าที่สุดหมดใน ${fmt(worst/24,1)} วัน`:''}</span></div></div>`;
+  <div class="kpi"><div class="eyebrow">จุดน้ำท่วมขังที่ยังมีรายงาน<span class="src r">รายงานประชาชน</span></div><div class="v">${o.length}<small>จุด · ${fmt(D.pond.n_reports)} รายงาน</small></div><div class="chips"><span>ยังท่วม ${cnt('ยืนยัน')} · น่าจะยังท่วม ${cnt('น่าจะยังท่วม')} · อาจลดแล้ว ${cnt('อาจลดแล้ว')}${prm.stale?'':' (ไม่นับ)'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">ปริมาณน้ำขัง (ประมาณ)<span class="src p">โมเดล</span></div><div class="v">${fmt(V/1e6,2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ช่วง ${fmt(Math.min(vA,vD)/1e6,1)}–${fmt(Math.max(vA,vD)/1e6,1)} ล้าน ลบ.ม. (หมู่บ้าน / DEM) · สูบหมดใน ${prm.T} ชม. ต้องการ ${fmt(q,1)} ลบ.ม./วิ.</span></div></div>
+  <div class="kpi"><div class="eyebrow">เครื่องสูบเคลื่อนที่ที่ต้องใช้<span class="src p">โมเดล</span></div><div class="v" style="color:${need>prm.F?'var(--crit)':'inherit'}">${fmt(need)}<small>เครื่อง (${prm.U.toFixed(2)} ลบ.ม./วิ.) มี ${prm.F}</small></div><div class="chips"><span>${short_?`${short_} จุดได้เครื่องไม่ครบ`:'เครื่องพอทุกจุด'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">คลองรับน้ำเพิ่มได้<span class="src p">โมเดล</span></div><div class="v">${fmt(served/q*100||0)}<small>% ของน้ำที่ต้องสูบออก</small></div><div class="chips"><span>${worst?`จุดที่ช้าที่สุดหมดใน ${fmt(worst/24,1)} วัน`:''}</span></div></div>`;
 }
 
 function table(){const rows=R.out.slice().sort((a,b)=>b.score-a.score);
@@ -364,8 +365,8 @@ function showHot(id){sel=id;const o=R.out.find(x=>x.h.id===id);if(!o){insp.inner
   ${u0&&u0.c.level!=null?`<dt>น้ำใน${esc(u0.c.canal)}</dt><dd class="num">${fmt(u0.c.level,2)} ม.รทก. (เตือน ${fmt(u0.c.warn,2)})<br><span class="note">${esc(u0.c.station||'')}</span></dd>`:''}
   <dt>สูบหมดใน</dt><dd class="num">${o.hours?fmt(o.hours)+' ชม. ('+fmt(o.hours/24,1)+' วัน)':'–'}</dd></dl>
   <div class="edit"><label for="eDep">ความลึก (ม.)</label><input id="eDep" type="number" min="0.05" max="2" step="0.05" value="${h.depth}"><label for="eArea">พื้นที่ (ตร.กม.)</label><input id="eArea" type="number" min="0.01" max="5" step="0.01" value="${h.area_km2}"></div>
-  <div class="eyebrow">คำแนะนำหน้างาน</div><ol class="steps">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>
-  ${h.quotes&&h.quotes.length?`<div class="eyebrow">จากรายงานประชาชน</div>${h.quotes.map(q=>`<p class="q">${esc(q)}…</p>`).join('')}`:''}`;
+  <div class="eyebrow">คำแนะนำหน้างาน<span class="src p">โมเดล</span></div><ol class="steps">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+  ${h.quotes&&h.quotes.length?`<div class="eyebrow">จากรายงานประชาชน<span class="src r">รายงานประชาชน</span></div>${h.quotes.map(q=>`<p class="q">${esc(q)}…</p>`).join('')}`:''}`;
   $('#eDep').addEventListener('change',e=>{h.depth=Math.max(0.05,+e.target.value||h.depth);h.edited=true;schedule()});
   $('#eArea').addEventListener('change',e=>{h.area_km2=Math.max(0.01,+e.target.value||h.area_km2);h.edited=true;schedule()});
   gH.querySelectorAll('.hs').forEach((g,i)=>{if(R.out[i]&&R.out[i].h.id===id)g.classList.add('sel')});

@@ -41,6 +41,7 @@
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html" aria-current="page">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">ก่อนฝนตก: ควรพร่องน้ำคลองไหน เดินเครื่องสูบเมื่อไร</h1>
+       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src p">พยากรณ์</span> ฝนคาดการณ์ Open-Meteo · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
       <p class="sub">ใช้ฝนคาดการณ์ 48 ชม. ข้างหน้ากับระดับน้ำตอนนี้ หาแผนสูบที่ทำให้น้ำล้นตลิ่งน้อยที่สุด แล้วเทียบกับการสูบแบบเดิมจนฝนมา</p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
@@ -51,7 +52,7 @@
 
   <section class="mgrid">
     <div class="panel">
-      <div class="panel-h"><h2>ระดับน้ำและการสูบตามเวลา (แผนพร่องน้ำ)</h2><span class="note" id="mapNote"></span></div>
+      <div class="panel-h"><h2>ระดับน้ำและการสูบตามเวลา (แผนพร่องน้ำ)<span class="src p">โมเดล</span></h2><span class="note" id="mapNote"></span></div>
       <div class="timebar">
         <button type="button" class="btn" id="play" aria-label="เล่น">▶ เล่น</button>
         <input type="range" id="tk" min="0" max="15" step="1" value="0" aria-label="เวลา">
@@ -67,24 +68,24 @@
       <div class="legend" id="legend"></div>
     </div>
     <aside class="panel advice" aria-live="polite">
-      <div class="panel-h"><h2>คำแนะนำก่อนฝนตก</h2></div>
+      <div class="panel-h"><h2>คำแนะนำก่อนฝนตก<span class="src p">โมเดล</span></h2></div>
       <div id="advice" style="display:grid;gap:14px"></div>
     </aside>
   </section>
 
   <section class="grid2">
     <div class="panel">
-      <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต</h2><span class="note">ล้าน ลบ.ม. เทียบเท่า · เส้นทึบ = พร่องตามแผน · เส้นประ = แบบเดิม · ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</span></div>
+      <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต<span class="src p">โมเดล</span></h2><span class="note">ล้าน ลบ.ม. เทียบเท่า · เส้นทึบ = พร่องตามแผน · เส้นประ = แบบเดิม · ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</span></div>
       <div class="chart" id="cCrit"></div>
     </div>
     <div class="panel">
-      <div class="panel-h"><h2>ตารางเดินเครื่องสูบ</h2><span class="note">ลบ.ม./วิ. เฉลี่ยช่วง 3 ชม. (แผนพร่องน้ำ)</span></div>
+      <div class="panel-h"><h2>ตารางเดินเครื่องสูบ<span class="src p">โมเดล</span></h2><span class="note">ลบ.ม./วิ. เฉลี่ยช่วง 3 ชม. (แผนพร่องน้ำ)</span></div>
       <div class="tbl" style="max-height:360px"><table id="tPump"></table></div>
     </div>
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ระดับน้ำรายสถานี</h2><span class="note">ม.รทก. · เรียงตามที่ต้องลดมากกว่าแบบเดิมก่อนฝนหนัก · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>ระดับน้ำรายสถานี<span class="src p">โมเดล</span></h2><span class="note">ม.รทก. · เรียงตามที่ต้องลดมากกว่าแบบเดิมก่อนฝนหนัก · คลิกแถวเพื่อดูบนแผนที่</span></div>
     <div class="tbl"><table id="tSt"></table></div>
   </section>
 
@@ -118,7 +119,7 @@ const canalName=k=>NM[E[k][2]]||'คลองไม่มีชื่อ';
 $('#stamp').textContent=`ระดับน้ำ ${thDT(D.fetched)} น. · ฝนคาดการณ์ ${tTxt(F.start)}`;
 $('#srcLine').textContent=`ฝนคาดการณ์: ${F.source} (open-meteo.com, CC BY 4.0) · ระดับน้ำ สถานีสูบ: สำนักการระบายน้ำ กทม. · คลอง: OpenStreetMap · คำนวณ ${thDT(F.made)}`;
 let S=F.scenarios[0],k=0,mode='opt';
-const YD=(d=>d?`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`:'เมื่อวาน')(F.assumptions.pump_day);   // day of the measured pumping
+const YD=(()=>{const PD=F.assumptions.pump_days||[F.assumptions.pump_day].filter(Boolean),dm=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;if(!PD.length)return 'เมื่อวาน';if(PD.length===1)return 'วันที่ '+dm(PD[0]);const a=PD[0],b=PD[PD.length-1];return 'เฉลี่ย '+(a.slice(5,7)===b.slice(5,7)?`${+a.slice(8,10)}–${dm(b)}`:`${dm(a)}–${dm(b)}`)})();   // day of the measured pumping
 
 // ---------- scenario buttons ----------
 $('#scen').innerHTML=F.scenarios.map((s,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===0}"><b>${esc(s.label)}</b><span>ฝนเฉลี่ยทั้งเมือง ${fmt(s.total_mm,0)} มม. ใน 48 ชม.</span><span class="note">${esc(s.desc)}</span></button>`).join('');
@@ -229,7 +230,7 @@ function advice(){const out=[];const A=F.assumptions;const onset=S.onset;
   if(ps.length)out.push(['--s1','พร่องน้ำคลองเหล่านี้',`${ps.length} สถานีวัดน้ำที่แผนลดระดับลงมากกว่าการสูบแบบเดิม (ระดับเป้าหมายก่อนฝนหนัก ม.รทก.)`,ps.slice(0,8).map(r=>({t:`${short(r.name)} (${r.district}): ${fmt(r.now,2)} → ${fmt(r.onset_opt,2)} ม.`,code:r.code}))]);
   else if(onset!=null&&hrs>0)out.push(['--s1','พร่องน้ำ','การสูบแบบเดิมลดระดับได้พอแล้วก่อนฝนหนัก ไม่ต้องพร่องเพิ่ม',[]]);
   const pk=S.pumps.filter(r=>r.start!=null&&(onset==null||r.start<=Math.max(0,onset))).sort((a,b)=>a.start-b.start||(b.cap-a.cap)).slice(0,8);
-  if(pk.length)out.push(['--warn','เดินเครื่องเพิ่ม',`สถานีที่แผนให้สูบมากกว่าวันที่ ${YD}${onset?' ก่อนฝนหนัก':''} (เริ่มเวลา · อัตรา ลบ.ม./วิ.)`,pk.map(r=>({t:`${short(r.name)}: ${tTxt(F.times[r.start])} · ${fmt(Math.max(...r.series.slice(r.start,(onset||K)+1)),1)} (${YD} ${fmt(r.now,1)})`,node:pumpById[r.id]&&pumpById[r.id].node}))]);
+  if(pk.length)out.push(['--warn','เดินเครื่องเพิ่ม',`สถานีที่แผนให้สูบมากกว่า${YD}${onset?' ก่อนฝนหนัก':''} (เริ่มเวลา · อัตรา ลบ.ม./วิ.)`,pk.map(r=>({t:`${short(r.name)}: ${tTxt(F.times[r.start])} · ${fmt(Math.max(...r.series.slice(r.start,(onset||K)+1)),1)} (${YD} ${fmt(r.now,1)})`,node:pumpById[r.id]&&pumpById[r.id].node}))]);
   const EAST=new Set(D.geo.filter(g=>[3,11,10,46,44,32].includes(+g[0].slice(2))).map(g=>g[1]));
   const risk=S.districts.filter(d=>d.crit_opt>0.01&&!EAST.has(d.district)).sort((a,b)=>b.crit_opt-a.crit_opt).slice(0,8);
   if(risk.length)out.push(['--crit','ยังเสี่ยงล้นแม้พร่องแล้ว',`เขตที่น้ำยังเกินเกณฑ์วิกฤต ควรเตรียมเครื่องสูบเคลื่อนที่และกระสอบทราย (ล้าน ลบ.ม. สูงสุด)`,risk.map(d=>({t:`เขต${d.district}: ${fmt(d.crit_opt,2)}${d.crit_base>d.crit_opt+0.005?` (แบบเดิม ${fmt(d.crit_base,2)})`:''}`,dist:d.district}))]);
@@ -245,10 +246,10 @@ function advice(){const out=[];const A=F.assumptions;const onset=S.onset;
 function strip(){const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];const mx=(o,zs)=>Math.max(...o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0)));
   const ens=F.ens_totals;const q=p=>ens[Math.round(p*(ens.length-1))];
   $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">ฝน 48 ชม. (เฉลี่ยทั้งเมือง)</div><div class="v">${fmt(S.total_mm,0)}<small>มม.</small></div><div class="chips"><span>ensemble ${ens.length} ชุด: กลาง ${fmt(q(.5),0)} · P90 ${fmt(q(.9),0)} · สูงสุด ${fmt(q(1),0)} มม.</span></div></div>
-  <div class="kpi"><div class="eyebrow">ฝนหนักเริ่ม</div><div class="v">${S.onset==null?'ไม่มี':S.onset===0?'ตอนนี้':'อีก '+S.onset*DT}<small>${S.onset==null?`(≥ ${F.assumptions.heavy_mm} มม./3 ชม.)`:S.onset===0?'':'ชม. · '+tTxt(F.times[S.onset])}</small></div><div class="chips"><span>สูงสุด ${fmt(Math.max(...S.city_mm),1)} มม./ชม.</span></div></div>
-  <div class="kpi"><div class="eyebrow">น้ำเกินวิกฤต ชั้นใน+เหนือ (สูงสุด)</div><div class="v">${fmt(mx(S.crit_opt,IN),2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ถ้าไม่พร่อง ${fmt(mx(S.crit_base,IN),2)}</span></div></div>
-  <div class="kpi"><div class="eyebrow">ตะวันออกรอบนอก (ท่วมอยู่แล้ว)</div><div class="v">${fmt(Math.max(...S.above_opt['ตะวันออกรอบนอก']),0)}<small>ล้าน ลบ.ม. เกินเตือน</small></div><div class="chips"><span>ตอนนี้ ${fmt(S.above0['ตะวันออกรอบนอก'],0)} · ดูหน้าสถานการณ์ปัจจุบัน</span></div></div>`}
+  <div class="kpi"><div class="eyebrow">ฝน 48 ชม. (เฉลี่ยทั้งเมือง)<span class="src p">พยากรณ์</span></div><div class="v">${fmt(S.total_mm,0)}<small>มม.</small></div><div class="chips"><span>ensemble ${ens.length} ชุด: กลาง ${fmt(q(.5),0)} · P90 ${fmt(q(.9),0)} · สูงสุด ${fmt(q(1),0)} มม.</span></div></div>
+  <div class="kpi"><div class="eyebrow">ฝนหนักเริ่ม<span class="src p">พยากรณ์</span></div><div class="v">${S.onset==null?'ไม่มี':S.onset===0?'ตอนนี้':'อีก '+S.onset*DT}<small>${S.onset==null?`(≥ ${F.assumptions.heavy_mm} มม./3 ชม.)`:S.onset===0?'':'ชม. · '+tTxt(F.times[S.onset])}</small></div><div class="chips"><span>สูงสุด ${fmt(Math.max(...S.city_mm),1)} มม./ชม.</span></div></div>
+  <div class="kpi"><div class="eyebrow">น้ำเกินวิกฤต ชั้นใน+เหนือ (สูงสุด)<span class="src p">โมเดล</span></div><div class="v">${fmt(mx(S.crit_opt,IN),2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ถ้าไม่พร่อง ${fmt(mx(S.crit_base,IN),2)}</span></div></div>
+  <div class="kpi"><div class="eyebrow">ตะวันออกรอบนอก (ท่วมอยู่แล้ว)<span class="src p">โมเดล</span></div><div class="v">${fmt(Math.max(...S.above_opt['ตะวันออกรอบนอก']),0)}<small>ล้าน ลบ.ม. เกินเตือน</small></div><div class="chips"><span>ตอนนี้ ${fmt(S.above0['ตะวันออกรอบนอก'],0)} · ดูหน้าสถานการณ์ปัจจุบัน</span></div></div>`}
 
 // ---------- tables ----------
 function tables(){const st=S.stations;const T=F.times;
@@ -268,7 +269,7 @@ $('#tSt').addEventListener('click',e=>{const tr=e.target.closest('tr[data-c]');i
   ['ระดับต่ำสุดที่พร่องได้',`เกณฑ์เตือน − ${A.D_LOW} ม. (สมมติ) · คลองที่ไม่มีสถานีวัดน้ำใกล้ ถือว่าต่ำกว่าเกณฑ์เตือน ${A.no_gauge_below} ม.`],
   ['อัตราลดระดับ',`ไม่เกิน ${fmt(A.drawdown_m_h*100)} ซม./ชม. (P75 ของอัตราลดที่วัดได้หลังฝนหยุด)`],
   ['ที่เก็บน้ำ',`ต่ำกว่าเกณฑ์เตือน: ผิวน้ำคลอง · เหนือเกณฑ์เตือน: ผิวน้ำคลอง × ${Object.entries(A.lambda_zone).map(([z,v])=>`${z} ${v}`).join(', ')} (ปรับเทียบในแผน 30 วัน)`],
-  ['เครื่องสูบ',`แผน: ${Math.round(A.avail*100)}% ของกำลังสูบตั้งแต่ตอนนี้ · แบบเดิม: เท่ากับวันที่ (${A.pump_day}, ทั้งระบบราว ${Math.round(A.fleet_util_now*100)}%) จนฝนหนักเริ่ม แล้วเต็มกำลัง`],
+  ['เครื่องสูบ',`แผน: ${Math.round(A.avail*100)}% ของกำลังสูบตั้งแต่ตอนนี้ · แบบเดิม: สูบเท่าที่วัดได้จริง${YD} (ทั้งระบบราว ${Math.round(A.fleet_util_now*100)}%) จนฝนหนักเริ่ม แล้วเต็มกำลัง`],
   ['ความจุคลอง / ทางออกขอบเขต',`ความเร็ว ${A.v} ม./วิ. × หน้าตัดตามประเภทคลอง · ทางออกด้านใต้จุดละ ${A.outlet} ลบ.ม./วิ.`],
   ['สิ่งที่ยังไม่รวม','อุโมงค์ระบายน้ำ แก้มลิง ท่อระบายน้ำ น้ำขึ้นน้ำลง น้ำเหนือ และการเปิดปิดประตูระบายน้ำรายชั่วโมง']];
   $('#tAs').innerHTML=`<tbody>${rows.map(([a,b])=>`<tr><td class="l" style="white-space:nowrap">${esc(a)}</td><td class="l">${esc(b)}</td></tr>`).join('')}</tbody>`})();
