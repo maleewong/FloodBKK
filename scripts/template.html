@@ -331,7 +331,7 @@ function spark(code){const pts=D.hourly[code];if(!pts||!pts.length)return '<p cl
 function showCanal(c){const bank=Math.min(...[c.left_bank,c.right_bank].filter(v=>v!=null));
   insp.innerHTML=`<div class="eyebrow">${c.is_gate?'ประตูระบายน้ำ / สถานีสูบ':'สถานีวัดน้ำในคลอง'} · ${esc(c.code)}</div><h2>${esc(c.name)}</h2>${pill(c.status)}
   <dl><dt>เขต</dt><dd>${esc(c.district)}</dd><dt>คลอง</dt><dd>${esc(c.river||'–')}</dd>
-  <dt>ระดับน้ำด้านใน</dt><dd class="num">${fmt(c.wl_in,2)} ม.</dd>${c.wl_out!=null?`<dt>ระดับน้ำด้านนอก</dt><dd class="num">${fmt(c.wl_out,2)} ม.</dd><dt>ต่างระดับ (ใน−นอก)</dt><dd class="num">${fmt(c.head_in_out,2)} ม.</dd>`:''}
+  <dt>ระดับน้ำด้านใน</dt><dd class="num">${fmt(c.wl_in,2)} ม.</dd>${c.wl_out!=null&&c.wl_out<=-1.5?`<dt>ระดับน้ำด้านนอก</dt><dd>ไม่มีข้อมูล <span class="note">(รายงาน ${fmt(c.wl_out,2)} ม. น่าจะเป็นเซนเซอร์ขัดข้อง)</span></dd>`:c.wl_out!=null?`<dt>ระดับน้ำด้านนอก</dt><dd class="num">${fmt(c.wl_out,2)} ม.</dd><dt>ต่างระดับ (ใน−นอก)</dt><dd class="num">${fmt(c.head_in_out,2)} ม.</dd>`:''}
   <dt>ระดับตลิ่ง</dt><dd class="num">${fmt(bank,2)} ม.</dd><dt>ระยะถึงตลิ่ง</dt><dd class="num">${fmt(c.freeboard,2)} ม.</dd>
   <dt>เกณฑ์เตือน / วิกฤต</dt><dd class="num">${fmt(c.warning,2)} / ${fmt(c.critical,2)} ม.</dd>
   <dt>สูงสุดวันนี้ / เมื่อวาน</dt><dd class="num">${fmt(c.max_in_today,2)} / ${fmt(c.max_in_yesterday,2)} ม.</dd>${c.gate1!=null?`<dt>ค่าบานประตู 1 (ข้อมูลดิบ)</dt><dd class="num">${fmt(c.gate1,2)} ม.</dd>`:''}
@@ -402,14 +402,16 @@ const ctip=document.createElement('div');ctip.className='tip';ctip.hidden=true;$
   const g=D.canal.filter(c=>c.in_bkk&&c.is_gate&&c.wl_in!=null&&c.wl_out!=null).sort((a,b)=>(RANK[a.status]??4)-(RANK[b.status]??4)||over(b)-over(a));
   const tm=s=>{const m=s&&s.match(/^(\d+)-(\d+)-(\d+) (\d+:\d+)/);return m?`${+m[3]}/${+m[2]} ${m[4]}`:'–'};
   const last=g.map(c=>c.measured).filter(Boolean).sort().pop();
-  const pumpOnly=g.filter(c=>c.head_in_out<0).length;
+  const bad=c=>c.wl_out<=-1.5;   // outside level of -1.5 m or lower: sensor fault / placeholder, not a water level
+  const ok=g.filter(c=>!bad(c)),nbad=g.length-ok.length;
+  const pumpOnly=ok.filter(c=>c.head_in_out<0).length;
   const cnt=k=>g.filter(c=>c.status===k).length;
   $('#gateNote').textContent=`${g.length} แห่ง · วิกฤต ${cnt('วิกฤต')} · เตือนภัย ${cnt('เตือนภัย')} · ข้อมูลล่าสุด ${last?(([y,m,d])=>`${+d}/${+m}/${+y+543}`)(last.slice(0,10).split('-'))+' '+last.slice(11,16)+' น.':'–'} · เรียงจากวิกฤตมากสุด`;
-  $('#gateCallout').textContent=`${pumpOnly} จาก ${g.length} แห่ง ระดับน้ำด้านนอก (แม่น้ำเจ้าพระยาหรือคลองหลัก) สูงกว่าด้านใน น้ำจึงไหลออกเองไม่ได้ ต้องใช้เครื่องสูบอย่างเดียว ส่วนแห่งที่ด้านในสูงกว่ายังเปิดบานระบายด้วยแรงโน้มถ่วงได้ ค่าต่างระดับนี้จะเป็นข้อมูลตั้งต้นของโมเดลหาเส้นทางระบายน้ำ`;
-  const mx=Math.max(...g.map(c=>Math.abs(c.head_in_out)));
+  $('#gateCallout').textContent=`${pumpOnly} จาก ${ok.length} แห่ง ระดับน้ำด้านนอก (แม่น้ำเจ้าพระยาหรือคลองหลัก) สูงกว่าด้านใน น้ำจึงไหลออกเองไม่ได้ ต้องใช้เครื่องสูบอย่างเดียว ส่วนแห่งที่ด้านในสูงกว่ายังเปิดบานระบายด้วยแรงโน้มถ่วงได้ ค่าต่างระดับนี้จะเป็นข้อมูลตั้งต้นของโมเดลหาเส้นทางระบายน้ำ${nbad?` (ไม่นับ ${nbad} แห่งที่ค่าด้านนอกผิดปกติ ≤ −1.5 ม. น่าจะเป็นเซนเซอร์ขัดข้อง)`:''}`;
+  const mx=Math.max(...ok.map(c=>Math.abs(c.head_in_out)));
   $('#tGate').innerHTML=`<thead><tr><th>ประตู / สถานีสูบ</th><th class="l">เขต</th><th>ด้านใน (ม.)</th><th>ด้านนอก (ม.)</th><th>ใน − นอก (ม.)</th><th class="l">สถานะ</th><th>เทียบเกณฑ์เตือน (ม.)</th><th>เวลาวัด</th></tr></thead><tbody>${
-   g.map(c=>`<tr data-code="${esc(c.code)}"><td>${esc(c.name)}</td><td class="l">${esc(c.district)}</td><td class="num">${fmt(c.wl_in,2)}</td><td class="num">${fmt(c.wl_out,2)}</td>
-   <td class="num">${fmt(c.head_in_out,2)}<span class="cellbar" style="width:${Math.abs(c.head_in_out)/mx*60}px;background:var(${c.head_in_out<0?'--s2':'--s1'})"></span></td>
+   g.map(c=>`<tr data-code="${esc(c.code)}"><td>${esc(c.name)}</td><td class="l">${esc(c.district)}</td><td class="num">${fmt(c.wl_in,2)}</td>${bad(c)?`<td class="num note" title="ค่าที่รายงาน ${fmt(c.wl_out,2)} ม. น่าจะเป็นเซนเซอร์ขัดข้อง">ไม่มีข้อมูล*</td><td class="num note">–</td>`:`<td class="num">${fmt(c.wl_out,2)}</td>
+   <td class="num">${fmt(c.head_in_out,2)}<span class="cellbar" style="width:${Math.abs(c.head_in_out)/mx*60}px;background:var(${c.head_in_out<0?'--s2':'--s1'})"></span></td>`}
    <td class="l">${pill(c.status)}</td><td class="num" style="color:${over(c)>0?'var(--crit)':'inherit'}">${c.warning!=null?(over(c)>0?'+':'')+fmt(over(c),2):'–'}</td><td class="num">${tm(c.measured)}</td></tr>`).join('')}</tbody>`;
   $('#tGate').addEventListener('click',e=>{const tr=e.target.closest('tr[data-code]');if(tr){showCanal(D.canal.find(c=>c.code===tr.dataset.code));$('#insp').scrollIntoView({behavior:'smooth',block:'nearest'})}})})();
 
