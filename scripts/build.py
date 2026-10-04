@@ -160,7 +160,9 @@ for code, s, hrs, e_ in ev_rows:
     r = road_by_code.get(code)
     if r and r['district_id'] in dist:
         dist[r['district_id']]['ev'] += 1; dist[r['district_id']]['ev_hours'] += hrs or 0
+        dist[r['district_id']].setdefault('_evc', set()).add(code)
 
+for d in dist.values(): d['ev_cover'] = len(d.pop('_evc', ()))   # road sensors in the district that have any history record
 days = sorted(set(rain_daily) | set(pump_daily))
 data = dict(
     fetched=fetched, source='สำนักการระบายน้ำ กทม. (weather.bangkok.go.th)',
