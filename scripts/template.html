@@ -422,15 +422,17 @@ const ctip=document.createElement('div');ctip.className='tip';ctip.hidden=true;$
 // events
 (()=>{const ev=D.events.filter(e=>e.n>0).sort((a,b)=>b.hours-a.hours).slice(0,15);
   if(!ev.length){$('#evNote').textContent='';$('#cEv').innerHTML='<p class="note">กำลังดึงประวัติน้ำท่วมถนนย้อนหลัง (เว็บตอบช้า ราว 20 วินาทีต่อคำขอ) จะเพิ่มในรอบอัปเดตถัดไป</p>';return}
-  $('#evNote').textContent=`ปี ${D.events_years.map(y=>+y+543).join(' และ ')} · ${D.events.length} จาก ${D.road.length} จุดเคยท่วม · เรียงตามชั่วโมงท่วมรวม`;
-  const w=1180,rowH=20,l=330,r=150,h=ev.length*rowH+8;const mx=Math.max(...ev.map(e=>e.hours));
+  const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dTH=x=>{const m=String(x||'').match(/^(\d+)-(\d+)-(\d+)/);return m?`${+m[3]} ${MONTHS[+m[2]-1]} ${+m[1]+543}`:''};const ER=D.events_range||[];
+  $('#evNote').textContent=`${ER.length?dTH(ER[0])+' – '+dTH(ER[1]):'ปี '+D.events_years.map(y=>+y+543).join(' และ ')} · ${D.events.length} จาก ${D.road.length} จุดเคยท่วม · เรียงตามระยะเวลาท่วมรวม`;
+  $('#cEv').insertAdjacentHTML('beforebegin',`<p class="note" style="margin:0 0 8px"><b>ชม. = ระยะเวลา ไม่ใช่ความลึก</b> · ระยะเวลาที่เซนเซอร์น้ำท่วมถนนของ สนน. ตรวจพบน้ำบนผิวถนน (ตั้งแต่เริ่มท่วมจนน้ำลด) รวมทุกครั้งในช่วงข้างต้น · ครั้ง = จำนวนเหตุการณ์ · นานสุด = เหตุการณ์ที่ยาวที่สุดครั้งเดียว · * = ยังไม่สิ้นสุดเมื่อดึงข้อมูล หรือเซนเซอร์อาจค้าง</p>`);
+  const w=1180,rowH=20,l=330,r=320,h=ev.length*rowH+8;const mx=Math.max(...ev.map(e=>e.hours));
   const s=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'จุดท่วมซ้ำ'});$('#cEv').appendChild(s);
   ev.forEach((e,i)=>{const y=4+i*rowH;const bw=e.hours/mx*(w-l-r);const t=el('text',{x:l-8,y:y+13,'text-anchor':'end',class:'lab'},s);t.textContent=(e.name?e.name+' · '+(e.district||''):'รหัส '+e.code+' (ไม่อยู่ในรายการเซนเซอร์ปัจจุบัน)').slice(0,48);
-    el('rect',{x:l,y:y+3,width:Math.max(2,bw),height:rowH-7,rx:2,fill:'var(--crit)'},s);const v=el('text',{x:l+bw+6,y:y+13,class:'lab','font-family':'var(--mono)'},s);v.textContent=`${fmt(e.hours,1)} ชม. · ${e.n} ครั้ง`})})();
+    el('rect',{x:l,y:y+3,width:Math.max(2,bw),height:rowH-7,rx:2,fill:'var(--crit)'},s);const v=el('text',{x:l+bw+6,y:y+13,class:'lab','font-family':'var(--mono)'},s);const open_=ER[1]&&e.long_e===ER[1];v.textContent=`${fmt(e.hours,0)} ชม. · ${e.n} ครั้ง · นานสุด ${fmt(e.long,0)} ชม.${open_?'*':''}${e.long>=24&&e.long_s?' ('+dTH(e.long_s).replace(/ \d{4}$/,'')+')':''}`})})();
 
 // district table
 (()=>{const cols=[['name','เขต','l'],['rain24','ฝน 24 ชม. (มม.)'],['canal','สถานีคลอง'],['canal_crit','วิกฤต'],['canal_alert','เตือนภัย'],['canal_down','ขัดข้อง'],['gates','ประตู/สูบ'],['road','เซนเซอร์ถนน'],['road_flood','ถนนท่วม'],['road_down','ถนนขัดข้อง']];
-  if(D.events.length)cols.push(['ev','ท่วมซ้ำ (ครั้ง)'],['ev_hours','ท่วมรวม (ชม.)']);
+  if(D.events.length)cols.push(['ev','ท่วมย้อนหลัง (ครั้ง)'],['ev_hours','ท่วมย้อนหลังรวม (ชม.)']);
   let key='rain24',dir=-1;const T=$('#tDist');
   function draw(){const rows=[...D.districts].sort((a,b)=>{const x=a[key],y=b[key];if(typeof x==='string')return dir*x.localeCompare(y,'th');return dir*((x??-1)-(y??-1))});
     T.innerHTML=`<thead><tr>${cols.map(([k,t,c])=>`<th class="${c||''}" aria-sort="${k===key?(dir<0?'descending':'ascending'):'none'}"><button type="button" data-k="${k}">${t}${k===key?(dir<0?' ↓':' ↑'):''}</button></th>`).join('')}</tr></thead>

@@ -126,7 +126,7 @@ for v, code, rd, s, e in events:
         continue
     hrs = round((t1 - t0).total_seconds() / 3600, 2) if t1 else None
     db.execute('insert or ignore into road_flood_event values (?,?,?,?,?)', (code, rd, s, e, hrs))
-    ev_rows.append((code, s, hrs))
+    ev_rows.append((code, s, hrs, e))
 db.commit()
 
 # ---- CSV exports ----
@@ -154,8 +154,9 @@ for r in rain:
         d['rain24'] = max(d['rain24'] or 0, r['rf24h']); d['rain_n'] += 1
 road_by_code = {r['code']: r for r in road}
 ev_by_code = {}
-for code, s, hrs in ev_rows:
-    e = ev_by_code.setdefault(code, dict(n=0, hours=0)); e['n'] += 1; e['hours'] += hrs or 0
+for code, s, hrs, e_ in ev_rows:
+    e = ev_by_code.setdefault(code, dict(n=0, hours=0, long=0)); e['n'] += 1; e['hours'] += hrs or 0
+    if (hrs or 0) > e['long']: e['long'] = hrs; e['long_s'] = s; e['long_e'] = e_
     r = road_by_code.get(code)
     if r and r['district_id'] in dist:
         dist[r['district_id']]['ev'] += 1; dist[r['district_id']]['ev_hours'] += hrs or 0
@@ -173,9 +174,10 @@ data = dict(
     pump_station=[dict(code=p['code'], name=p['name'], cap=round(st.median(p['cap'])) if p['cap'] else 0, vol=round(p['vol']), days=p['days'])
                   for p in pump_station.values()],
     pump_period=pump_period,
-    events=[dict(code=c, **{k: round(v, 1) for k, v in e.items()}, name=road_by_code.get(c, {}).get('name'),
+    events=[dict(code=c, **{k: (round(v, 1) if isinstance(v, (int, float)) else v) for k, v in e.items()}, name=road_by_code.get(c, {}).get('name'),
                  district=road_by_code.get(c, {}).get('district')) for c, e in ev_by_code.items()],
-    events_years=sorted(set(s[:4] for _, s, _ in ev_rows)),
+    events_years=sorted(set(s[:4] for _, s, _, _ in ev_rows)),
+    events_range=[min(s for _, s, _, _ in ev_rows), max(e for _, _, _, e in ev_rows if e)] if ev_rows else None,
 )
 json.dump(data, open(f'{OUT}/dashboard_data.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print('canal', len(canal), 'hourly', len(hourly), 'road', len(road), 'rain', len(rain), 'days', len(days), 'pumpst', len(pump_station), 'events', len(ev_rows))
