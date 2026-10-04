@@ -215,6 +215,13 @@ out = dict(not_reporting=cal.get('not_reporting', []), made=time.strftime('%Y-%m
            current=summary(CUR), plan=summary(PLAN), mobile=summary(MOB), trunk=summary(LONG), trunk_canals=list(TRUNK),
            plan_flow_day1=[round(float(x), 2) for x in PLAN['flow'][0]],   # canal flows of the plan, day 1 (+ = u->v), used by the ponding page
            plan_pump_day1=[round(float(x), 2) for x in PLAN['pump'][0]], pump_ids=[p['id'] for p in PU], outlet_day1=[round(float(x), 2) for x in PLAN['outl'][0]])
+out['pump_rate_measured'] = {c: round(v[1] / 86400, 1) for c, v in rep.items()}   # m3/s, mean of pump_days (telemetry)
+# tunnels: daily flow (m3/s, + = intake -> outlet) per scenario and the volume moved in 30 days (million m3)
+out['tunnels'] = [dict(name=M['net']['names'][E[k][2]], cap=float(E[k][5]),
+                       **{sc: dict(q=[round(float(R['flow'][d, k]), 1) for d in range(K)],
+                                   mm3=round(float(R['flow'][:, k].clip(min=0).sum()) * DT_H * 3600 / 1e6, 1))
+                          for sc, R in (('current', CUR), ('plan', PLAN), ('mobile', MOB))})
+                  for k in np.flatnonzero(TUN)]
 json.dump(out, open(P(os.environ.get('PLAN_OUT', 'plan.json')), 'w'), ensure_ascii=False, indent=1, default=float)
 print(json.dumps({k: out[k] for k in ('volume0',)}, ensure_ascii=False))
 for k in ('current', 'plan', 'mobile', 'trunk'): print(k, out[k]['days'])

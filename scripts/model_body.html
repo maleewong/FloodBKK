@@ -128,6 +128,12 @@
     </ul>
   </section>
 
+  <section class="panel" id="tunPanel" hidden>
+    <div class="panel-h"><h2>อุโมงค์ระบายน้ำ: การทำงาน<span class="src p">โมเดล</span><span class="src m">ตรวจวัด</span></h2><span class="note meta"><span>ลบ.ม./วิ. วันแรก</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
+    <div class="tbl"><table id="tTun"></table></div>
+    <ul class="defs" id="tunDefs" style="margin-top:10px"></ul>
+  </section>
+
   <section class="panel advice" aria-live="polite">
     <div class="panel-h"><h2 id="advH">คำแนะนำจากโมเดล<span class="src p">โมเดล</span></h2></div>
     <div class="advgrid">
@@ -438,6 +444,28 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
     tp.innerHTML=`<b>${+d[0].slice(8,10)} ${MON[+d[0].slice(5,7)-1]} ${+d[0].slice(0,4)+543}</b><br>ฝนเฉลี่ยทั้งเมือง ${fmt(d[1],1)} มม.<br>สูบจริง ${fmt(d[2],2)} ล้าน ลบ.ม.<br>จากสมการ ${fmt(d[3],2)} ล้าน ลบ.ม.${err!=null?` (${err>=0?'+':''}${fmt(err,0)}%)`:''}`;
     tp.hidden=false;const hb=host.getBoundingClientRect();let px=e.clientX-hb.left+14;if(px+tp.offsetWidth>hb.width)px=e.clientX-hb.left-tp.offsetWidth-14;tp.style.left=Math.max(0,px)+'px';tp.style.top=Math.max(0,e.clientY-hb.top-tp.offsetHeight-10)+'px'});
   hit.addEventListener('mouseleave',()=>{tp.hidden=true;[cross,dot1,dot2].forEach(x=>x.setAttribute('visibility','hidden'))});
+})();
+
+// ---------- tunnels: what each one carries (model) and what its outlet station measured ----------
+(()=>{const T=M.tunnels||[],PT={};(PL.tunnels||[]).forEach(t=>PT[t.name]=t);if(!T.length)return;$('#tunPanel').hidden=false;
+  const ST={'ใช้งาน':'var(--ok)','ทดสอบระบบสูบ':'var(--warn)'};
+  const meas=t=>{const p=PU.find(q=>q.id===t.pump_id);if(!p||p.src!=='telemetry')return '<span class="note">ไม่มีมาตรวัด</span>';
+    const v=(PL.pump_rate_measured||{})[p.id];return v!=null&&v>0?fmt(v,1):'<span class="note">ไม่ส่งข้อมูล</span>'};
+  const bar=(v,c)=>`<span style="display:inline-block;vertical-align:middle;width:56px;height:8px;background:var(--line);border-radius:4px;margin-left:6px;overflow:hidden"><span style="display:block;height:100%;width:${Math.min(100,v/c*100)}%;background:var(--accent)"></span></span>`;
+  const rows=T.map(t=>{const r=PT[t.name]||{},c=r.current||{q:[]},a=r.plan||{q:[]},mid=[(N[t.from_node][0]+N[t.to_node][0])/2,(N[t.from_node][1]+N[t.to_node][1])/2];
+    return `<tr data-x="${mid[0]}" data-y="${mid[1]}" style="cursor:pointer"><td class="l"><b>${esc(t.name.replace('อุโมงค์ระบายน้ำ',''))}</b><br><span class="note">${esc(t.km)} กม., ออก${esc(t.pump.replace(/^ส\./,'สถานีสูบ'))}</span></td>
+      <td><span style="white-space:nowrap;font-size:12px"><i class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:${ST[t.status]||'var(--muted)'}"></i>${esc(t.status)}</span></td>
+      <td class="num">${fmt(t.cap,0)}</td><td class="num">${meas(t)}</td><td class="num">${fmt(c.q[0],1)}</td>
+      <td class="num">${fmt(a.q[0],1)}${bar(a.q[0]||0,t.cap)}</td><td class="num">${fmt(a.mm3,1)}</td></tr>`}).join('');
+  $('#tTun').innerHTML=`<thead><tr><th class="l">อุโมงค์</th><th>สถานะ</th><th>ความจุ</th><th>สูบจริงปลายอุโมงค์</th><th>สูบเท่าเดิม</th><th>โมเดล A</th><th>A 30 วัน<br>ล้าน ลบ.ม.</th></tr></thead><tbody>${rows}</tbody>`;
+  $('#tTun').onclick=e=>{const tr=e.target.closest('tr[data-x]');if(tr){zoomTo(+tr.dataset.x,+tr.dataset.y,W/5);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}};
+  const tot=k=>T.reduce((s,t)=>s+(((PT[t.name]||{})[k]||{}).q||[0])[0],0);
+  $('#tunDefs').innerHTML=[
+    `<li><b>รวมทุกอุโมงค์:</b> สูบเท่าเดิม ${fmt(tot('current'),0)} ลบ.ม./วิ., โมเดล A ${fmt(tot('plan'),0)} จากความจุรวม ${fmt(T.reduce((s,t)=>s+t.cap,0),0)} ลบ.ม./วิ.</li>`,
+    `<li><b>สูบจริงปลายอุโมงค์ (ตรวจวัด):</b> อัตราสูบเฉลี่ย${YA.replace('เฉลี่ย','')} ของสถานีสูบที่ปลายอุโมงค์ จากมาตรวัดของ สนน.</li>`,
+    `<li><b>สูบเท่าเดิม (โมเดล):</b> น้ำที่ไหลผ่านอุโมงค์ในโมเดลเมื่อทุกสถานีสูบเท่าที่วัดได้ สถานีที่ไม่มีมาตรวัดใช้ค่าเฉลี่ยทั้งระบบ ${Math.round(((PL.assumptions||{}).fleet_util_now||0)*100)}% ของกำลังสูบ</li>`,
+    `<li><b>โมเดล A:</b> น้ำที่ผ่านอุโมงค์เมื่อสถานีที่รับน้ำจากพื้นที่ท่วมสูบเพิ่ม (แถบ = % ความจุ) อุโมงค์ที่ใช้น้อยแปลว่าน้ำส่วนเกินไม่ได้อยู่ในพื้นที่รับน้ำของอุโมงค์นั้น หรือคลองที่ส่งน้ำเข้าอุโมงค์เล็ก</li>`,
+    ...T.filter(t=>t.note).map(t=>`<li><b>${esc(t.name.replace('อุโมงค์ระบายน้ำ','อุโมงค์'))}:</b> ${esc(t.note)}</li>`)].join('');
 })();
 
 // ---------- water level along a canal line (measured) ----------
