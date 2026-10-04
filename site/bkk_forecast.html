@@ -123,8 +123,10 @@ footer ul{margin:0;padding-left:18px}
 .defs b{color:var(--ink-2);font-weight:600}
 .meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
 .srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
-.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:26px 0 2px;padding-bottom:6px;border-bottom:2px solid var(--line)}
-.sect-t{font-size:1.35rem;font-weight:700}
+.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:34px 0 14px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--line);border-left:6px solid var(--axis);background:var(--surface)}
+.sect.now{margin-top:14px;border-left-color:var(--accent);background:var(--accent-soft)}
+.sect.past{border-left-color:var(--axis)}
+.sect-t{font-size:1.3rem;font-weight:700}
 </style><style>
 .olk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:8px}
 .olk>div{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:2px}
@@ -178,6 +180,7 @@ footer ul{margin:0;padding-left:18px}
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
 
+  <div class="sect now"><span class="sect-t">48 ชม. ข้างหน้า</span><span class="note meta"><span>เลือกกรณีฝน แล้วดูคำแนะนำ</span></span></div>
   <section class="scen" id="scen" aria-label="กรณีฝน"></section>
   <section class="strip" id="strip" aria-label="สรุป"></section>
   <section class="panel" id="outlook" aria-label="แนวโน้มฝนรายวัน"></section>
@@ -205,6 +208,7 @@ footer ul{margin:0;padding-left:18px}
     </aside>
   </section>
 
+  <div class="sect past"><span class="sect-t">รายละเอียดแผน</span></div>
   <section class="grid2">
     <div class="panel">
       <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต<span class="src p">โมเดล</span></h2><span class="note">ล้าน ลบ.ม. เทียบเท่า</span></div><ul class="defs"><li><b>เส้นทึบ:</b> พร่องตามแผน</li><li><b>เส้นประ:</b> ไม่พร่อง (สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม)</li><li>ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</li></ul>

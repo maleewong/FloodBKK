@@ -123,8 +123,10 @@ footer ul{margin:0;padding-left:18px}
 .defs b{color:var(--ink-2);font-weight:600}
 .meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
 .srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
-.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:26px 0 2px;padding-bottom:6px;border-bottom:2px solid var(--line)}
-.sect-t{font-size:1.35rem;font-weight:700}
+.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:34px 0 14px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--line);border-left:6px solid var(--axis);background:var(--surface)}
+.sect.now{margin-top:14px;border-left-color:var(--accent);background:var(--accent-soft)}
+.sect.past{border-left-color:var(--axis)}
+.sect-t{font-size:1.3rem;font-weight:700}
 </style><style>
 /* field page: summary strip, controls | animated map | hotspot card, then priority table */
 [hidden]{display:none!important}

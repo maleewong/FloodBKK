@@ -123,8 +123,10 @@ footer ul{margin:0;padding-left:18px}
 .defs b{color:var(--ink-2);font-weight:600}
 .meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
 .srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
-.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:26px 0 2px;padding-bottom:6px;border-bottom:2px solid var(--line)}
-.sect-t{font-size:1.35rem;font-weight:700}
+.sect{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:34px 0 14px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--line);border-left:6px solid var(--axis);background:var(--surface)}
+.sect.now{margin-top:14px;border-left-color:var(--accent);background:var(--accent-soft)}
+.sect.past{border-left-color:var(--axis)}
+.sect-t{font-size:1.3rem;font-weight:700}
 </style>
 
 <div class="wrap">
@@ -139,7 +141,7 @@ footer ul{margin:0;padding-left:18px}
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
 
-  <div class="sect"><span class="sect-t">ปัจจุบัน</span><span class="note meta" id="nowNote"></span></div>
+  <div class="sect now"><span class="sect-t">ตอนนี้</span><span class="note meta" id="nowNote"></span></div>
   <section class="strip" id="strip" aria-label="สรุปสถานการณ์"></section>
 
   <section class="main">
@@ -174,7 +176,7 @@ footer ul{margin:0;padding-left:18px}
     <div class="panel-h"><h2>ตารางรายเขต: ตอนนี้<span class="src m">ตรวจวัด</span></h2><span class="note meta"><span>คลิกหัวคอลัมน์เพื่อเรียง</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
     <div class="tbl"><table id="tDist"></table></div>
   </section>
-  <div class="sect"><span class="sect-t">ย้อนหลัง</span><span class="note meta" id="pastNote"></span></div>
+  <div class="sect past"><span class="sect-t">สถิติย้อนหลัง</span><span class="note meta" id="pastNote"></span></div>
   <section class="grid2">
     <div class="panel">
       <div class="panel-h"><h2>ฝนกับปริมาณน้ำที่สูบออก รายวัน<span class="src m">ตรวจวัด</span></h2><span class="note" id="rangeNote"></span></div>
@@ -268,7 +270,7 @@ const METRICS={
   road_flood:{label:'ถนนท่วมตอนนี้',unit:'จุด',get:d=>d.road_flood,th:[1,2,3,4,5],lab:['0','1','2','3','4','≥ 5']},
   coverage:{label:'จำนวนเซนเซอร์',unit:'ตัว',get:d=>d.canal+d.road,th:[1,5,10,20,30],lab:['0','1–4','5–9','10–19','20–29','≥ 30']},
 };
-if(D.events.length) METRICS.ev={label:'ท่วมซ้ำในอดีต',unit:'ครั้ง',get:d=>d.ev,th:[1,3,6,10,20],lab:['0','1–2','3–5','6–9','10–19','≥ 20']};
+if(D.events.length) METRICS.ev={label:'ท่วมซ้ำ (ย้อนหลัง)',unit:'ครั้ง',get:d=>d.ev,th:[1,3,6,10,20],lab:['0','1–2','3–5','6–9','10–19','≥ 20']};
 let metric='rain24';
 const seg=$('#metric');
 Object.entries(METRICS).forEach(([key,m])=>{const b=document.createElement('button');b.textContent=m.label;b.type='button';b.setAttribute('aria-pressed',key===metric);b.onclick=()=>{metric=key;[...seg.children].forEach(x=>x.setAttribute('aria-pressed',x===b));paintDistricts()};seg.appendChild(b)});
