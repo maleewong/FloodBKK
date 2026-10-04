@@ -184,7 +184,8 @@ footer ul{margin:0;padding-left:18px}
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ตารางรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note">คลิกหัวคอลัมน์เพื่อเรียง · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>ตารางรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note meta"><span>คลิกหัวคอลัมน์เพื่อเรียง</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
+    <ul class="defs" id="distDefs"></ul>
     <div class="tbl"><table id="tDist"></table></div>
   </section>
 
@@ -441,6 +442,8 @@ const ctip=document.createElement('div');ctip.className='tip';ctip.hidden=true;$
 // district table
 (()=>{const cols=[['name','เขต','l'],['rain24','ฝน 24 ชม. (มม.)'],['canal','สถานีคลอง'],['canal_crit','วิกฤต'],['canal_alert','เตือนภัย'],['canal_down','ขัดข้อง'],['gates','ประตู/สูบ'],['road','เซนเซอร์ถนน'],['road_flood','ถนนท่วม'],['road_down','ถนนขัดข้อง']];
   if(D.events.length)cols.push(['ev','ท่วมย้อนหลัง (ครั้ง)'],['ev_hours','ท่วมย้อนหลังรวม (ชั่วโมง)']);
+  {const M_=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],d_=x=>{const m=String(x||'').match(/^(\d+)-(\d+)-(\d+)/);return m?`${+m[3]} ${M_[+m[2]-1]} ${+m[1]+543}`:''},ER=D.events_range||[];
+   $('#distDefs').innerHTML=`<li><b>ฝน ถึง ถนนขัดข้อง:</b> ค่าล่าสุด</li>`+(D.events.length&&ER.length?`<li><b>ท่วมย้อนหลัง:</b> ${d_(ER[0])} – ${d_(ER[1])}</li>`:'')}
   let key='rain24',dir=-1;const T=$('#tDist');
   function draw(){const rows=[...D.districts].sort((a,b)=>{const x=a[key],y=b[key];if(typeof x==='string')return dir*x.localeCompare(y,'th');return dir*((x??-1)-(y??-1))});
     T.innerHTML=`<thead><tr>${cols.map(([k,t,c])=>`<th class="${c||''}" aria-sort="${k===key?(dir<0?'descending':'ascending'):'none'}"><button type="button" data-k="${k}">${t}${k===key?(dir<0?' ↓':' ↑'):''}</button></th>`).join('')}</tr></thead>
