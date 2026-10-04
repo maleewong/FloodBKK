@@ -117,6 +117,12 @@ footer ul{margin:0;padding-left:18px}
 .src{display:inline-block;font:600 11px/1.5 var(--font);letter-spacing:0;text-transform:none;padding:0 7px;margin-left:6px;border:1px solid currentColor;border-radius:999px;vertical-align:2px;white-space:nowrap}
 .src.m{color:var(--accent)}.src.p{color:#8467d6}.src.r{color:var(--muted)}
 .srckey{margin:4px 0 0}.srckey .src{margin:0 2px 0 0}
+.defs{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:3px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.defs li{padding-left:12px;position:relative}
+.defs li::before{content:"";position:absolute;left:2px;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--axis)}
+.defs b{color:var(--ink-2);font-weight:600}
+.meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
+.srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
 </style><style>
 /* field page: summary strip, controls | animated map | hotspot card, then priority table */
 [hidden]{display:none!important}
@@ -196,7 +202,7 @@ footer ul{margin:0;padding-left:18px}
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html" aria-current="page">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">จำลองสถานการณ์: สูบน้ำท่วมขังในชุมชน</h1>
-       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src r">รายงานประชาชน</span> รายงาน Traffy Fondue · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
+       <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง</span><span><span class="src r">รายงานประชาชน</span> รายงาน Traffy Fondue</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
       <p class="sub">เริ่มจากสถานการณ์ปัจจุบัน ลองปรับแล้วดูผลบนแผนที่</p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
@@ -222,7 +228,7 @@ footer ul{margin:0;padding-left:18px}
     </div>
 
     <div class="panel mapcol">
-      <div class="panel-h"><h2>เส้นทางสูบออกที่แนะนำ<span class="src p">โมเดล</span></h2><span class="note">ลากเพื่อเลื่อน · เลื่อนล้อเมาส์เพื่อซูม · คลิกวงกลมเพื่อดูคำแนะนำ</span></div>
+      <div class="panel-h"><h2>เส้นทางสูบออกที่แนะนำ<span class="src p">โมเดล</span></h2><span class="note meta"><span>ลากเพื่อเลื่อน</span><span>เลื่อนล้อเมาส์เพื่อซูม</span><span>คลิกวงกลมเพื่อดูคำแนะนำ</span></span></div>
       <div class="mapwrap" id="mapbox">
         <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งหมด" style="font-size:12px">⤢</button></div>
         <svg id="map" role="img" aria-label="แผนที่จุดน้ำท่วมขังและเส้นทางสูบออก"></svg>
@@ -235,7 +241,7 @@ footer ul{margin:0;padding-left:18px}
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ลำดับความเร่งด่วน<span class="src r">รายงานประชาชน</span></h2><span class="note">คะแนน = ความลึก × จำนวนวัน × จำนวนรายงาน · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>ลำดับความเร่งด่วน<span class="src r">รายงานประชาชน</span></h2><span class="note meta"><span>คะแนน = ความลึก × จำนวนวัน × จำนวนรายงาน</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
     <div class="tbl"><table id="tHot"></table></div>
   </section>
 
@@ -508,7 +514,7 @@ function draw(){gF.innerHTML='';gH.innerHTML='';gP.innerHTML='';
   setVB();
   $('#legend').innerHTML=`<span>จุดน้ำท่วมขัง (ขนาด = ปริมาณน้ำ):</span><span><i class="dot" style="background:var(--ok)"></i>สูบได้ตามแผน</span><span><i class="dot" style="background:var(--crit)"></i>เครื่องไม่พอ</span><span><i class="dot" style="background:var(--surface);box-shadow:inset 0 0 0 2px var(--crit)"></i>คลองใกล้เคียงรับน้ำไม่ได้</span><span><i class="dot" style="background:var(--s2);border-radius:1px;height:3px;width:14px"></i>สูบข้ามคันลงคลอง</span>
    <span><i class="dot" style="background:var(--warn);border-radius:1px;height:3px;width:14px"></i>น้ำที่เพิ่มในคลองไปสถานีสูบ</span><span>▲ สถานีสูบที่รับน้ำเพิ่ม</span><span style="flex-basis:100%;height:0"></span>
-   <span>พื้นดิน (DEM, ม.)</span><span class="ramp">${['#0a203c','#104660','#265c5c','#466048','#686246','#847656'].map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="num">−0.5 · 0.6 · 1.2 · 1.8 · 2.6 · ≥4</span><span><i class="dot" style="background:var(--crit);opacity:.6;width:5px;height:5px"></i>รายงาน Traffy</span><span><i class="dot" style="background:#3cb4ff;border-radius:2px"></i>บริเวณที่น่าจะท่วม (ต่ำกว่าระดับน้ำที่รายงาน, ช่อง 120 ม.)</span><span><i class="dot" style="background:var(--ink-2);border-radius:1px;width:12px;height:5px"></i>ประตูระบายน้ำ ทึบ = เปิด · โปร่ง = ปิด · วงประ <span style="color:var(--accent)">ควรเปิด</span>/<span style="color:var(--crit)">ควรปิด</span></span><span>เส้นประปลายทาง = ทางน้ำนอกเขต กทม. ถึงทะเล/แม่น้ำ</span>`;
+   <span>พื้นดิน (DEM, ม.)</span><span class="ramp">${['#0a203c','#104660','#265c5c','#466048','#686246','#847656'].map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="num">−0.5 / 0.6 / 1.2 / 1.8 / 2.6 / ≥4</span><span><i class="dot" style="background:var(--crit);opacity:.6;width:5px;height:5px"></i>รายงาน Traffy</span><span><i class="dot" style="background:#3cb4ff;border-radius:2px"></i>บริเวณที่น่าจะท่วม (ต่ำกว่าระดับน้ำที่รายงาน, ช่อง 120 ม.)</span><span><i class="dot" style="background:var(--ink-2);border-radius:1px;width:12px;height:5px"></i>ประตูระบายน้ำ: ทึบ = เปิด, โปร่ง = ปิด, วงประ <span style="color:var(--accent)">ควรเปิด</span>/<span style="color:var(--crit)">ควรปิด</span></span><span>เส้นประปลายทาง = ทางน้ำนอกเขต กทม. ถึงทะเล/แม่น้ำ</span>`;
 }
 
 function summary(){const o=R.out;const cnt=f=>HOT.filter(h=>!h.user&&h.n>=prm.minN&&h.fresh===f).length;

@@ -117,6 +117,12 @@ footer ul{margin:0;padding-left:18px}
 .src{display:inline-block;font:600 11px/1.5 var(--font);letter-spacing:0;text-transform:none;padding:0 7px;margin-left:6px;border:1px solid currentColor;border-radius:999px;vertical-align:2px;white-space:nowrap}
 .src.m{color:var(--accent)}.src.p{color:#8467d6}.src.r{color:var(--muted)}
 .srckey{margin:4px 0 0}.srckey .src{margin:0 2px 0 0}
+.defs{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:3px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.defs li{padding-left:12px;position:relative}
+.defs li::before{content:"";position:absolute;left:2px;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--axis)}
+.defs b{color:var(--ink-2);font-weight:600}
+.meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
+.srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
 </style><style>
 .olk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:8px}
 .olk>div{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:2px}
@@ -164,8 +170,8 @@ footer ul{margin:0;padding-left:18px}
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html" aria-current="page">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">ก่อนฝนตก: ควรพร่องน้ำคลองไหน เดินเครื่องสูบเมื่อไร</h1>
-       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src p">พยากรณ์</span> ฝนคาดการณ์ Open-Meteo · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
-      <p class="sub"><b>แผนพร่องน้ำ</b> ในหน้านี้เป็นแผนที่โมเดลนี้คำนวณเอง ไม่ใช่แผนของ กทม.: ก่อนฝนหนัก ลดระดับน้ำในคลองลงเพื่อเตรียมที่รับน้ำฝน โดยสูบไม่เกิน 85% ของกำลังสูบ คลองรับน้ำไม่เกินความจุ และระดับลดไม่เร็วกว่าที่เคยวัดได้ แล้วเทียบกับการสูบเท่าที่วัดได้จริงจนฝนมา · แนวคิดเดียวกับการพร่องน้ำตามระดับควบคุมในแผนปฏิบัติการฯ ป้องกันน้ำท่วม กทม. 2557 (สำนักการระบายน้ำ)</p>
+       <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง</span><span><span class="src p">พยากรณ์</span> ฝนคาดการณ์ Open-Meteo</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
+      <ul class="defs"><li><b>แผนพร่องน้ำ:</b> แผนที่โมเดลนี้คำนวณเอง ไม่ใช่แผนของ กทม. ก่อนฝนหนักให้ลดระดับน้ำในคลองลงเพื่อเตรียมที่รับน้ำฝน</li><li><b>เงื่อนไข:</b> สูบไม่เกิน 85% ของกำลังสูบ, คลองรับน้ำไม่เกินความจุ, ระดับลดไม่เร็วกว่าที่เคยวัดได้</li><li><b>ไม่พร่อง:</b> สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม แล้วจึงเร่งเต็มที่</li><li><b>อ้างอิงแนวคิด:</b> การพร่องน้ำตามระดับควบคุม ในแผนปฏิบัติการป้องกันและแก้ไขปัญหาน้ำท่วม กทม. 2557 (สำนักการระบายน้ำ)</li></ul>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
@@ -199,7 +205,7 @@ footer ul{margin:0;padding-left:18px}
 
   <section class="grid2">
     <div class="panel">
-      <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต<span class="src p">โมเดล</span></h2><span class="note">ล้าน ลบ.ม. เทียบเท่า · เส้นทึบ = พร่องตามแผน · เส้นประ = ไม่พร่อง (สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม) · ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</span></div>
+      <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต<span class="src p">โมเดล</span></h2><span class="note">ล้าน ลบ.ม. เทียบเท่า</span></div><ul class="defs"><li><b>เส้นทึบ:</b> พร่องตามแผน</li><li><b>เส้นประ:</b> ไม่พร่อง (สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม)</li><li>ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</li></ul>
       <div class="chart" id="cCrit"></div>
     </div>
     <div class="panel">
@@ -209,7 +215,7 @@ footer ul{margin:0;padding-left:18px}
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ระดับน้ำรายสถานี<span class="src p">โมเดล</span></h2><span class="note">ม.รทก. · เรียงตามที่แผนลดระดับได้มากกว่าการไม่พร่อง · คลิกแถวเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2>ระดับน้ำรายสถานี<span class="src p">โมเดล</span></h2><span class="note meta"><span>ม.รทก.</span><span>เรียงตามที่แผนลดระดับได้มากกว่าการไม่พร่อง</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
     <div class="tbl"><table id="tSt"></table></div>
   </section>
 
@@ -336,7 +342,7 @@ function rainChart(){const c=$('#cRain');c.innerHTML='';const w=900,h=110,l=40,r
     if(i%6===0)el('text',{x:l+i*bw,y:h-6},A).textContent=tTxt(F.times[i/DT]||'').replace(/^\d+ \S+ /,i%24===0?tTxt(F.times[i/DT]).replace(/ \d+:\d+$/,' '):'')});
   if(S.onset!=null){const x=l+S.onset*DT*bw;el('line',{x1:x,x2:x,y1:t,y2:h-b,stroke:'var(--crit)','stroke-dasharray':'3 3'},g);el('text',{x:x+4,y:t+10,class:'lab',fill:'var(--crit)'},g).textContent='ฝนหนัก'}
   rainCursor=el('rect',{y:t,height:h-t-b,width:bw*DT,fill:'var(--accent)',opacity:.15},g);rainCursor._l=l;rainCursor._bw=bw;
-  c.insertAdjacentHTML('afterbegin','<div class="chips"><span>ฝนเฉลี่ยทั้งเมือง (มม./ชม.) · แถบสีจาง = ช่วงเวลาบนแผนที่</span></div>');drawRainCursor()}
+  c.insertAdjacentHTML('afterbegin','<div class="chips"><span>ฝนเฉลี่ยทั้งเมือง (มม./ชั่วโมง)</span><span>แถบสีจาง = ช่วงเวลาบนแผนที่</span></div>');drawRainCursor()}
 function drawRainCursor(){if(rainCursor)rainCursor.setAttribute('x',rainCursor._l+k*DT*rainCursor._bw)}
 
 // ---------- above-critical chart ----------
@@ -387,7 +393,7 @@ function advice(){const out=[];const A=F.assumptions;const onset=S.onset;const I
 }
 const dTxt=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
 function outlook(){const O=F.outlook||[];if(!O.length){$('#outlook').hidden=true;return}const hv=F.assumptions.heavy_mm;
-  $('#outlook').innerHTML=`<div class="panel-h"><h2>แนวโน้มฝนรายวัน<span class="src p">พยากรณ์</span></h2><span class="note">ฝนเฉลี่ยทั้งเมือง มม./วัน: ค่าคาดการณ์ (ในวงเล็บ = กรณีฝนมาก P90) · ⚠ = ฝนใน 3 ชม. อาจถึง ${hv} มม. · แผนในหน้านี้คำนวณเฉพาะ 48 ชม. แรก</span></div>
+  $('#outlook').innerHTML=`<div class="panel-h"><h2>แนวโน้มฝนรายวัน<span class="src p">พยากรณ์</span></h2></div><ul class="defs"><li><b>ตัวเลขใหญ่:</b> ฝนเฉลี่ยทั้งเมืองที่คาดการณ์ (มม./วัน) ในวงเล็บ = กรณีฝนมาก (P90)</li><li><b>⚠ ฝนหนัก:</b> ฝนใน 3 ชั่วโมงอาจถึง ${hv} มม.</li><li><b>นอกแผน:</b> แผนในหน้านี้คำนวณเฉพาะ 48 ชั่วโมงแรก</li></ul>
   <div class="olk">${O.map(o=>`<div class="${o.in_plan?'':'out'}"><b>${dTxt(o.day)}</b><span class="v">${fmt(o.det,0)}<small> (${fmt(o.p90,0)})</small></span><span class="note">${o.max3_p90>=hv?'<span style="color:var(--crit)">⚠ ฝนหนัก</span>':o.hours<24?'บางส่วนของวัน':'&nbsp;'}${o.in_plan?'':' · นอกแผน'}</span></div>`).join('')}</div>`}
 // ---------- strip ----------
 function strip(){const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];const mx2=(o,zs)=>o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0));const mx=(o,zs)=>Math.max(...o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0)));
@@ -423,7 +429,7 @@ $('#tSt').addEventListener('click',e=>{const tr=e.target.closest('tr[data-c]');i
   $('#tAs').innerHTML=`<tbody>${rows.map(([a,b])=>`<tr><td class="l" style="white-space:nowrap">${esc(a)}</td><td class="l">${esc(b)}</td></tr>`).join('')}</tbody>`})();
 
 function legend(){$('#legend').innerHTML=(mode==='diff'?`<span>พื้นเขต = ระดับน้ำที่ต่ำลงเพราะพร่อง (ไม่พร่อง − พร่อง)</span>${DF.map(([t,c],i)=>`<span><i class="dot" style="background:${c}"></i>${['< 0.02','0.02–0.05','0.05–0.1','0.1–0.2','0.2–0.4','> 0.4'][i]} ม.</span>`).join('')}`:`<span>พื้นเขต = ระดับน้ำเฉลี่ยเทียบเกณฑ์เตือน (แผน)</span>${LV.map(([t,c],i)=>`<span><i class="dot" style="background:${c}"></i>${['< −0.6','−0.6 – −0.3','−0.3 – 0','0 – 0.15','0.15 – 0.4','> 0.4'][i]} ม.</span>`).join('')}`)+`
- <span style="flex-basis:100%;height:0"></span><span>เส้น = น้ำไหลในคลอง (สี = % ความจุ) · ▲ สถานีสูบ (สี = % ที่ใช้) · <span style="color:var(--accent)">◎</span> สถานีวัดน้ำที่ควรพร่องก่อน</span>`;}
+ <ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>เส้น:</b> น้ำไหลในคลอง สี = % ความจุ</li><li><b>▲ สถานีสูบ:</b> สี = % ของกำลังสูบที่ใช้</li><li><b style="color:var(--accent)">◎</b> สถานีวัดน้ำที่ควรพร่องก่อน</li></ul>`;}
 function renderAll(){$('#mapNote').textContent=`${S.label} · ${S.total_mm} มม.`;
   const hv=S.onset!=null;$('#seg').hidden=!hv;if(!hv&&mode!=='opt'){mode='opt';document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m==='opt'))}
   strip();rainChart();critChart();advice();tables();drawStations();legend();

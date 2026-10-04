@@ -86,7 +86,7 @@
     <div>
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html" aria-current="page">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
       <h1 style="margin-top:10px">สถานการณ์ปัจจุบัน: ระบายน้ำที่ค้างอยู่อย่างไร</h1>
-       <p class="note srckey"><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง · <span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</p>
+       <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
@@ -256,10 +256,10 @@ OU.forEach((o,i)=>{const op=outerBy[o.node];if(!op||!((OD[i]||0)>0.05))return;
   const [x,y]=P(op.xy[op.xy.length-1]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);el('circle',{r:4,fill:'var(--seq-2)',stroke:'var(--surface)','stroke-width':1.2},g);
   g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(op.end)}</b><br>ปลายทางของ${esc(o.name.replace('ทางออกขอบเขต ',''))} นอกเขต กทม. ${fmt(op.km,0)} กม.<br>ผ่าน ${op.via.slice(0,4).map(esc).join(' → ')}`));g.addEventListener('mouseleave',hideTip)});
 setVB();
-$('#legend').innerHTML=`<span>ความกว้างเส้น = ปริมาณน้ำวันแรกของแผน · สี = ใช้ความจุคลอง</span>
+$('#legend').innerHTML=`<span><b>เส้นคลอง</b> ความกว้าง = ปริมาณน้ำวันแรกของแผน, สี = % ความจุที่ใช้:</span>
  <span><i class="dot" style="background:var(--s1)"></i>&lt; 30%</span><span><i class="dot" style="background:var(--warn)"></i>30–70%</span><span><i class="dot" style="background:var(--serious)"></i>70–99%</span><span><i class="dot" style="background:var(--crit)"></i>เต็ม (คอขวด)</span><span><i class="dot" style="background:var(--axis)"></i>ไม่มีน้ำไหล</span>
- <span style="flex-basis:100%;height:0"></span><span>▲ สถานีสูบ (ขนาด = กำลังสูบ, สี = % ที่แผนใช้) · ◆ ทางออกขอบเขต (สมมติ) · ▬ ประตูระบายน้ำ ทึบ = เปิด โปร่ง = ปิด วงประ = ควรเปลี่ยน · เส้นประ = ทางน้ำต่อนอกเขต กทม. ถึงทะเล/แม่น้ำ (OSM, แสดงทิศทางเท่านั้น)</span>
- <span>สีพื้นเขต = น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า</span><span class="ramp">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--seq-${i})"></i>`).join('')}</span><span class="num">0 · 0.05 · 0.5 · 2 · 5 · 15 ล้าน ลบ.ม.</span>`;
+ <span style="flex-basis:100%;height:0"></span><ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>▲ สถานีสูบ:</b> ขนาด = กำลังสูบ, สี = % ที่แผนใช้</li><li><b>◆ ทางออกขอบเขต:</b> จุดที่น้ำออกนอก กทม. (สมมติ)</li><li><b>▬ ประตูระบายน้ำ:</b> ทึบ = เปิด, โปร่ง = ปิด, วงประ = ควรเปลี่ยน</li><li><b>เส้นประ:</b> ทางน้ำต่อนอกเขต กทม. ถึงทะเล/แม่น้ำ (OSM, แสดงทิศทางเท่านั้น)</li></ul>
+ <span><b>สีพื้นเขต</b> น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า</span><span class="ramp">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--seq-${i})"></i>`).join('')}</span><span class="num">0 / 0.05 / 0.5 / 2 / 5 / 15 ล้าน ลบ.ม.</span>`;
 $('#mapNote').textContent=PL.made?`แผนคำนวณ ${thDT(PL.made)} น.`:'ยังไม่มีแผน';
 // click a canal: trace where its water goes
 function trace(start){const seen=new Set([start]);const path=[];let cur=start,guard=0;
@@ -435,7 +435,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
     ['--s2','ระยะยาว',`<ul><li>ขยายคลองคอขวด ${list(PL.trunk_canals)} เป็น 2 เท่า (รวมกับข้อระยะสั้น): ${ddT('trunk')}</li></ul>
       <p>${Gt('ทั่วไป: ทำทางผันน้ำ/อุโมงค์ เพิ่มกำลังสูบด้านท้ายพื้นที่ที่น้ำค้าง ติดมาตรวัดอัตราสูบให้ครบ')}${PL.not_reporting&&PL.not_reporting.length?` (ตอนนี้ ${Vc(PL.not_reporting.length+' สถานี')}ไม่มีค่า)`:''}</p>`]];
   $('#pRecs').innerHTML=R2.map(([c,t,p])=>`<div class="rec"><span class="tag" style="background:var(${c})">${esc(t)}</span><div class="rb">${p.startsWith('<')?p:`<p>${p}</p>`}</div></div>`).join('')+
-    `<p class="note" style="margin:0"><b class="cv">ตัวหนา</b> = คำนวณจากข้อมูลล่าสุด (เปลี่ยนทุกครั้งที่อัปเดต) · <span class="gen">ตัวจาง</span> = คำแนะนำทั่วไปที่ไม่ขึ้นกับข้อมูล</p>`;
+    `<ul class="defs" style="margin:0"><li><b class="cv">ตัวหนา</b> คำนวณจากข้อมูลล่าสุด (เปลี่ยนทุกครั้งที่อัปเดต)</li><li><span class="gen">ตัวจาง</span> คำแนะนำทั่วไปที่ไม่ขึ้นกับข้อมูล</li></ul>`;
   $('#planCaveat').textContent=`ข้อควรระวัง: ปริมาตรน้ำ${z}ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด ได้ค่าพื้นที่เก็บน้ำเทียบเท่า ${fmt(PL.assumptions.lambda_zone[z],0)} เท่าของผิวน้ำคลอง (ราว ${fmt(PL.volume0[z],0)} ล้าน ลบ.ม.) ซึ่งรวมน้ำบนพื้นที่ข้างคลองและน้ำที่ไหลเข้าจากทางเหนือไว้ด้วย ความจุคลองและทางออกขอบเขตเป็นค่าสมมติ ตัวเลขวันจึงใช้เทียบระหว่างทางเลือกได้ดีกว่าใช้เป็นค่าพยากรณ์`;
 })();
 
@@ -457,7 +457,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
     rows.push(row(`30 วันล่าสุด (${dd(S[a30][0])} – ${dd(S[n-1][0])})`,a30,n-1));
     const head=['ช่วง','ฝนเฉลี่ย (มม.)','ฝนที่ตกลงพื้นที่ (ล้าน ลบ.ม.)','สูบออกจริง (ล้าน ลบ.ม.)'];
     return `<div><h3>5. ฝนที่ตกกับน้ำที่สูบออกจริง<span class="src m">ตรวจวัด</span></h3>
-      <p class="note" style="margin:0 0 6px">เฉพาะ ${B.n_tel} สถานีสูบที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม. · ช่วงฝน = วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน</p>
+      <ul class="defs" style="margin:0 0 6px"><li><b>สถานีสูบ:</b> เฉพาะ ${B.n_tel} สถานีที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม.</li><li><b>ช่วงฝน:</b> วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน</li></ul>
       <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
   $('#ver').innerHTML=`
   <div><h3>1. ตัวแก้สมการ</h3><p class="note" style="margin:0"><span class="ok">ผ่าน</span> · ${esc(V.lp_check.text)}</p></div>

@@ -117,6 +117,12 @@ footer ul{margin:0;padding-left:18px}
 .src{display:inline-block;font:600 11px/1.5 var(--font);letter-spacing:0;text-transform:none;padding:0 7px;margin-left:6px;border:1px solid currentColor;border-radius:999px;vertical-align:2px;white-space:nowrap}
 .src.m{color:var(--accent)}.src.p{color:#8467d6}.src.r{color:var(--muted)}
 .srckey{margin:4px 0 0}.srckey .src{margin:0 2px 0 0}
+.defs{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:3px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.defs li{padding-left:12px;position:relative}
+.defs li::before{content:"";position:absolute;left:2px;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--axis)}
+.defs b{color:var(--ink-2);font-weight:600}
+.meta>span+span::before{content:"";display:inline-block;width:1px;height:.9em;background:var(--line);margin:0 9px;vertical-align:-1px}
+.srckey{display:flex;flex-wrap:wrap;gap:4px 14px}
 </style>
 
 <div class="wrap">
@@ -125,7 +131,7 @@ footer ul{margin:0;padding-left:18px}
       <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html" aria-current="page">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
       <div class="eyebrow">ต้นแบบวิเคราะห์ · กรุงเทพมหานคร 50 เขต</div>
       <h1>ระบบระบายน้ำ กทม. 50 เขต</h1>
-       <p class="note srckey"><span class="src m">ตรวจวัด</span> ทุกตัวเลขในหน้านี้เป็นค่าที่วัดได้จริง ไม่มีผลโมเดล</p>
+       <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ทุกตัวเลขในหน้านี้เป็นค่าที่วัดได้จริง ไม่มีผลโมเดล</span></p>
       <p class="sub">ระดับน้ำในคลองและประตูระบายน้ำ น้ำท่วมถนน ฝน และการสูบน้ำ จากสำนักการระบายน้ำ</p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
@@ -157,12 +163,12 @@ footer ul{margin:0;padding-left:18px}
       <div class="panel-h"><h2>ฝนกับปริมาณน้ำที่สูบออก รายวัน<span class="src m">ตรวจวัด</span></h2><span class="note" id="rangeNote"></span></div>
       <div class="chart" id="cRain"></div>
       <div class="chart" id="cPump"></div>
-      <p class="note">ฝน: ค่าสูงสุดและค่ามัธยฐานของ 50 สถานีที่ฝนตกมากที่สุดในแต่ละวัน (เว็บแสดงเฉพาะ 50 อันดับแรก) · สูบน้ำ: รวม 32 สถานีสูบน้ำหลัก</p>
+      <ul class="defs"><li><b>ฝน:</b> ค่าสูงสุดและค่ามัธยฐานของ 50 สถานีที่ฝนตกมากที่สุดในแต่ละวัน (เว็บแสดงเฉพาะ 50 อันดับแรก)</li><li><b>สูบน้ำ:</b> รวม 32 สถานีสูบน้ำหลัก</li></ul>
     </div>
     <div class="panel">
       <div class="panel-h"><h2>สถานีสูบน้ำ: ใช้กำลังสูบไปเท่าไร (30 วันล่าสุด)<span class="src m">ตรวจวัด</span></h2><span class="note" id="pumpPeriod"></span></div>
       <div class="chart" id="cPumpSt"></div>
-      <p class="note">ความยาวแท่ง = ปริมาณน้ำที่ระบายรวม (ล้าน ลบ.ม.) · ตัวเลขท้ายแท่ง = % ของกำลังสูบเต็มที่ตลอดช่วง</p>
+      <ul class="defs"><li><b>ความยาวแท่ง:</b> ปริมาณน้ำที่ระบายรวม (ล้าน ลบ.ม.)</li><li><b>ตัวเลขท้ายแท่ง:</b> ปริมาณ (ล้าน ลบ.ม.) และ % ของกำลังสูบเต็มที่ตลอดช่วง</li></ul>
     </div>
   </section>
 
@@ -345,7 +351,7 @@ function showCanal(c){const bank=Math.min(...[c.left_bank,c.right_bank].filter(v
 function showRoad(r){const ev=D.events.find(e=>e.code===r.code);
   insp.innerHTML=`<div class="eyebrow">เซนเซอร์น้ำท่วมถนน · ${esc(r.code)}</div><h2>${esc(r.name)}</h2>${pill(r.status)}
   <dl><dt>ถนน</dt><dd>${esc(r.road||'–')}</dd><dt>เขต</dt><dd>${esc(r.district)}</dd><dt>ระดับน้ำ</dt><dd class="num">${r.depth_cm!=null?fmt(r.depth_cm)+' ซม.':'–'}</dd><dt>เวลาวัด</dt><dd class="num">${esc(r.measured||'–')}</dd>
-  ${ev?`<dt>ท่วมในอดีต</dt><dd class="num">${ev.n} ครั้ง · รวม ${fmt(ev.hours,1)} ชม.</dd>`:''}</dl>`}
+  ${ev?`<dt>ท่วมในอดีต</dt><dd class="num">${ev.n} ครั้ง, รวม ${fmt(ev.hours,1)} ชั่วโมง</dd>`:''}</dl>`}
 function selectDistrict(id){const d=distById[id];Object.values(distPaths).forEach(p=>p.classList.toggle('sel',+p.dataset.id===id));
   const cs=D.canal.filter(c=>c.district_id===id), rs=D.road.filter(r=>r.district_id===id);
   const worst=cs.filter(c=>c.freeboard!=null).sort((a,b)=>a.freeboard-b.freeboard).slice(0,5);
@@ -353,7 +359,7 @@ function selectDistrict(id){const d=distById[id];Object.values(distPaths).forEac
   <dl><dt>ฝน 24 ชม. สูงสุด</dt><dd class="num">${fmt(d.rain24,1)} มม. (${d.rain_n} สถานี)</dd>
   <dt>สถานีวัดน้ำในคลอง</dt><dd class="num">${d.canal} (วิกฤต ${d.canal_crit} · เตือน ${d.canal_alert} · ขัดข้อง ${d.canal_down})</dd>
   <dt>ประตู/สถานีสูบ</dt><dd class="num">${d.gates}</dd><dt>เซนเซอร์ถนน</dt><dd class="num">${d.road} (ท่วม ${d.road_flood} · ขัดข้อง ${d.road_down})</dd>
-  ${D.events.length?`<dt>ท่วมซ้ำในอดีต</dt><dd class="num">${d.ev} ครั้ง · ${fmt(d.ev_hours,1)} ชม.</dd>`:''}</dl>
+  ${D.events.length?`<dt>ท่วมซ้ำในอดีต</dt><dd class="num">${d.ev} ครั้ง, รวม ${fmt(d.ev_hours,1)} ชั่วโมง</dd>`:''}</dl>
   ${worst.length?`<div class="eyebrow">ใกล้ตลิ่งที่สุด</div><dl>${worst.map(c=>`<dt>${esc(c.name)}</dt><dd class="num">${fmt(c.freeboard,2)} ม.</dd>`).join('')}</dl>`:''}
   ${rs.filter(r=>r.status!=='ปกติ').length?`<div class="eyebrow">ถนนที่ต้องจับตา</div><dl>${rs.filter(r=>r.status!=='ปกติ').map(r=>`<dt>${esc(r.name)}</dt><dd>${esc(r.status)}</dd>`).join('')}</dl>`:''}
   <p class="note">คลิกจุดบนแผนที่เพื่อดูกราฟระดับน้ำ 48 ชม.</p>`}
@@ -425,16 +431,16 @@ const ctip=document.createElement('div');ctip.className='tip';ctip.hidden=true;$
 (()=>{const ev=D.events.filter(e=>e.n>0).sort((a,b)=>b.hours-a.hours).slice(0,15);
   if(!ev.length){$('#evNote').textContent='';$('#cEv').innerHTML='<p class="note">กำลังดึงประวัติน้ำท่วมถนนย้อนหลัง (เว็บตอบช้า ราว 20 วินาทีต่อคำขอ) จะเพิ่มในรอบอัปเดตถัดไป</p>';return}
   const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dTH=x=>{const m=String(x||'').match(/^(\d+)-(\d+)-(\d+)/);return m?`${+m[3]} ${MONTHS[+m[2]-1]} ${+m[1]+543}`:''};const ER=D.events_range||[];
-  $('#evNote').textContent=`${ER.length?dTH(ER[0])+' – '+dTH(ER[1]):'ปี '+D.events_years.map(y=>+y+543).join(' และ ')} · ${D.events.length} จาก ${D.road.length} จุดเคยท่วม · เรียงตามระยะเวลาท่วมรวม`;
-  $('#cEv').insertAdjacentHTML('beforebegin',`<p class="note" style="margin:0 0 8px"><b>ชม. = ระยะเวลา ไม่ใช่ความลึก</b> · ระยะเวลาที่เซนเซอร์น้ำท่วมถนนของ สนน. ตรวจพบน้ำบนผิวถนน (ตั้งแต่เริ่มท่วมจนน้ำลด) รวมทุกครั้งในช่วงข้างต้น · ครั้ง = จำนวนเหตุการณ์ · นานสุด = เหตุการณ์ที่ยาวที่สุดครั้งเดียว · * = ยังไม่สิ้นสุดเมื่อดึงข้อมูล หรือเซนเซอร์อาจค้าง</p>`);
+  $('#evNote').className='note meta';$('#evNote').innerHTML=`<span>${ER.length?dTH(ER[0])+' – '+dTH(ER[1]):'ปี '+D.events_years.map(y=>+y+543).join(' และ ')}</span><span>${D.events.length} จาก ${D.road.length} จุดเคยท่วม</span><span>เรียงตามระยะเวลาท่วมรวม</span>`;
+  $('#cEv').insertAdjacentHTML('beforebegin',`<ul class="defs"><li><b>ชั่วโมง:</b> ระยะเวลาที่เซนเซอร์ตรวจพบน้ำท่วมบนผิวถนน ตั้งแต่เริ่มท่วมจนน้ำลด รวมทุกครั้งในช่วงวันที่ด้านบน (ไม่ใช่ความลึก)</li><li><b>ครั้ง:</b> จำนวนเหตุการณ์น้ำท่วม</li><li><b>นานสุด:</b> เหตุการณ์ที่ยาวที่สุดครั้งเดียว</li><li><b>*</b> ยังไม่สิ้นสุดเมื่อดึงข้อมูล หรือเซนเซอร์อาจค้าง</li></ul>`);
   const w=1180,rowH=20,l=330,r=320,h=ev.length*rowH+8;const mx=Math.max(...ev.map(e=>e.hours));
   const s=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'จุดท่วมซ้ำ'});$('#cEv').appendChild(s);
   ev.forEach((e,i)=>{const y=4+i*rowH;const bw=e.hours/mx*(w-l-r);const t=el('text',{x:l-8,y:y+13,'text-anchor':'end',class:'lab'},s);t.textContent=(e.name?e.name+' · '+(e.district||''):'รหัส '+e.code+' (ไม่อยู่ในรายการเซนเซอร์ปัจจุบัน)').slice(0,48);
-    el('rect',{x:l,y:y+3,width:Math.max(2,bw),height:rowH-7,rx:2,fill:'var(--crit)'},s);const v=el('text',{x:l+bw+6,y:y+13,class:'lab','font-family':'var(--mono)'},s);const open_=ER[1]&&e.long_e===ER[1];v.textContent=`${fmt(e.hours,0)} ชม. · ${e.n} ครั้ง · นานสุด ${fmt(e.long,0)} ชม.${open_?'*':''}${e.long>=24&&e.long_s?' ('+dTH(e.long_s).replace(/ \d{4}$/,'')+')':''}`})})();
+    el('rect',{x:l,y:y+3,width:Math.max(2,bw),height:rowH-7,rx:2,fill:'var(--crit)'},s);const v=el('text',{x:l+bw+6,y:y+13,class:'lab','font-family':'var(--mono)'},s);const open_=ER[1]&&e.long_e===ER[1];v.textContent=`${fmt(e.hours,0)} ชั่วโมง, ${e.n} ครั้ง, นานสุด ${fmt(e.long,0)} ชั่วโมง${open_?'*':''}${e.long>=24&&e.long_s?' ('+dTH(e.long_s).replace(/ \d{4}$/,'')+')':''}`})})();
 
 // district table
 (()=>{const cols=[['name','เขต','l'],['rain24','ฝน 24 ชม. (มม.)'],['canal','สถานีคลอง'],['canal_crit','วิกฤต'],['canal_alert','เตือนภัย'],['canal_down','ขัดข้อง'],['gates','ประตู/สูบ'],['road','เซนเซอร์ถนน'],['road_flood','ถนนท่วม'],['road_down','ถนนขัดข้อง']];
-  if(D.events.length)cols.push(['ev','ท่วมย้อนหลัง (ครั้ง)'],['ev_hours','ท่วมย้อนหลังรวม (ชม.)']);
+  if(D.events.length)cols.push(['ev','ท่วมย้อนหลัง (ครั้ง)'],['ev_hours','ท่วมย้อนหลังรวม (ชั่วโมง)']);
   let key='rain24',dir=-1;const T=$('#tDist');
   function draw(){const rows=[...D.districts].sort((a,b)=>{const x=a[key],y=b[key];if(typeof x==='string')return dir*x.localeCompare(y,'th');return dir*((x??-1)-(y??-1))});
     T.innerHTML=`<thead><tr>${cols.map(([k,t,c])=>`<th class="${c||''}" aria-sort="${k===key?(dir<0?'descending':'ascending'):'none'}"><button type="button" data-k="${k}">${t}${k===key?(dir<0?' ↓':' ↑'):''}</button></th>`).join('')}</tr></thead>
