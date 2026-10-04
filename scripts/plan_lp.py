@@ -141,15 +141,31 @@ for c, o in obs.items():
 obs_days = {z: float(np.median(v)) for z, v in obs_zone.items()}
 print('observed median days to warning level', obs_days)
 
+# PLAN_LAMBDA_FROM=plan.json: take lambda from that run, no fitting (sensitivity runs: only the canal speed changes)
+# otherwise start from the lambda of the last run (it changes slowly hour to hour) and stop once it settles
 lam_z = {z: 1.0 for z in set(zone)}
-for it in range(6):
+src = os.environ.get('PLAN_LAMBDA_FROM')
+prev = os.path.join(DATA, src or os.environ.get('PLAN_OUT', 'plan.json'))
+if os.path.exists(prev):
+    try:
+        for z, v in json.load(open(prev, encoding='utf-8'))['assumptions']['lambda_zone'].items():
+            if z in lam_z: lam_z[z] = float(v)
+        print('lambda from', os.path.basename(prev), {z: round(v, 1) for z, v in lam_z.items()})
+    except Exception as e:
+        print('lambda start 1.0 (', e, ')'); src = None
+else:
+    src = None
+for it in range(0 if src else 6):
     lam = np.array([lam_z[z] for z in zone])
     R = solve(cur_cap, lam, f'current (fit {it})')
+    moved = 0.0
     for z, ser in R['zv'].items():
         d = drain_days(ser, 0.5)          # time to halve (robust) vs observed time to halve = obs/2 (linear fall)
         if z in obs_days and d:
-            lam_z[z] = max(1.0, min(200.0, lam_z[z] * (obs_days[z] / 2) / d))
+            new = max(1.0, min(200.0, lam_z[z] * (obs_days[z] / 2) / d))
+            moved = max(moved, abs(new / lam_z[z] - 1)); lam_z[z] = new
     print('lambda', {z: round(v, 1) for z, v in lam_z.items()})
+    if moved < 0.05: break                # settled: the next fit would give the same drain days
 lam = np.array([lam_z[z] for z in zone])
 CUR = solve(cur_cap, lam, 'current')
 PLAN = solve(plan_cap, lam, 'plan')

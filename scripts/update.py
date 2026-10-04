@@ -173,7 +173,7 @@ def rebuild(plan=True):
             import numpy, scipy, networkx  # noqa: F401
             print('คำนวณแผนระบาย 30 วัน (LP หลายช่วงเวลา) ราว 1–3 นาที...')
             run('plan_lp.py')
-            run('plan_lp.py', dict(PLAN_V='0.68', PLAN_OUT='plan_v068.json'))   # sensitivity: faster canal flow
+            run('plan_lp.py', dict(PLAN_V='0.68', PLAN_OUT='plan_v068.json', PLAN_LAMBDA_FROM='plan.json'))   # sensitivity: faster canal flow
             run('build_model.py')
             import shapely, sklearn  # noqa: F401
             if os.path.exists(P('forecast_raw.json')):

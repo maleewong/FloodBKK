@@ -1,4 +1,5 @@
 """Pack the model page data: static network + calibration + the latest snapshot (stdlib only).
+Canal capacities measured from the level profile (canal_profile.py) replace the width-based ones in the model.
 run by update.py / render.py; writes data/model_data.json"""
 import json, os
 from datetime import datetime, timedelta
@@ -60,6 +61,22 @@ def main():
         rain[code] = [name, lat, lon, num(r1), num(r3), num(r24), utc_to_local(ts)]
     road = [[x[2], x[6], x[7], x[9], x[12]] for x in snap['F'] if x[12] in ('Flood', 'Minor flooding')]
 
+    # level along canal lines -> bottlenecks, and the capacity of the canal from the measured flow (canal_profile.py)
+    import canal_profile
+    gauges = {x[0]: dict(name=x[1], district=x[3], lat=x[4], lon=x[5], measured=utc_to_local(x[11]), status=STW.get(x[12], x[12]),
+                         wl_in=num(x[13]), left_bank=num(x[16]), right_bank=num(x[17]), warning=num(x[18]), critical=num(x[19]))
+              for x in snap['W']}
+    profiles = canal_profile.compute_all(net, gauges, utc_to_local(snap['fetched']))
+    cap_cal = {}
+    for pr in profiles:
+        if pr.get('q') and pr.get('canal'):
+            q = max(10.0, min(150.0, pr['q']))
+            for e in net['edges']:
+                if net['names'][e['n']] == pr['canal'] if e['n'] is not None else False:
+                    cap_cal.setdefault(pr['canal'], dict(before=round(e['cap0'], 1), after=round(q, 1)))
+                    e['cap0'] = q
+    if cap_cal: print('canal capacity from measured levels:', cap_cal)
+
     out = dict(
         fetched=utc_to_local(snap['fetched']),
         net=dict(names=net['names'], classes=net['classes'], V0=net['V0'],
@@ -72,7 +89,7 @@ def main():
         plan_alt=({k: v['days'] for k, v in json.load(open(P('plan_v068.json'), encoding='utf-8')).items() if isinstance(v, dict) and 'days' in v}
                   if os.path.exists(P('plan_v068.json')) else None),
         ver=json.load(open(P('verification.json'), encoding='utf-8')) if os.path.exists(P('verification.json')) else None,
-        st=st, rain=rain, road=road,
+        st=st, rain=rain, road=road, profiles=profiles, cap_cal=cap_cal,
         geo=[[f['properties']['code'], f['properties']['name'], f['geometry']['coordinates']] for f in geo['features']],
     )
     json.dump(out, open(P('model_data.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

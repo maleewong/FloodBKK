@@ -1,6 +1,7 @@
 """Render the offline pages from data/*.json (stdlib only).
 bkk_drainage.html  <- template.html + dashboard_data.json (+ canal layer from network.json)
-bkk_model.html     <- template.html (head/CSS) + model_body.html + model_data.json + solver.js + model_core.js"""
+bkk_model.html     <- template.html (head/CSS) + model_body.html + model_data.json + gates.js
+bkk_forecast.html  <- template.html (head/CSS) + forecast_body.html + forecast.json + flood.json"""
 import os, json, re
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..'); DATA = os.path.join(ROOT, 'data')
 rd = lambda p: open(p, encoding='utf-8').read()
@@ -45,8 +46,7 @@ def main():
         head = tpl[:tpl.index('</style>') + len('</style>')]
         head = re.sub(r'<title>.*?</title>', '<title>โมเดลระบายน้ำ กทม.</title>', head)
         body = rd(os.path.join(HERE, 'model_body.html')).replace('__UPDATE_BUTTON__', ub)
-        js = lambda f: re.sub(r'if\(typeof module.*', '', rd(os.path.join(HERE, f)))
-        page = head + body.replace('__SOLVER__', js('solver.js')).replace('__CORE__', js('model_core.js')).replace('__GATES_JS__', rd(os.path.join(HERE, 'gates.js')))
+        page = head + body.replace('__GATES_JS__', rd(os.path.join(HERE, 'gates.js')))
         md0 = json.load(open(os.path.join(DATA, 'model_data.json'), encoding='utf-8'))
         if os.path.exists(os.path.join(DATA, 'outer_paths.json')):
             md0['outer'] = json.load(open(os.path.join(DATA, 'outer_paths.json'), encoding='utf-8'))
@@ -55,7 +55,7 @@ def main():
         open(os.path.join(ROOT, 'bkk_model.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') + page)
     if os.path.exists(os.path.join(DATA, 'forecast.json')) and os.path.exists(os.path.join(DATA, 'model_data.json')):
         md = json.load(open(os.path.join(DATA, 'model_data.json'), encoding='utf-8'))
-        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'], road_now=md.get('road', []),
+        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'], cap_cal=md.get('cap_cal') or {}, road_now=md.get('road', []),
                   road=json.load(open(os.path.join(DATA, 'dashboard_data.json'), encoding='utf-8')).get('road', []) if os.path.exists(os.path.join(DATA, 'dashboard_data.json')) else [],
                   road_seg=json.load(open(os.path.join(DATA, 'road_segments.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'road_segments.json')) else None,
                   net=dict(names=md['net']['names'], nodes=[x[:2] for x in md['net']['nodes']], edges=md['net']['edges'],

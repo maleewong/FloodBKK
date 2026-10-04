@@ -139,6 +139,13 @@
     </div>
   </section>
 
+  <section class="panel" id="profPanel" hidden>
+    <div class="panel-h"><h2 id="profH">ระดับน้ำตามแนวคลอง<span class="src m">ตรวจวัด</span></h2><span class="note" id="profNote"></span></div>
+    <p class="callout" id="profText"></p>
+    <div class="chart" id="cProf"></div>
+    <ul class="defs" id="profDefs" style="margin-top:10px"></ul>
+  </section>
+
   <section class="panel">
     <div class="panel-h"><h2>สถานะสถานีวัดน้ำรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note">เรียงจากเขตที่มีสถานีวิกฤตมากที่สุด, คลิกเพื่อดูบนแผนที่</span></div>
     <div class="chips" id="stLeg"></div>
@@ -432,13 +439,67 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   hit.addEventListener('mouseleave',()=>{tp.hidden=true;[cross,dot1,dot2].forEach(x=>x.setAttribute('visibility','hidden'))});
 })();
 
+// ---------- water level along a canal line (measured) ----------
+(()=>{const P=(M.profiles||[])[0];if(!P||!P.gauges||P.gauges.length<3)return;$('#profPanel').hidden=false;
+  const G=P.gauges,R=P.reaches,U=G.filter(g=>g.used),nk=R.find(r=>r.bottleneck),pr=R.find(r=>r.pump);
+  const short=s=>String(s||'').replace(/^ค\.|^ปตร\.|^สน\./,'').replace(/^คลอง/,'');
+  $('#profH').firstChild.textContent='ระดับน้ำตามแนวคลอง: '+P.title+' ';
+  $('#profNote').textContent=`ค่าล่าสุด ${thDT(P.latest)} น., แถบ = ช่วงต่ำสุด–สูงสุด ${P.window_h} ชม. ปรับทุกชั่วโมง`;
+  const gName=c=>(G.find(g=>g.code===c)||{}).name||c;
+  $('#profText').textContent=nk?`คอขวดช่วง ${gName(nk.up)} → ${gName(nk.down)}: ระดับน้ำลดลง ${fmt(nk.drop,2)} ม. ใน ${fmt(nk.L,1)} กม. ชันกว่าช่วงปกติของคลอง ${fmt(nk.ratio,1)} เท่า (ค่ามัธยฐาน ${P.window_h} ชม.) แปลว่าน้ำต้องใช้แรงดันมากเพื่อผ่านช่วงนี้ คลองช่วงนี้รับน้ำได้ราว ${Math.round((nk.conveyance||0)*100)}% ของช่วงปกติ น้ำจึงค้างอยู่ด้านเหนือน้ำ (ลาดกระบัง) ทั้งที่สถานีสูบปลายทางยังสูบได้`
+    :`ยังไม่พบช่วงที่ระดับน้ำลดชันผิดปกติ (เกณฑ์: ชันกว่าค่ามัธยฐานของคลอง 2 เท่าขึ้นไป)`;
+  const w=900,h=300,l=52,r=20,t=26,b=58;
+  const km1=Math.max(...G.map(g=>g.km)),vals=[];G.forEach(g=>[g.now,g.lo48,g.hi48,g.warn,g.crit].forEach(v=>v!=null&&vals.push(v)));
+  const lo=Math.floor((Math.min(...vals)-.15)*5)/5,hi=Math.ceil((Math.max(...vals)+.15)*5)/5;
+  const x=k=>l+k/km1*(w-l-r),y=v=>t+(1-(v-lo)/(hi-lo))*(h-t-b);
+  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'ระดับน้ำตามแนวคลองประเวศบุรีรมย์ถึงสถานีสูบพระโขนง'});$('#cProf').appendChild(g);
+  const A=el('g',{class:'ax'},g),GR=el('g',{class:'grid'},g);
+  for(let v=Math.ceil(lo*2)/2;v<=hi+1e-9;v+=.5){el('line',{x1:l,x2:w-r,y1:y(v),y2:y(v)},GR);el('text',{x:l-6,y:y(v)+4,'text-anchor':'end'},A).textContent=fmt(v,1)}
+  el('text',{x:l-6,y:t-10,'text-anchor':'end'},A).textContent='ม.รทก.';
+  for(let k=0;k<=km1;k+=5)el('text',{x:x(k),y:h-b+16,'text-anchor':'middle'},A).textContent=k+(k===0?' กม.':'');
+  el('line',{x1:l,x2:w-r,y1:h-b,y2:h-b,stroke:'var(--axis)'},g);
+  // bottleneck shading
+  if(nk){el('rect',{x:x(nk.km0),y:t,width:x(nk.km1)-x(nk.km0),height:h-t-b,fill:'var(--crit)',opacity:.08},g);
+    const tx=el('text',{x:(x(nk.km0)+x(nk.km1))/2,y:t-10,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'var(--crit)'},g);tx.textContent=`คอขวด ${fmt(nk.ratio,1)}×`}
+  if(pr){const tx=el('text',{x:(x(pr.km0)+x(pr.km1))/2,y:t-10,'text-anchor':'middle','font-size':11,fill:'var(--muted)'},g);tx.textContent='สถานีสูบดึงน้ำลง'}
+  // 48 h band
+  const B=U.filter(g=>g.lo48!=null);if(B.length>1){let d='';B.forEach((q,i)=>d+=(i?'L':'M')+x(q.km).toFixed(1)+','+y(q.hi48).toFixed(1));B.slice().reverse().forEach(q=>d+='L'+x(q.km).toFixed(1)+','+y(q.lo48).toFixed(1));el('path',{d:d+'Z',fill:'var(--accent)',opacity:.15},g)}
+  // critical level per gauge (step) and banks
+  G.forEach(q=>{const x0=x(q.km);if(q.crit!=null)el('line',{x1:x0-14,x2:x0+14,y1:y(q.crit),y2:y(q.crit),stroke:'var(--crit)','stroke-width':2},g);
+    if(q.warn!=null)el('line',{x1:x0-10,x2:x0+10,y1:y(q.warn),y2:y(q.warn),stroke:'var(--warn)','stroke-width':2},g)});
+  // current level, coloured by reach
+  R.forEach(rr=>{el('line',{x1:x(rr.km0),x2:x(rr.km1),y1:y(G.find(q=>q.code===rr.up).now),y2:y(G.find(q=>q.code===rr.down).now),stroke:rr.bottleneck?'var(--crit)':rr.pump?'var(--muted)':'var(--accent)','stroke-width':rr.bottleneck?4:2.4,'stroke-dasharray':rr.pump?'5 4':null,'stroke-linecap':'round'},g)});
+  // slope labels
+  R.forEach(rr=>{if(x(rr.km1)-x(rr.km0)<60)return;const yy=(y(G.find(q=>q.code===rr.up).now)+y(G.find(q=>q.code===rr.down).now))/2;
+    const st=rr.bottleneck||rr.slope48>2*(P.median_slope||1);const tx=el('text',{x:(x(rr.km0)+x(rr.km1))/2+(st?10:0),y:yy-(st?14:8),'text-anchor':st?'start':'middle','font-size':11,fill:rr.bottleneck?'var(--crit)':'var(--ink-2)'},g);tx.textContent=`${fmt(rr.slope48*100,1)} ซม./กม.`});
+  // gauges
+  const host=$('#cProf');host.style.position='relative';const tp=document.createElement('div');tp.className='tip';tp.hidden=true;host.appendChild(tp);
+  G.forEach((q,i)=>{const x0=x(q.km);
+    const lb=el('text',{x:x0,y:h-b+30+(i%2)*14,'text-anchor':i===0?'start':i===G.length-1?'end':'middle','font-size':11,fill:q.used?'var(--ink-2)':'var(--muted)'},g);lb.textContent=short(q.name);
+    el('line',{x1:x0,x2:x0,y1:h-b,y2:h-b+4,stroke:'var(--axis)'},g);
+    if(q.now==null)return;
+    const c=el('circle',{cx:x0,cy:y(q.now),r:q.used?5.5:4.5,fill:q.used?'var(--surface)':'var(--line)',stroke:q.now>=q.crit?'var(--crit)':q.now>=q.warn?'var(--warn)':'var(--ok)','stroke-width':2.2,tabindex:0,style:'cursor:pointer'},g);
+    const show=e=>{tp.innerHTML=`<b>${esc(q.name)}</b> (${esc(q.district||'')})<br>ระดับน้ำ ${fmt(q.now,2)} ม.รทก. (${thDT(q.measured)} น.)<br>เตือน ${fmt(q.warn,2)} / วิกฤต ${fmt(q.crit,2)}${q.bank!=null?` / ตลิ่ง ${fmt(q.bank,2)}`:''}<br>${P.window_h} ชม.: ${fmt(q.lo48,2)}–${fmt(q.hi48,2)} ม.<br>กม. ${fmt(q.km,1)} จากต้นสาย${q.used?'':`<br><i>ไม่ใช้คำนวณ: ห่างจากแนวคลองในแผนที่ ${fmt(q.off_m)} ม.</i>`}`;
+      tp.hidden=false;const hb=host.getBoundingClientRect(),cb=c.getBoundingClientRect();let px=cb.left-hb.left+12;if(px+tp.offsetWidth>hb.width)px=cb.left-hb.left-tp.offsetWidth-12;tp.style.left=Math.max(0,px)+'px';tp.style.top=Math.max(0,cb.top-hb.top-tp.offsetHeight-6)+'px'};
+    c.addEventListener('mouseenter',show);c.addEventListener('focus',show);c.addEventListener('mouseleave',()=>tp.hidden=true);c.addEventListener('blur',()=>tp.hidden=true)});
+  host.insertAdjacentHTML('afterbegin','<div class="chips"><span><i class="dot" style="background:var(--accent)"></i>ระดับน้ำล่าสุด</span><span><i class="dot" style="background:var(--crit)"></i>ช่วงคอขวด</span><span><i class="dot" style="background:var(--muted)"></i>ช่วงที่สถานีสูบดึงน้ำลง</span><span><i class="dot" style="background:var(--accent);opacity:.3;border-radius:2px"></i>ช่วง 48 ชม.</span><span><i class="dot" style="background:var(--warn);border-radius:1px;height:3px"></i>เกณฑ์เตือน</span><span><i class="dot" style="background:var(--crit);border-radius:1px;height:3px"></i>เกณฑ์วิกฤต</span></div>');
+  const cc=(M.cap_cal||{})[P.canal],ex=G.filter(q=>!q.used&&q.now!=null),a=P.assume;
+  const li=[];
+  if(P.q)li.push(`<li><b>ความจุ${esc(P.canal)}ที่ใช้ในโมเดล:</b> ${fmt(P.q,1)} ลบ.ม./วิ. (ช่วง ${fmt(P.q_range[0],0)}–${fmt(P.q_range[1],0)}) คำนวณจากความชันผิวน้ำที่วัดได้ในช่วงปกติ (${fmt(P.median_slope*100,1)} ซม./กม.) ด้วยสมการแมนนิ่ง กว้าง ${a.width} ม. ลึก ${a.depth} ม. n ${a.n} (ช่วง 0.025–0.035)${cc?`, เดิมโมเดลใช้ ${fmt(cc.before,1)} จากกว้าง × ลึก × ความเร็วสมมติ`:''} ปรับใหม่ทุกชั่วโมง</li>`);
+  li.push(`<li><b>คอขวด:</b> ช่วงที่ผิวน้ำชันกว่าค่ามัธยฐานของคลอง ${2} เท่าขึ้นไป (คิดจากค่ามัธยฐาน ${P.window_h} ชม. ไม่ใช่ค่าชั่วโมงเดียว) ช่วงสุดท้ายก่อนสถานีสูบไม่นับ เพราะเครื่องสูบดึงน้ำลง</li>`);
+  li.push(`<li><b>คลองพระโขนงดูปกติ:</b> ระดับน้ำปลายทางต่ำเพราะสถานีสูบพระโขนงดึงน้ำออก (กำลังสูบราว 173 ลบ.ม./วิ.) คลองประเวศฯ ส่งน้ำมาได้น้อยกว่านั้นมาก ปัญหาจึงอยู่ที่ตัวคลองช่วงต้นน้ำ ไม่ใช่สถานีสูบ, อุโมงค์บึงหนองบอนไม่ได้เชื่อมกับคลองประเวศฯ โดยตรง</li>`);
+  const off=G.filter(q=>q.now==null);if(off.length)li.push(`<li><b>ไม่มีค่าล่าสุด:</b> ${off.map(q=>esc(q.name)).join(', ')} (สถานีขัดข้อง แสดงเฉพาะเกณฑ์)</li>`);
+  if(ex.length)li.push(`<li><b>ไม่ใช้คำนวณ:</b> ${ex.map(q=>esc(q.name)).join(', ')} (ตำแหน่งห่างจากแนวคลองในแผนที่เกิน 300 ม.) แสดงเป็นจุดสีเทา</li>`);
+  $('#profDefs').innerHTML=li.join('');
+})();
+
 // ---------- assumptions table ----------
 (()=>{const K={cal:['k-cal','ปรับเทียบ'],ass:['k-ass','สมมติ'],dat:['k-dat','ข้อมูล']};const tel=PU.filter(p=>p.src==='telemetry'&&!p.internal).length,rep=PU.filter(p=>p.src!=='telemetry').length;
   const rows=[
   ['โครงข่ายคลอง','dat',`OpenStreetMap: ${fmt(E.length)} ช่วงคลอง ${fmt(N.length)} จุดต่อในเขต กทม. ความต่อเนื่องของคลองตามแผนที่ OSM ซึ่งอาจขาดคลองย่อยหรือท่อระบายน้ำ`],
   ['แม่น้ำเจ้าพระยา','ass','คลองที่บรรจบแม่น้ำถือว่าปิดด้วยประตูระบายน้ำ น้ำออกสู่แม่น้ำได้ทางสถานีสูบเท่านั้น (ระดับน้ำนอกสูงกว่าด้านในเกือบทุกจุด)'],
   ['สถานีสูบ','dat',`${tel} สถานีจากข้อมูลออนไลน์ (กำลังสูบรายวัน) + ${rep} สถานีจากแผนปฏิบัติการฯ 2557 วางตำแหน่งตรงที่คลองชื่อเดียวกันบรรจบแม่น้ำ, สถานีสูบภายในที่ถ่ายน้ำระหว่างคลอง 3 แห่งไม่นับเป็นจุดระบายออก`],
-  ['ความจุคลอง','ass',Object.values(CL).map(c=>`${c.label}: กว้าง ${c.w} ม. ลึก ${c.d} ม.`).join(', ')+`, คลองช่วง 6 กม. แรกที่ไหลเข้าสถานีสูบ ถือว่ารับน้ำได้เท่ากำลังสูบ (ลดลงตามระยะ)`],
+  ['ความจุคลอง','ass',Object.values(CL).map(c=>`${c.label}: กว้าง ${c.w} ม. ลึก ${c.d} ม.`).join(', ')+`, คลองช่วง 6 กม. แรกที่ไหลเข้าสถานีสูบ ถือว่ารับน้ำได้เท่ากำลังสูบ (ลดลงตามระยะ)`+Object.entries(M.cap_cal||{}).map(([k,v])=>`, ${k}: ${fmt(v.after,1)} ลบ.ม./วิ. จากระดับน้ำที่วัดได้ (เดิม ${fmt(v.before,1)}) ดูกราฟระดับน้ำตามแนวคลอง`).join('')],
   ['ความเร็วน้ำ','ass','0.5 ม./วิ. (ค่าระมัดระวัง) เทียบกรณีศึกษา SWE ปี 2561 แล้วค่า 0.65–0.7 ให้ผลใกล้กว่า ปรับได้'],
   ['พื้นที่รับน้ำ','dat',`แบ่งพื้นที่ กทม. เป็นตาราง 300 ม. แต่ละช่องส่งน้ำเข้าจุดต่อคลองที่ใกล้ที่สุด รวม ${fmt(N.reduce((a,n)=>a+n[2],0),0)} ตร.กม.`],
   ['ฝน','ass','หน้านี้ถือว่าไม่มีฝนตกเพิ่ม (กรณีมีฝนดูหน้าคาดการณ์ฝน) ฝนย้อนหลังใช้ปรับเทียบเท่านั้น'],
