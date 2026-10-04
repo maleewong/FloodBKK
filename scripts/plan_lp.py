@@ -29,6 +29,8 @@ zone_of = lambda d: next((z for z, s in ZONES.items() if d in s), 'ชั้น�
 M = json.load(open(P('model_data.json'), encoding='utf-8'))
 cal = json.load(open(P('calibration.json'), encoding='utf-8'))
 N = M['net']['nodes']; E = M['net']['edges']; PU = [p for p in M['net']['pumps'] if not p['internal']]; OU = M['net']['outlets']
+TUN = np.array([M['net']['names'][e[2]] in {t['name'] for t in M.get('tunnels') or []} for e in E])   # BMA tunnels (tunnels.py)
+FIXED = TUN | np.array([M['net']['names'][e[2]] in (M.get('cap_cal') or {}) for e in E])
 n = len(N); geo = {int(g[0][2:]): g[1] for g in M['geo']}
 
 # ---------- initial excess per node ----------
@@ -99,12 +101,15 @@ def solve(pump_cap, lam, label, outlet=None, capmul=None):
         if k == 0: b[r0:r0 + n] = V0
     A = coo_matrix((vals, (rows, cols)), shape=(n * K, nvar)).tocsr()
     cost = np.zeros(nvar); ub = np.zeros(nvar)
-    capE = np.array([e[5] * V_MS / M['net']['V0'] * ((capmul or {}).get(M['net']['names'][e[2]], 1.0)) for e in E])
+    # tunnels (pump-limited, one way intake -> outlet) and canals whose capacity comes from measured levels keep their capacity
+    # when the assumed flow speed changes; the rest scale with V_MS
+    capE = np.array([e[5] if FIXED[k] else e[5] * V_MS / M['net']['V0'] * ((capmul or {}).get(M['net']['names'][e[2]], 1.0)) for k, e in enumerate(E)])
+    capR = np.where(TUN, 0.0, capE)
     wV = np.array([WEIGHT[z] for z in zone])
     lenc = np.array([max(1, round(e[4] / 500)) for e in E]) * 1e-3
     for k in range(K):
         o0 = off(k)
-        cost[o0:o0 + m] = lenc; cost[o0 + m:o0 + 2 * m] = lenc; ub[o0:o0 + 2 * m] = np.tile(capE, 2)
+        cost[o0:o0 + m] = lenc; cost[o0 + m:o0 + 2 * m] = lenc; ub[o0:o0 + m] = capE; ub[o0 + m:o0 + 2 * m] = capR
         cost[o0 + 2 * m:o0 + 2 * m + npu] = 1e-3; ub[o0 + 2 * m:o0 + 2 * m + npu] = pump_cap
         cost[o0 + 2 * m + npu:o0 + 2 * m + npu + no] = 3e-3; ub[o0 + 2 * m + npu:o0 + 2 * m + npu + no] = OUTLET if outlet is None else outlet
         cost[o0 + 2 * m + npu + no:o0 + nv_step] = wV / 1e4; ub[o0 + 2 * m + npu + no:o0 + nv_step] = np.inf

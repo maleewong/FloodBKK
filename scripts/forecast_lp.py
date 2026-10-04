@@ -122,7 +122,10 @@ pump_measured = [[d, round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / 1e6
                   round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / max(1, sum(pdays[d].get(c, (0, 0))[0] for c in _codes)), 3)] for d in days3]
 rate_now = np.array([rep[p['id']][1] / 86400 if p['id'] in rep else p['cap'] * fleet for p in PU])
 cap_full = np.array([p['cap'] * AVAIL for p in PU])
-capE = np.array([e[5] * V_MS / M['net']['V0'] for e in E])
+TUN = np.array([M['net']['names'][e[2]] in {t['name'] for t in M.get('tunnels') or []} for e in E])   # BMA tunnels (tunnels.py)
+FIXED = TUN | np.array([M['net']['names'][e[2]] in (M.get('cap_cal') or {}) for e in E])
+capE = np.array([e[5] if FIXED[k] else e[5] * V_MS / M['net']['V0'] for k, e in enumerate(E)])   # tunnels / measured canals: as given
+capR = np.where(TUN, 0.0, capE)                                                                 # tunnels flow one way
 wz = np.array([WEIGHT[z] for z in zone])
 
 # ---------- LP ----------
@@ -168,7 +171,7 @@ def solve(rain_node_h, pump_cap_k, label):
     lenc = np.array([max(1, round(e[4] / 500)) for e in E]) * 1e-3
     for k in range(K):
         o0 = off(k)
-        cost[o0:o0 + 2 * m] = np.tile(lenc, 2); ub[o0:o0 + 2 * m] = np.tile(capE, 2)
+        cost[o0:o0 + 2 * m] = np.tile(lenc, 2); ub[o0:o0 + m] = capE; ub[o0 + m:o0 + 2 * m] = capR
         cost[o0 + 2 * m:o0 + 2 * m + npu] = 1e-3 * (1 + 0.2 * (K - k) / K)      # prefer to pump later unless lowering early helps
         ub[o0 + 2 * m:o0 + 2 * m + npu] = pump_cap_k[k]
         cost[o0 + 2 * m + npu:o0 + 2 * m + npu + no] = 3e-3; ub[o0 + 2 * m + npu:o0 + 2 * m + npu + no] = OUTLET

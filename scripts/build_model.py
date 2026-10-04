@@ -44,6 +44,9 @@ def balance(cal):
 
 def main():
     net = json.load(open(P('network.json')))
+    import tunnels
+    tun = tunnels.apply(net)          # drainage tunnels in operation (links intake canal -> outlet pump)
+    print('tunnels', [(t['name'], t['cap'], t['pump'], t['intake_m']) for t in tun])
     cal = json.load(open(P('calibration.json')))
     snap = json.load(open(P('snapshot.json')))
     geo = json.load(open(P('bkk_districts.geojson')))
@@ -89,7 +92,7 @@ def main():
         plan_alt=({k: v['days'] for k, v in json.load(open(P('plan_v068.json'), encoding='utf-8')).items() if isinstance(v, dict) and 'days' in v}
                   if os.path.exists(P('plan_v068.json')) else None),
         ver=json.load(open(P('verification.json'), encoding='utf-8')) if os.path.exists(P('verification.json')) else None,
-        st=st, rain=rain, road=road, profiles=profiles, cap_cal=cap_cal,
+        st=st, rain=rain, road=road, profiles=profiles, cap_cal=cap_cal, tunnels=tun,
         geo=[[f['properties']['code'], f['properties']['name'], f['geometry']['coordinates']] for f in geo['features']],
     )
     json.dump(out, open(P('model_data.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

@@ -55,7 +55,7 @@ def main():
         open(os.path.join(ROOT, 'bkk_model.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') + page)
     if os.path.exists(os.path.join(DATA, 'forecast.json')) and os.path.exists(os.path.join(DATA, 'model_data.json')):
         md = json.load(open(os.path.join(DATA, 'model_data.json'), encoding='utf-8'))
-        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'], cap_cal=md.get('cap_cal') or {}, road_now=md.get('road', []),
+        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'], cap_cal=md.get('cap_cal') or {}, tunnels=md.get('tunnels') or [], road_now=md.get('road', []),
                   road=json.load(open(os.path.join(DATA, 'dashboard_data.json'), encoding='utf-8')).get('road', []) if os.path.exists(os.path.join(DATA, 'dashboard_data.json')) else [],
                   road_seg=json.load(open(os.path.join(DATA, 'road_segments.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'road_segments.json')) else None,
                   net=dict(names=md['net']['names'], nodes=[x[:2] for x in md['net']['nodes']], edges=md['net']['edges'],

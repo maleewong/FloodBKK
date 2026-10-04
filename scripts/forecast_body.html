@@ -117,6 +117,7 @@ const tTxt=s=>{const m=String(s||'').match(/^(\d+)-(\d+)-(\d+)T(\d+):(\d+)/);ret
 const dTxt=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
 const short=s=>String(s).replace(/^สถานีสูบน้ำ|^สถานีสุบน้ำ/,'ส.').replace(/^อาคารสูบน้ำ/,'อาคารสูบ ').replace(/\*$/,'').trim();
 const N=D.net.nodes,E=D.net.edges,PU=D.net.pumps,K=F.steps,DT=F.dt_h,A=F.assumptions;
+const TUNS=new Set((D.tunnels||[]).map(t=>t.name)),isTun=e=>TUNS.has(D.net.names[e[2]]);
 const SC=F.scenarios.filter(s=>s.key==='forecast'||s.key==='extreme');
 const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];
 const zsum=(o,zs)=>o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0));
@@ -200,7 +201,7 @@ function drawMap(svg,S,idx){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.styl
       const lv=Math.abs(pk)<0.005?'เท่ากับเกณฑ์เตือน':`${pk>0?'สูงกว่า':'ต่ำกว่า'}เกณฑ์เตือน ${fmt(Math.abs(pk),2)} ม.`;
       showTip(e,`<b>เขต${esc(n)}</b><br>ฝน 48 ชม. ${fmt(d.rain,0)} มม. <span class="src f">พยากรณ์</span><br><br><b>ผลคำนวณ</b> <span class="src p">โมเดล</span><br><span class="note">จากฝนนี้ + ระดับน้ำที่วัดได้ล่าสุด + การสูบที่โมเดลแนะนำ</span><br>ระดับน้ำในคลองของเขต (เฉลี่ย) สูงสุด: ${lv}<br>น้ำเกินเกณฑ์วิกฤตสูงสุด: ${cr<0.005?'ไม่เกิน':fmt(cr,2)+' ล้าน ลบ.ม.'}`)});p.addEventListener('mouseleave',hideTip)});
   D.net.cp.forEach(pts=>el('path',{d:line(pts),fill:'none',stroke:'var(--river)','stroke-width':6,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gR));
-  E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?1:.6,opacity:.6,'vector-effect':'non-scaling-stroke'},gC)});
+  E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?1:.6,opacity:.6,'vector-effect':'non-scaling-stroke','stroke-dasharray':isTun(e)?'6 4':null},gC)});
   const mk=(lon,lat,draw,tipf,f)=>{const [x,y]=P([lon,lat]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gM);draw(g);g.addEventListener('mousemove',e=>showTip(e,tipf()));g.addEventListener('mouseleave',hideTip);if(f)g.addEventListener('click',f);return g};
   S.stations.forEach(r=>{const s=D.st[r.code];if(!s||s[8]==null)return;const k=stOf(r),nw=nowOf(r);if(k==='ปกติ')return;
     mk(s[9],s[8],g=>{el('circle',{r:4,fill:SCOL[k],class:'mk'},g);if(k==='วิกฤต'&&nw!=='วิกฤต')el('circle',{r:8,fill:'none',stroke:'var(--crit)','stroke-width':1.4},g)},
@@ -282,7 +283,7 @@ let FLCRIT='';   // its method, listed with the other assumptions at the bottom
   const gD=el('g',{},svg);D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),fill:'var(--seq-0)',stroke:'var(--line)','stroke-width':1,'vector-effect':'non-scaling-stroke'},gD));
   const cp=el('clipPath',{id:'bkFl'},el('defs',{},svg));D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join('')},cp));
   const gImg=el('g',{'clip-path':'url(#bkFl)'},svg),gCt=el('g',{'clip-path':'url(#bkFl)'},svg);
-  const gC=el('g',{},svg);E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?.9:.5,opacity:.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'},gC)});
+  const gC=el('g',{},svg);E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?.9:.5,opacity:.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','stroke-dasharray':isTun(e)?'6 4':null},gC)});
   D.net.cp.forEach(pts=>el('path',{d:line(pts),fill:'none',stroke:'var(--river)','stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gC));
   const gRd=el('g',{},svg),gRep=el('g',{style:'display:none'},svg),gMk=el('g',{},svg),gHl=el('g',{},svg);
   const mk=(lon,lat,draw,tipf)=>{const [x,y]=P([lon,lat]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gMk);draw(g);g.addEventListener('mousemove',e=>showTip(e,tipf()));g.addEventListener('mouseleave',hideTip);return g};
@@ -382,7 +383,8 @@ let FLCRIT='';   // its method, listed with the other assumptions at the bottom
   ['ถนนเสี่ยงท่วม',`จากประวัติเซนเซอร์ สนน. ${RH.period?dTxt(RH.period[0])+' – '+dTxt(RH.period[1]):''}: ฝนสูงสุดในเขตในวันที่ถนนจุดนั้นเคยท่วม (ใช้ ${RH.n||0} จุดที่ท่วม ≥ 2 ครั้ง) เสี่ยง = ฝน 24 ชม. ถึงค่าต่ำ (เปอร์เซ็นไทล์ 25), เสี่ยงสูง = ถึงค่ากลาง`],
   ...Object.entries(D.cap_cal||{}).map(([k,v])=>['ความจุคลองจากข้อมูลจริง',`${k} ${fmt(v.after,1)} ลบ.ม./วิ. (เดิม ${fmt(v.before,1)}) คำนวณจากความชันของระดับน้ำที่สถานีวัดตามแนวคลองทุกชั่วโมง เหมือนหน้าสถานการณ์ปัจจุบัน`]),
   ['ล้นตลิ่ง','โมเดลเก็บน้ำไว้ในคลองทั้งหมด ไม่คิดน้ำที่ล้นออกไปท่วมพื้นที่ ถ้าระดับสูงสุดเกินเกณฑ์วิกฤตมากกว่า 0.5 ม. จะแสดงเป็น "ล้นตลิ่ง" แทนตัวเลข เพราะระดับจริงจะไม่สูงขนาดนั้น น้ำจะล้นออกไปท่วมพื้นที่รอบคลองแทน'],
-  ['สิ่งที่ยังไม่รวม','อุโมงค์ระบายน้ำ แก้มลิง ท่อระบายน้ำ น้ำขึ้นน้ำลง น้ำเหนือ และการเปิดปิดประตูระบายน้ำรายชั่วโมง']]
+  ['อุโมงค์ระบายน้ำ',`${(D.tunnels||[]).length} อุโมงค์ที่ใช้งานอยู่ (เส้นประบนแผนที่) รวม ${(D.tunnels||[]).reduce((a,t)=>a+t.cap,0)} ลบ.ม./วิ. เหมือนหน้าสถานการณ์ปัจจุบัน`],
+  ['สิ่งที่ยังไม่รวม','อุโมงค์ขนาดเล็ก แก้มลิง ท่อระบายน้ำ น้ำขึ้นน้ำลง น้ำเหนือ และการเปิดปิดประตูระบายน้ำรายชั่วโมง']]
   .map(([a,b])=>`<li><b>${esc(a)}:</b> ${esc(b)}</li>`).join('');$('#assume').insertAdjacentHTML('beforeend',FLCRIT)})();
 })();
 </script>
