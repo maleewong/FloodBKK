@@ -36,6 +36,8 @@ def main():
     d = json.load(open(os.path.join(DATA, 'dashboard_data.json'), encoding='utf-8'))
     if os.path.exists(os.path.join(DATA, 'network.json')):
         d['canals'] = canal_layer()
+    if os.path.exists(os.path.join(DATA, 'road_segments.json')):      # road under each flood sensor (build_roads.py)
+        d['road_seg'] = json.load(open(os.path.join(DATA, 'road_segments.json'), encoding='utf-8'))
     open(os.path.join(ROOT, 'bkk_drainage.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') +
         tpl.replace('__DATA__', safe(json.dumps(d, ensure_ascii=False, separators=(',', ':')))))
 
@@ -51,42 +53,23 @@ def main():
         md0['gates'] = gates()
         page = page.replace('__MODEL__', safe(json.dumps(md0, ensure_ascii=False, separators=(',', ':'))))
         open(os.path.join(ROOT, 'bkk_model.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') + page)
-    if os.path.exists(os.path.join(DATA, 'ponding.json')) and os.path.exists(os.path.join(DATA, 'dem.json')):
-        net = json.load(open(os.path.join(DATA, 'network.json'), encoding='utf-8'))
-        md = json.load(open(os.path.join(DATA, 'model_data.json'), encoding='utf-8'))
-        plan = json.load(open(os.path.join(DATA, 'plan.json'), encoding='utf-8'))
-        pid = plan.get('pump_ids', []); pday = dict(zip(pid, plan.get('plan_pump_day1', [])))
-        pd = dict(
-            fetched=md['fetched'], st=md['st'], geo=md['geo'],
-            net=dict(names=net['names'], nodes=[[n['lon'], n['lat'], n.get('st')] for n in net['nodes']],
-                     edges=[[e['u'], e['v'], e['n'], e['c'], e['L'], e['cap0'], e['g']] for e in net['edges']],
-                     pumps=[dict(id=p['id'], name=p['name'], node=p['node'], cap=p['cap'], internal=p['internal']) for p in net['pumps']],
-                     outlets=[dict(id=o['id'], name=o['name'], node=o['node']) for o in net['outlets']], cp=net['chao_phraya']),
-            plan=dict(flow=plan.get('plan_flow_day1', []), pump=[pday.get(p['id'], 0) for p in net['pumps']], outlet=plan.get('outlet_day1', [])),
-            dem={k: v for k, v in json.load(open(os.path.join(DATA, 'dem.json'))).items()},
-            pond=json.load(open(os.path.join(DATA, 'ponding.json'), encoding='utf-8')),
-            outer=json.load(open(os.path.join(DATA, 'outer_paths.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'outer_paths.json')) else None,
-            gates=gates(), necks=plan.get('trunk_canals', []))
-        head = tpl[:tpl.index('</style>') + len('</style>')]
-        head = re.sub(r'<title>.*?</title>', '<title>จำลองสถานการณ์ระบายน้ำ กทม.</title>', head)
-        body = rd(os.path.join(HERE, 'ponding_body.html')).replace('__SOLVER__', re.sub(r'if\(typeof module.*', '', rd(os.path.join(HERE, 'solver.js'))))
-        body = body.replace('__GATES_JS__', rd(os.path.join(HERE, 'gates.js'))).replace('__UPDATE_BUTTON__', ub)
-        body = body.replace('__PONDING__', safe(json.dumps(pd, ensure_ascii=False, separators=(',', ':'))))
-        open(os.path.join(ROOT, 'bkk_ponding.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') + head + body)
     if os.path.exists(os.path.join(DATA, 'forecast.json')) and os.path.exists(os.path.join(DATA, 'model_data.json')):
         md = json.load(open(os.path.join(DATA, 'model_data.json'), encoding='utf-8'))
-        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'],
+        fd = dict(fetched=md['fetched'], geo=md['geo'], st=md['st'], road_now=md.get('road', []),
+                  road=json.load(open(os.path.join(DATA, 'dashboard_data.json'), encoding='utf-8')).get('road', []) if os.path.exists(os.path.join(DATA, 'dashboard_data.json')) else [],
+                  road_seg=json.load(open(os.path.join(DATA, 'road_segments.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'road_segments.json')) else None,
                   net=dict(names=md['net']['names'], nodes=[x[:2] for x in md['net']['nodes']], edges=md['net']['edges'],
                            pumps=[dict(id=p['id'], name=p['name'], node=p['node'], cap=p['cap']) for p in md['net']['pumps'] if not p['internal']],
                            cp=md['net']['cp']),
                   outer=json.load(open(os.path.join(DATA, 'outer_paths.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'outer_paths.json')) else None,
-                  F=json.load(open(os.path.join(DATA, 'forecast.json'), encoding='utf-8')))
+                  F=json.load(open(os.path.join(DATA, 'forecast.json'), encoding='utf-8')),
+                  FL=json.load(open(os.path.join(DATA, 'flood.json'), encoding='utf-8')) if os.path.exists(os.path.join(DATA, 'flood.json')) else None)
         head = tpl[:tpl.index('</style>') + len('</style>')]
         head = re.sub(r'<title>.*?</title>', '<title>คาดการณ์ฝนและการพร่องน้ำ กทม.</title>', head)
         body = rd(os.path.join(HERE, 'forecast_body.html')).replace('__UPDATE_BUTTON__', ub)
         body = body.replace('__FORECAST__', safe(json.dumps(fd, ensure_ascii=False, separators=(',', ':'))))
         open(os.path.join(ROOT, 'bkk_forecast.html'), 'w', encoding='utf-8').write((DOC if STANDALONE else '') + head + body)
-    print('rendered', [f for f in ('bkk_drainage.html', 'bkk_model.html', 'bkk_forecast.html', 'bkk_ponding.html') if os.path.exists(os.path.join(ROOT, f))])
+    print('rendered', [f for f in ('bkk_drainage.html', 'bkk_model.html', 'bkk_forecast.html') if os.path.exists(os.path.join(ROOT, f))])
 
 
 if __name__ == '__main__':

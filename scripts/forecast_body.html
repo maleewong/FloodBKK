@@ -1,38 +1,50 @@
 <style>
+[hidden]{display:none!important}
 .olk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:8px}
 .olk>div{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:2px}
 .olk>div.out{border-style:dashed}
 .olk .v{font-size:1.4rem;font-weight:600}.olk .v small{font-size:.75rem;font-weight:400;color:var(--muted)}
-[hidden]{display:none!important}
-.mgrid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
-@media (max-width:1100px){.mgrid{grid-template-columns:1fr}}
+.twomap{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:1000px){.twomap{grid-template-columns:1fr}}
+.mh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:1rem;margin:4px 0 6px}
 .mapwrap{position:relative}
-#map{touch-action:none;cursor:grab;background:var(--bg);border-radius:var(--r);width:100%}
-#map.drag{cursor:grabbing}
+.fmap{touch-action:none;cursor:grab;background:var(--bg);border-radius:var(--r);width:100%}
+.fmap.drag{cursor:grabbing}
 .dfill{stroke:var(--surface);stroke-width:1}
-.fl{fill:none;stroke-linecap:round;pointer-events:none;stroke-dasharray:3 7;animation:flow 1.2s linear infinite}
-@keyframes flow{to{stroke-dashoffset:-20}}
-@media (prefers-reduced-motion:reduce){.fl{animation:none;opacity:0}}
-.pm,.sm{cursor:pointer;stroke:var(--surface);stroke-width:1.2}
-.sm{fill:none;stroke-width:2.2}
-.timebar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
-.timebar input[type=range]{flex:1 1 220px;accent-color:var(--accent)}
-.timebar output{font-family:var(--mono);font-size:13px;min-width:12ch}
-.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r);padding:6px 12px;cursor:pointer}
-.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.advice{display:grid;gap:14px;min-width:0}
-.rec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:start}
-.rec .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:var(--surface);white-space:nowrap}
-.rec p{margin:0;font-size:13.5px}
-.rec ul{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--ink-2)}
-.rec li{cursor:pointer}.rec li:hover{color:var(--ink)}
-.scen{display:flex;flex-wrap:wrap;gap:8px}
-.scen button{font:inherit;font-size:13px;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:var(--r);padding:8px 12px;cursor:pointer;display:grid;gap:2px;min-width:180px}
-.scen button b{font-size:14px;color:var(--ink)}
-.scen button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
-.scen button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.as td,.as th{white-space:normal;vertical-align:top}
+.pm,.mk{cursor:pointer;stroke:var(--surface);stroke-width:1.2}
+.rainc svg{width:100%;height:auto;display:block}
+.cmp td,.cmp th{white-space:normal}
+.cmp td.v{font-family:var(--mono);text-align:right}
+.adv{display:grid;gap:12px}
+.adv h3{font-size:1rem;margin:0}
+.adv ul{margin:2px 0 0;padding-left:18px;font-size:13px;color:var(--ink-2)}
+.adv li{cursor:pointer}.adv li:hover{color:var(--ink)}
+.adv p{margin:0;font-size:13.5px}
+.tagc{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:var(--surface);margin-right:6px}
 .up{color:var(--crit)}.dn{color:var(--ok)}
+.bars{display:grid;gap:3px;margin:4px 0 10px}
+.bar{all:unset;display:grid;grid-template-columns:minmax(0,15em) minmax(0,1fr) 7.5em;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-2);cursor:pointer;padding:2px 4px;border-radius:4px}
+.bar:hover,.bar.on{background:var(--accent-soft);color:var(--ink)}
+.bar:focus-visible{outline:2px solid var(--accent)}
+.bar .bl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .bt{display:flex;height:12px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar .bt i{display:block;height:100%}
+.bar .bv{font-family:var(--mono);font-size:12px;white-space:nowrap;text-align:right}
+.adv .sub{font-size:13px;color:var(--ink);margin:8px 0 2px}
+.blg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:0 0 4px}.blg i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
+.flg{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;align-items:start}
+@media (max-width:1000px){.flg{grid-template-columns:1fr}}
+.act{width:100%;border-collapse:collapse;font-size:12.5px}
+.act td{padding:5px 6px;border-top:1px solid var(--line);vertical-align:top;text-align:left;white-space:normal}
+.act td:first-child{white-space:nowrap;font-weight:600}
+.act i.sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:6px}
+.flk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
+.flk>div{border:1px solid var(--line);border-radius:var(--r);padding:6px 8px}
+.flk b{display:block;font-size:1.15rem}
+.flk span{font-size:11.5px;color:var(--muted)}
+.bars.w .bar{grid-template-columns:minmax(0,11em) minmax(0,1fr) 8.5em}
+@media (max-width:600px){.bar,.bars.w .bar{grid-template-columns:minmax(0,9em) minmax(0,1fr) 6.5em;font-size:12px}.flk{grid-template-columns:1fr 1fr 1fr}.flk b{font-size:1rem}}
+.chk{border-left:3px solid var(--accent);padding:6px 10px;background:var(--accent-soft);border-radius:4px;font-size:13px;margin-top:8px}
 </style>
 <style>
 :root{--river:#6ea8d6}
@@ -43,69 +55,51 @@
 <div class="wrap">
   <header>
     <div>
-      <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html" aria-current="page">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
-      <h1 style="margin-top:10px">ก่อนฝนตก: ควรพร่องน้ำคลองไหน เดินเครื่องสูบเมื่อไร</h1>
-       <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง</span><span><span class="src p">พยากรณ์</span> ฝนคาดการณ์ Open-Meteo</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
-      <ul class="defs"><li><b>แผนพร่องน้ำ:</b> แผนที่โมเดลนี้คำนวณเอง ไม่ใช่แผนของ กทม. ก่อนฝนหนักให้ลดระดับน้ำในคลองลงเพื่อเตรียมที่รับน้ำฝน</li><li><b>เงื่อนไข:</b> สูบไม่เกิน 85% ของกำลังสูบ, คลองรับน้ำไม่เกินความจุ, ระดับลดไม่เร็วกว่าที่เคยวัดได้</li><li><b>ไม่พร่อง:</b> สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม แล้วจึงเร่งเต็มที่</li><li><b>อ้างอิงแนวคิด:</b> การพร่องน้ำตามระดับควบคุม ในแผนปฏิบัติการป้องกันและแก้ไขปัญหาน้ำท่วม กทม. 2557 (สำนักการระบายน้ำ)</li></ul>
+      <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html" aria-current="page">คาดการณ์ฝน 48 ชม.</a></nav>
+      <h1 style="margin-top:10px">ฝน 48 ชม. ข้างหน้า: จะท่วมตรงไหน ระบายอย่างไร</h1>
+      <p class="note srckey"><span><span class="src m">ตรวจวัด</span> สถานการณ์ปัจจุบัน</span><span><span class="src f">พยากรณ์</span> ฝนคาดการณ์ Open-Meteo</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
+      <ul class="defs" style="margin-top:6px">
+        <li><b>ฝนตามคาดการณ์:</b> ฝนรายชั่วโมง 48 ชม. ข้างหน้าจาก Open-Meteo (แบบจำลอง ECMWF และ best match)</li>
+        <li><b>ฝน 3 เท่า:</b> ฝนตามคาดการณ์คูณ 3 ตกตำแหน่งและเวลาเดียวกัน ใช้ดูว่าถ้าฝนมากกว่าที่คาดจะท่วมตรงไหน</li>
+        <li><b>เริ่มจาก:</b> ระดับน้ำที่วัดได้ล่าสุด แล้วให้โมเดลสูบตามที่แนะนำ (ไม่เกิน 85% ของกำลังสูบ และพร่องน้ำก่อนฝนหนัก)</li>
+      </ul>
     </div>
-    <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
+    <div class="hdr-r"><div class="stamp" id="stamp"></div></div>
   </header>
 
-  <div class="sect now"><span class="sect-t">48 ชม. ข้างหน้า</span><span class="note meta"><span>เลือกกรณีฝน แล้วดูคำแนะนำ</span></span></div>
-  <section class="scen" id="scen" aria-label="กรณีฝน"></section>
   <section class="strip" id="strip" aria-label="สรุป"></section>
-  <section class="panel" id="outlook" aria-label="แนวโน้มฝนรายวัน"></section>
-
-  <section class="mgrid">
-    <div class="panel">
-      <div class="panel-h"><h2>ระดับน้ำและการสูบตามเวลา (แผนพร่องน้ำของโมเดล)<span class="src p">โมเดล</span></h2><span class="note" id="mapNote"></span></div>
-      <div class="timebar">
-        <button type="button" class="btn" id="play" aria-label="เล่น">▶ เล่น</button>
-        <input type="range" id="tk" min="0" max="15" step="1" value="0" aria-label="เวลา">
-        <output id="tOut"></output>
-        <span class="seg" id="seg" role="group" aria-label="แผนที่แสดง" hidden><button type="button" data-m="opt" aria-pressed="true">ระดับน้ำตามแผน</button><button type="button" data-m="diff" aria-pressed="false">พร่องแล้วต่ำลงเท่าไร</button></span>
-      </div>
-      <div class="chart" id="cRain"></div>
-      <div class="mapwrap" id="mapbox">
-        <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งเมือง" style="font-size:12px">⤢</button></div>
-        <svg id="map" role="img" aria-label="แผนที่ระดับน้ำรายเขตและการไหลในคลองตามเวลา"></svg>
-        <div class="tip" id="tip" hidden></div>
-      </div>
-      <div class="legend" id="legend"></div>
-    </div>
-    <aside class="panel advice" aria-live="polite">
-      <div class="panel-h"><h2>คำแนะนำ<span class="src p">โมเดล</span></h2></div>
-      <div id="advice" style="display:grid;gap:14px"></div>
-    </aside>
-  </section>
-
-  <div class="sect past"><span class="sect-t">รายละเอียดแผน</span></div>
-  <section class="grid2">
-    <div class="panel">
-      <div class="panel-h"><h2>น้ำเกินเกณฑ์วิกฤต<span class="src p">โมเดล</span></h2><span class="note">ล้าน ลบ.ม. เทียบเท่า</span></div><ul class="defs"><li><b>เส้นทึบ:</b> พร่องตามแผน</li><li><b>เส้นประ:</b> ไม่พร่อง (สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม)</li><li>ไม่รวมตะวันออกรอบนอกที่ท่วมอยู่แล้ว</li></ul>
-      <div class="chart" id="cCrit"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-h"><h2>ตารางเดินเครื่องสูบ<span class="src p">โมเดล</span></h2><span class="note">ลบ.ม./วิ. เฉลี่ยช่วง 3 ชม. (แผนพร่องน้ำ)</span></div>
-      <div class="tbl" style="max-height:360px"><table id="tPump"></table></div>
-    </div>
-  </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>ระดับน้ำรายสถานี<span class="src p">โมเดล</span></h2><span class="note meta"><span>ม.รทก.</span><span>เรียงตามที่แผนลดระดับได้มากกว่าการไม่พร่อง</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
-    <div class="tbl"><table id="tSt"></table></div>
+    <div class="panel-h"><h2>สภาพสูงสุดใน 48 ชม. ข้างหน้า<span class="src p">โมเดล</span></h2><label class="tog"><input type="checkbox" id="rainTog"> แสดงเส้นชั้นฝนคาดการณ์ 48 ชม. <span class="src f">พยากรณ์</span></label><span class="note">ลาก/ซูมแผนที่ใดก็ได้ อีกแผนที่จะตามไปด้วย</span></div>
+    <div class="twomap" id="maps"></div>
+    <div class="legend" id="legend" style="margin-top:8px"></div>
   </section>
 
+
+  <section class="twomap" id="advs"></section>
+
+  <section class="panel" id="flood">
+    <div class="panel-h"><h2>แผนที่คาดการณ์น้ำท่วม: ลึกแค่ไหน ควรทำอย่างไร<span class="src p">โมเดล</span></h2><span class="note">วางเมาส์บนแผนที่เพื่อดูความลึก สาเหตุ และเวลาที่คาดว่าเริ่มท่วม</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:4px 0 6px"><div class="seg" id="flTabs" role="group" aria-label="เลือกช่วงเวลา"></div>
+      <label class="tog"><input type="checkbox" id="flRep"> แสดงรายงานประชาชน (Traffy) เพื่อตรวจสอบ <span class="src r">รายงานประชาชน</span></label></div>
+    <ul class="defs" id="flDesc"></ul>
+    <div class="flg">
+      <div><div class="mapwrap"><svg class="fmap" id="flmap" role="img" aria-label="แผนที่คาดการณ์น้ำท่วม"></svg></div><div class="legend" id="flLeg" style="margin-top:6px"></div></div>
+      <div><div class="flk" id="flKpi"></div>
+        <p class="sub" style="margin:0 0 2px"><b>ควรทำอย่างไร</b> ตามความลึกที่คาด</p><table class="act" id="flAct"></table>
+        <p class="sub" style="margin:12px 0 2px"><b>ถนนที่คาดว่าจะท่วม</b> (ลึกสุด ซม., ระยะที่ท่วม กม.) คลิกเพื่อดูบนแผนที่</p><div id="flRoads"></div></div>
+    </div>
+  </section>
+
+  <div class="sect past"><span class="sect-t">รายละเอียดและสมมติฐาน</span></div>
   <section class="panel">
     <div class="panel-h"><h2>วิธีคิดและสมมติฐาน</h2></div>
-    <div class="tbl"><table class="as" id="tAs"></table></div>
+    <ul class="defs" id="assume"></ul>
   </section>
 
   <footer>
     <div><b>ที่มาของข้อมูล</b>: <span id="srcLine"></span></div>
-    <ul>
-      <li>ผลเป็นต้นแบบเพื่อการวิจัย ใช้เปรียบเทียบทางเลือก ไม่ใช่ค่าพยากรณ์ทางการ ฝนคาดการณ์รายชั่วโมงคลาดเคลื่อนได้มาก ทั้งเวลาและตำแหน่ง</li>
-    </ul>
+    <ul><li>ผลเป็นต้นแบบเพื่อการวิจัย ใช้เปรียบเทียบทางเลือก ไม่ใช่ค่าพยากรณ์ทางการ ฝนคาดการณ์รายชั่วโมงคลาดเคลื่อนได้มาก ทั้งเวลาและตำแหน่ง</li></ul>
   </footer>
 </div>
 
@@ -117,202 +111,278 @@ const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg';
 const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
 const fmt=(v,d=0)=>v==null||isNaN(v)?'–':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const thDT=s=>s?s.replace(/^(\d+)-(\d+)-(\d+)/,(m,y,mo,d)=>`${+d}/${+mo}/${+y+543}`):'–';
 const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const tTxt=s=>{const m=s.match(/^(\d+)-(\d+)-(\d+)T(\d+):(\d+)/);return m?`${+m[3]} ${MON[+m[2]-1]} ${m[4]}:${m[5]}`:s};
+const thDT=s=>s?s.replace(/^(\d+)-(\d+)-(\d+)/,(m,y,mo,d)=>`${+d}/${+mo}/${+y+543}`):'–';
+const tTxt=s=>{const m=String(s||'').match(/^(\d+)-(\d+)-(\d+)T(\d+):(\d+)/);return m?`${+m[3]} ${MON[+m[2]-1]} ${m[4]}:${m[5]}`:s};
+const dTxt=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
 const short=s=>String(s).replace(/^สถานีสูบน้ำ|^สถานีสุบน้ำ/,'ส.').replace(/^อาคารสูบน้ำ/,'อาคารสูบ ').replace(/\*$/,'').trim();
-const N=D.net.nodes,E=D.net.edges,PU=D.net.pumps,NM=D.net.names,K=F.steps,DT=F.dt_h;
-const canalName=k=>NM[E[k][2]]||'คลองไม่มีชื่อ';
-$('#stamp').textContent=`ระดับน้ำ ${thDT(D.fetched)} น. · ฝนคาดการณ์ ${tTxt(F.start)}`;
-$('#srcLine').textContent=`ฝนคาดการณ์: ${F.source} (open-meteo.com, CC BY 4.0) · ระดับน้ำ สถานีสูบ: สำนักการระบายน้ำ กทม. · คลอง: OpenStreetMap · คำนวณ ${thDT(F.made)}`;
-let S=F.scenarios[0],k=0,mode='opt';
-const YD=(()=>{const PD=F.assumptions.pump_days||[F.assumptions.pump_day].filter(Boolean),dm=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;if(!PD.length)return 'เมื่อวาน';if(PD.length===1)return 'วันที่ '+dm(PD[0]);const a=PD[0],b=PD[PD.length-1];return 'เฉลี่ย '+(a.slice(5,7)===b.slice(5,7)?`${+a.slice(8,10)}–${dm(b)}`:`${dm(a)}–${dm(b)}`)})();   // day of the measured pumping
+const N=D.net.nodes,E=D.net.edges,PU=D.net.pumps,K=F.steps,DT=F.dt_h,A=F.assumptions;
+const SC=F.scenarios.filter(s=>s.key==='forecast'||s.key==='extreme');
+const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];
+const zsum=(o,zs)=>o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0));
+const inRain=(S,a)=>S.onset!=null?Math.max(...a.slice(S.onset)):a[a.length-1];
+const pkOf=r=>Math.max(r.now,r.peak_opt);
+const lvSt=(v,r)=>r.crit!=null&&v>=r.crit?'วิกฤต':r.warn!=null&&v>=r.warn?'เตือนภัย':'ปกติ';
+const stOf=r=>lvSt(pkOf(r),r),endOf=r=>lvSt(r.series[r.series.length-1],r);
+const nowOf=r=>r.crit!=null&&r.now>=r.crit?'วิกฤต':r.warn!=null&&r.now>=r.warn?'เตือนภัย':'ปกติ';
+// the model keeps all water in the canal (no spill onto land), so very high peaks mean overflow, not a real level
+const OVR=0.5,lvTxt=(v,r)=>r.crit!=null&&v-r.crit>OVR?`ล้นตลิ่ง (> ${fmt(r.crit+OVR,2)})`:fmt(v,2);
+const SCOL={'วิกฤต':'var(--crit)','เตือนภัย':'var(--warn)','ปกติ':'var(--ok)'};
+const pumpById={};PU.forEach(p=>pumpById[p.id]=p);
+$('#stamp').textContent=`ระดับน้ำ ${thDT(D.fetched)} น., ฝนคาดการณ์ตั้งแต่ ${tTxt(F.start)}`;
+$('#srcLine').textContent=`ฝนคาดการณ์: ${F.source} (open-meteo.com, CC BY 4.0), ระดับน้ำและสถานีสูบ: สำนักการระบายน้ำ กทม., ประวัติน้ำท่วมถนน: เซนเซอร์ สนน., คลองและถนน: OpenStreetMap, ความสูงพื้นดิน: Copernicus GLO-30 DEM, คำนวณ ${thDT(F.made)}`;
 
-// ---------- scenario buttons ----------
-$('#scen').innerHTML=F.scenarios.map((s,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===0}"><b>${esc(s.label)}</b><span>ฝนเฉลี่ยทั้งเมือง ${fmt(s.total_mm,0)} มม. ใน 48 ชม.</span><span class="note">${esc(s.desc)}</span></button>`).join('');
-$('#scen').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;S=F.scenarios[+b.dataset.i];
-  $('#scen').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderAll()});
-document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.m;document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawStep();legend()}));
-// value 'during heavy rain' = max from the onset step on; with no heavy rain = end of the 48 h
-const inRain=a=>S.onset!=null?Math.max(...a.slice(S.onset)):a[a.length-1];
-const kOn=()=>S.onset!=null?Math.max(0,S.onset-1):K-1;   // step just before the heavy rain
+// ---------- strip ----------
+(()=>{const ens=F.ens_totals||[];const q=p=>ens.length?ens[Math.round(p*(ens.length-1))]:null;const [f,x]=SC;
+  const BKN=new Set(D.geo.map(g=>g[1]));const nCrit=(S,fn)=>S.stations.filter(r=>BKN.has(r.district)&&fn(r)==='วิกฤต').length;
+  $('#strip').innerHTML=`
+  <div class="kpi"><div class="eyebrow">ฝนตามคาดการณ์ 48 ชม.<span class="src f">พยากรณ์</span></div><div class="v">${fmt(f.total_mm,0)}<small>มม. เฉลี่ยทั้งเมือง</small></div><div class="chips"><span>ensemble ${ens.length} ชุด<br>กลาง ${fmt(q(.5),0)}, P90 ${fmt(q(.9),0)}, สูงสุด ${fmt(q(1),0)} มม.</span></div></div>
+  <div class="kpi"><div class="eyebrow">ฝนหนักตามคาดการณ์<span class="src f">พยากรณ์</span></div><div class="v">${f.onset==null?'ไม่มี':f.onset===0?'เริ่มแล้ว':'อีก '+f.onset*DT}<small>${f.onset==null?`(≥ ${A.heavy_mm} มม. ใน 3 ชม.)`:f.onset===0?'':'ชม. ('+tTxt(F.times[f.onset])+')'}</small></div><div class="chips"><span>ฝน 3 เท่า: ฝนหนัก ${x.onset!=null?'เริ่ม '+tTxt(F.times[x.onset]):'ไม่มี'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">สถานีวัดน้ำในคลองที่วิกฤต (ใน กทม.)</div><div class="v">${Object.values(D.st).filter(s=>BKN.has(s[7])&&s[4]==='วิกฤต').length}<small>${thDT(D.fetched)} น.</small><span class="src m">ตรวจวัด</span></div><div class="chips"><span>ปลาย 48 ชม. ถ้าสูบตามโมเดล<span class="src p">โมเดล</span><br>ฝนตามคาดการณ์ ${nCrit(f,endOf)}, ฝน 3 เท่า ${nCrit(x,endOf)}</span></div></div>
+  <div class="kpi"><div class="eyebrow">น้ำท่วมถนน</div><div class="v">${(D.road||[]).filter(r=>r.status==='ท่วม'||r.status==='ท่วมเล็กน้อย').length}<small>จุด (${thDT(D.fetched)} น.)</small><span class="src m">ตรวจวัด</span></div><div class="chips"><span>เสี่ยงท่วมใน 48 ชม.<span class="src p">โมเดล</span><br>ฝนตามคาดการณ์ ${(f.roads||[]).length}, ฝน 3 เท่า ${(x.roads||[]).length} จุด<br>(ประเมินได้ ${F.road_hist?F.road_hist.n:0} จุดที่มีประวัติพอ)</span></div></div>`})();
 
-// ---------- map ----------
-const tip=$('#tip');
-function showTip(e,html){tip.innerHTML=html;tip.hidden=false;const b=$('#mapbox').getBoundingClientRect();let x=e.clientX-b.left+14,y=e.clientY-b.top+14;
-  if(x+tip.offsetWidth>b.width)x=e.clientX-b.left-tip.offsetWidth-10;if(y+tip.offsetHeight>b.height)y=e.clientY-b.top-tip.offsetHeight-10;tip.style.left=Math.max(0,x)+'px';tip.style.top=Math.max(0,y)+'px'}
-const hideTip=()=>tip.hidden=true;
-const svg=$('#map'),W=1000;let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;const kx=Math.cos(13.75*Math.PI/180);
+// ---------- two maps (synced) ----------
+let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;const kx=Math.cos(13.75*Math.PI/180),W=1000;
 const walk=(c,f)=>Array.isArray(c[0])?c.forEach(x=>walk(x,f)):f(c);
 D.geo.forEach(g=>walk(g[2],([x,y])=>{minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}));
 const pad=10,sx=(W-2*pad)/((maxX-minX)*kx),H=Math.round((maxY-minY)*sx+2*pad);
 const P=([x,y])=>[pad+(x-minX)*kx*sx,pad+(maxY-y)*sx];
 const line=pts=>'M'+pts.map(c=>P(c).map(v=>v.toFixed(1)).join(',')).join('L');
-const full={x:0,y:0,w:W,h:H};let vb={...full};
-svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.aspectRatio=`${W}/${H}`;
-const gD=el('g',{},svg),gR=el('g',{},svg),gC=el('g',{},svg),gF=el('g',{},svg),gP=el('g',{},svg),gS=el('g',{},svg);
-const dPaths={};D.geo.forEach(([c,n,coords])=>{const p=el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),class:'dfill'},gD);dPaths[n]=p;
-  p.addEventListener('mousemove',e=>{const d=S.districts.find(x=>x.district===n);if(!d)return;const h=d.h_opt[k];const lv=v=>`${v>=0?'สูงกว่า':'ต่ำกว่า'}เกณฑ์เตือน ${fmt(Math.abs(v),2)} ม.`;
-    let x=`<b>เขต${esc(n)}</b><br>ฝน 48 ชม. ${fmt(d.rain,0)} มม.<br>${tTxt(F.times[k])}: ระดับน้ำเฉลี่ย${lv(h)}`;
-    if(S.onset!=null){const j=kOn();x+=`<br><br><b>ก่อนฝนหนัก (${tTxt(F.times[S.onset])})</b><br>พร่องตามแผน: ${lv(d.h_opt[j])}<br>ไม่พร่อง: ${lv(d.h_base[j])}`;
-      if(d.crit_s_opt)x+=`<br>น้ำเกินวิกฤตช่วงฝนหนัก ${fmt(inRain(d.crit_s_opt),2)} (ไม่พร่อง ${fmt(inRain(d.crit_s_base),2)}) ล้าน ลบ.ม.`}
-    else x+=`<br><br><b>ปลาย 48 ชม.</b> น้ำเกินเตือน ${fmt(d.above_opt[K-1],2)} ล้าน ลบ.ม.<br>(ถ้าสูบเท่าที่วัดได้จริง ${fmt(d.above_base[K-1],2)})`;
-    showTip(e,x)});
-  p.addEventListener('mouseleave',hideTip)});
-D.net.cp.forEach(pts=>el('path',{d:line(pts),fill:'none',stroke:'var(--river)','stroke-width':6,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gR));
-E.forEach((e,i)=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?1:.6,opacity:.6,'vector-effect':'non-scaling-stroke'},gC)});
-if(D.outer)D.outer.bg.forEach(a=>{const pts=[];for(let i=0;i<a.length;i+=2)pts.push([a[i],a[i+1]]);el('path',{d:line(pts),fill:'none',stroke:'var(--axis)','stroke-width':.5,opacity:.35,'vector-effect':'non-scaling-stroke'},gC)});
-let z=1;
-function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);z=W/vb.w;
-  svg.querySelectorAll('[data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${(1/Math.sqrt(z)).toFixed(3)})`))}
+const full={x:0,y:0,w:W,h:H};let vb={...full},z=1;const SV=[];
+const tip=document.createElement('div');tip.className='tip';tip.hidden=true;
+function showTip(e,html){const box=e.target.closest('.mapwrap');if(tip.parentNode!==box)box.appendChild(tip);tip.innerHTML=html;tip.hidden=false;const b=box.getBoundingClientRect();
+  let x=e.clientX-b.left+14,y=e.clientY-b.top+14;if(x+tip.offsetWidth>b.width)x=e.clientX-b.left-tip.offsetWidth-10;if(y+tip.offsetHeight>b.height)y=e.clientY-b.top-tip.offsetHeight-10;tip.style.left=Math.max(0,x)+'px';tip.style.top=Math.max(0,y)+'px'}
+const hideTip=()=>tip.hidden=true;
+function setVB(){z=W/vb.w;SV.forEach(s=>{s.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);s.querySelectorAll('[data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${(1/Math.sqrt(z)).toFixed(3)})`))})}
 const clampVB=()=>{vb.x=Math.max(-W*.1,Math.min(W*1.1-vb.w,vb.x));vb.y=Math.max(-H*.1,Math.min(H*1.1-vb.h,vb.y))};
 function zoomAt(f,cx,cy){const nw=Math.min(W,Math.max(W/40,vb.w/f)),nh=nw*H/W;vb={x:cx-(cx-vb.x)*nw/vb.w,y:cy-(cy-vb.y)*nh/vb.h,w:nw,h:nh};clampVB();setVB()}
-const toSvg=e=>{const b=svg.getBoundingClientRect();return [vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h]};
-svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=toSvg(e);zoomAt(e.deltaY<0?1.25:0.8,x,y)},{passive:false});
-let drag=null,moved=false;
-svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
-window.addEventListener('pointermove',e=>{if(!drag)return;const b=svg.getBoundingClientRect();if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4){moved=true;svg.classList.add('drag')}
-  if(moved){vb.x=drag.vb.x-(e.clientX-drag.x)/b.width*vb.w;vb.y=drag.vb.y-(e.clientY-drag.y)/b.height*vb.h;clampVB();setVB()}});
-window.addEventListener('pointerup',()=>{drag=null;svg.classList.remove('drag')});
-$('#zIn').onclick=()=>zoomAt(1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zOut').onclick=()=>zoomAt(1/1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zReset').onclick=()=>{vb={...full};setVB()};
 const zoomTo=(lon,lat,w=W/5)=>{const [x,y]=P([lon,lat]);vb={x:x-w/2,y:y-w*H/W/2,w,h:w*H/W};clampVB();setVB()};
-
-// level relative to the warning level -> colour
-const LV=[[-0.6,'var(--seq-0)'],[-0.3,'var(--seq-1)'],[0,'var(--seq-2)'],[0.15,'var(--warn)'],[0.4,'var(--serious)'],[1e9,'var(--crit)']];
+let drag=null,moved=false;
+window.addEventListener('pointermove',e=>{if(!drag)return;const b=drag.s.getBoundingClientRect();if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4){moved=true;drag.s.classList.add('drag')}
+  if(moved){vb.x=drag.vb.x-(e.clientX-drag.x)/b.width*vb.w;vb.y=drag.vb.y-(e.clientY-drag.y)/b.height*vb.h;clampVB();setVB()}});
+window.addEventListener('pointerup',()=>{if(drag)drag.s.classList.remove('drag');drag=null});
+const LV=[[-0.3,'var(--seq-1)'],[0,'var(--seq-2)'],[0.15,'var(--warn)'],[0.4,'var(--serious)'],[1e9,'var(--crit)']];
 const lvColor=h=>LV.find(([t])=>h<t)[1];
-const DF=[[0.02,'var(--seq-0)'],[0.05,'var(--seq-1)'],[0.1,'var(--seq-2)'],[0.2,'var(--seq-3)'],[0.4,'var(--seq-4)'],[1e9,'var(--seq-5)']];
-const dfColor=v=>DF.find(([t])=>v<t)[1];
-const utilColor=u=>u>=0.99?'var(--crit)':u>=0.7?'var(--serious)':u>=0.3?'var(--warn)':'var(--s1)';
-const pumpById={};PU.forEach(p=>pumpById[p.id]=p);
 
-function drawStep(){
-  $('#tk').value=k;$('#tOut').textContent=`${tTxt(F.times[k])}–${tTxt(F.times[k+1]).replace(/^.* /,'')}`;
-  S.districts.forEach(d=>{const p=dPaths[d.district];if(p){p.style.fill=mode==='diff'?dfColor(d.h_base[k]-d.h_opt[k]):lvColor(d.h_opt[k]);p.style.fillOpacity=.6}});
-  gF.innerHTML='';
-  if(true){const vals=Object.entries(S.flow);const mx=Math.max(...vals.map(([,v])=>Math.max(...v.map(Math.abs))),1);
-    vals.forEach(([j,v])=>{const f=v[k],a=Math.abs(f);if(a<0.5)return;const e=E[+j],u=e[5]>0?Math.min(1,a/e[5]):0;const pts=f>0?e[6]:[...e[6]].reverse();
-      el('path',{d:line(pts),fill:'none',stroke:utilColor(u),'stroke-width':(1+4*Math.sqrt(a/mx)).toFixed(2),'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gF);
-      if(a>1)el('path',{d:line(pts),class:'fl',stroke:'var(--surface)','stroke-width':1.1,'vector-effect':'non-scaling-stroke'},gF)})}
-  gP.innerHTML='';
-  S.pumps.forEach(r=>{const p=pumpById[r.id];if(!p)return;const q=r.series[k];const [x,y]=P(N[p.node]);const s=4+Math.sqrt(p.cap)*1.3;
-    const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
-    const m=el('path',{d:`M0,${-s}L${s*0.9},${s*0.6}L${-s*0.9},${s*0.6}Z`,class:'pm',fill:q>0.5?utilColor(q/(p.cap*F.assumptions.avail)):'var(--axis)'},g);
-    m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>${tTxt(F.times[k])}: สูบ ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>${YD} ${fmt(r.now,1)} ลบ.ม./วิ.`));m.addEventListener('mouseleave',hideTip)});
-  setVB();drawRainCursor();
+function rainChart(box,S){const w=600,h=96,l=34,r=8,t=8,b=18;const v=S.city_mm,n=v.length,mx=Math.max(5,...SC.flatMap(s=>s.city_mm));const bw=(w-l-r)/n;
+  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'ฝนรายชั่วโมง เฉลี่ยทั้งเมือง'},box);const y=x=>t+(1-x/mx)*(h-t-b);
+  [0,Math.round(mx)].forEach(q=>{el('line',{x1:l,x2:w-r,y1:y(q),y2:y(q),stroke:'var(--line)'},g);const tx=el('text',{x:l-4,y:y(q)+4,'text-anchor':'end','font-size':10,fill:'var(--muted)'},g);tx.textContent=q});
+  v.forEach((q,i)=>{if(q>0)el('rect',{x:l+i*bw,y:y(q),width:Math.max(1,bw-0.5),height:h-b-y(q),fill:'var(--seq-3)'},g);
+    if(i%12===0){const tx=el('text',{x:l+i*bw,y:h-4,'font-size':10,fill:'var(--muted)'},g);tx.textContent=tTxt(F.times[i/DT]||'')}});
+  if(S.onset!=null){const x=l+S.onset*DT*bw;el('line',{x1:x,x2:x,y1:t,y2:h-b,stroke:'var(--crit)','stroke-dasharray':'3 3'},g);const tx=el('text',{x:x+3,y:t+9,'font-size':10,fill:'var(--crit)'},g);tx.textContent='ฝนหนัก'}}
+
+// 48-h rain field from the forecast grid points (inverse-distance weighting), drawn as filled bands + contour lines, clipped to Bangkok
+const RB=[5,10,20,40,60,80,100],RC=['#cfe8fb','#a3d2f4','#73b6ea','#4796d9','#2a76c0','#1f589c','#173e74','#0f2850'];
+const rcol=v=>RC[RB.filter(t=>v>=t).length];
+const invP=(x,y)=>[minX+(x-pad)/(kx*sx),maxY-(y-pad)/sx];
+function rainField(S){const pts=F.points.map(([la,lo],k)=>[lo*kx,la,S.pt_mm?S.pt_mm[k]:0]);
+  return (x,y)=>{const [lo,la]=invP(x,y);let a=0,b=0;for(const [px,py,v] of pts){const d2=(lo*kx-px)**2+(la-py)**2+1e-9;const w=1/(d2*d2);a+=w*v;b+=w}return a/b}}
+function drawRain(svg,S,idx){if(!S.pt_mm)return null;const g=el('g',{class:'rainL',style:'display:none'},svg);
+  const cp=el('clipPath',{id:'bk'+idx},el('defs',{},svg));D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join('')},cp));
+  const gg=el('g',{'clip-path':`url(#bk${idx})`,opacity:.62},g);const f=rainField(S);const nx=90,ny=Math.round(nx*H/W),cw=W/nx,ch=H/ny;
+  const V=[];for(let j=0;j<=ny;j++){V.push([]);for(let i=0;i<=nx;i++)V[j].push(f(i*cw,j*ch))}
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const v=(V[j][i]+V[j][i+1]+V[j+1][i]+V[j+1][i+1])/4;el('rect',{x:(i*cw).toFixed(1),y:(j*ch).toFixed(1),width:(cw+.6).toFixed(1),height:(ch+.6).toFixed(1),fill:rcol(v),'shape-rendering':'crispEdges'},gg)}
+  // contour lines (marching squares) at the band edges
+  const seg=[];RB.forEach(t=>{for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const q=[V[j][i],V[j][i+1],V[j+1][i+1],V[j+1][i]],P4=[[i*cw,j*ch],[(i+1)*cw,j*ch],[(i+1)*cw,(j+1)*ch],[i*cw,(j+1)*ch]];const cut=[];
+    for(let k=0;k<4;k++){const a=q[k],b=q[(k+1)%4];if((a<t)!==(b<t)){const u=(t-a)/(b-a);const A=P4[k],B=P4[(k+1)%4];cut.push([A[0]+u*(B[0]-A[0]),A[1]+u*(B[1]-A[1])])}}
+    if(cut.length>=2)seg.push(`M${cut[0][0].toFixed(1)},${cut[0][1].toFixed(1)}L${cut[1][0].toFixed(1)},${cut[1][1].toFixed(1)}`);if(cut.length===4)seg.push(`M${cut[2][0].toFixed(1)},${cut[2][1].toFixed(1)}L${cut[3][0].toFixed(1)},${cut[3][1].toFixed(1)}`)}});
+  el('path',{d:seg.join(''),fill:'none',stroke:'var(--ink)','stroke-width':.9,opacity:.8,'vector-effect':'non-scaling-stroke'},gg);
+  return g}
+const MAPS=[];
+function drawMap(svg,S,idx){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.aspectRatio=`${W}/${H}`;SV.push(svg);
+  const gD=el('g',{class:'dl'},svg);const gRain=drawRain(svg,S,idx);const gR=el('g',{},svg),gC=el('g',{},svg),gH=el('g',{},svg),gM=el('g',{},svg);MAPS[idx]={svg,gH};const _u=0,gPt=el('g',{class:'rainL',style:'display:none'},svg);
+  if(S.pt_mm)F.points.forEach(([la,lo],k)=>{const [x,y]=P([lo,la]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gPt);el('path',{d:'M-4,0H4M0,-4V4',stroke:'var(--ink)','stroke-width':1.6},g);el('circle',{r:7,fill:'transparent'},g);
+    g.addEventListener('mousemove',e=>showTip(e,`<b>จุดฝนคาดการณ์</b><br>${la.toFixed(2)}°N ${lo.toFixed(2)}°E<br>ฝน 48 ชม. ${fmt(S.pt_mm[k],1)} มม.`));g.addEventListener('mouseleave',hideTip)});
+  const dist={};S.districts.forEach(d=>dist[d.district]=d);
+  D.geo.forEach(([c,n,coords])=>{const d=dist[n];const pk=d?Math.max(...d.h_opt):null;const p=el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),class:'dfill'},gD);
+    p.style.fill=pk==null?'var(--seq-0)':lvColor(pk);p.style.fillOpacity=.55;
+    p.addEventListener('mousemove',e=>{if(!d)return;const cr=d.crit_s_opt?Math.max(...d.crit_s_opt):d.crit_opt;
+      const lv=Math.abs(pk)<0.005?'เท่ากับเกณฑ์เตือน':`${pk>0?'สูงกว่า':'ต่ำกว่า'}เกณฑ์เตือน ${fmt(Math.abs(pk),2)} ม.`;
+      showTip(e,`<b>เขต${esc(n)}</b><br>ฝน 48 ชม. ${fmt(d.rain,0)} มม. <span class="src f">พยากรณ์</span><br><br><b>ผลคำนวณ</b> <span class="src p">โมเดล</span><br><span class="note">จากฝนนี้ + ระดับน้ำที่วัดได้ล่าสุด + การสูบที่โมเดลแนะนำ</span><br>ระดับน้ำในคลองของเขต (เฉลี่ย) สูงสุด: ${lv}<br>น้ำเกินเกณฑ์วิกฤตสูงสุด: ${cr<0.005?'ไม่เกิน':fmt(cr,2)+' ล้าน ลบ.ม.'}`)});p.addEventListener('mouseleave',hideTip)});
+  D.net.cp.forEach(pts=>el('path',{d:line(pts),fill:'none',stroke:'var(--river)','stroke-width':6,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gR));
+  E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?1:.6,opacity:.6,'vector-effect':'non-scaling-stroke'},gC)});
+  const mk=(lon,lat,draw,tipf,f)=>{const [x,y]=P([lon,lat]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gM);draw(g);g.addEventListener('mousemove',e=>showTip(e,tipf()));g.addEventListener('mouseleave',hideTip);if(f)g.addEventListener('click',f);return g};
+  S.stations.forEach(r=>{const s=D.st[r.code];if(!s||s[8]==null)return;const k=stOf(r),nw=nowOf(r);if(k==='ปกติ')return;
+    mk(s[9],s[8],g=>{el('circle',{r:4,fill:SCOL[k],class:'mk'},g);if(k==='วิกฤต'&&nw!=='วิกฤต')el('circle',{r:8,fill:'none',stroke:'var(--crit)','stroke-width':1.4},g)},
+      ()=>`<b>${esc(r.name)}</b><br>เขต${esc(r.district)}<br>ล่าสุด ${fmt(r.now,2)} ม.<br>สูงสุด ${lvTxt(pkOf(r),r)} ม., ปลาย 48 ชม. ${lvTxt(r.series[r.series.length-1],r)} ม.<br>เกณฑ์เตือน ${fmt(r.warn,2)}, วิกฤต ${fmt(r.crit,2)}`)});
+  (S.roads||[]).forEach(r=>mk(r.lon,r.lat,g=>{const s=r.risk===2?8:6;el('rect',{x:-s/2,y:-s/2,width:s,height:s,rx:1.5,fill:r.risk===2?'var(--crit)':'var(--serious)',stroke:'var(--ink)','stroke-width':1.2},g)},
+      ()=>`<b>${esc(r.name)}</b><br>เขต${esc(r.district)}<br>ฝน 24 ชม. สูงสุด ${fmt(r.r24,0)} มม.<br>เคยท่วมเมื่อฝนในเขต ${fmt(r.t25,0)}–${fmt(r.t50,0)} มม. (${r.n} ครั้ง)`));
+  S.pumps.filter(r=>r.start!=null).forEach(r=>{const p=pumpById[r.id];if(!p)return;const q=Math.max(...r.series);
+    mk(...N[p.node],g=>{const s=4+Math.sqrt(p.cap)*1.3;el('path',{d:`M0,${-s}L${s*.9},${s*.6}L${-s*.9},${s*.6}Z`,class:'pm',fill:'var(--accent)'},g)},
+      ()=>`<b>${esc(short(p.name))}</b><br>เริ่มเดินเครื่องเพิ่ม ${tTxt(F.times[r.start])}<br>สูงสุด ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>สูบจริงเฉลี่ย 3 วัน ${fmt(r.now,1)} ลบ.ม./วิ.`)});
+  svg.addEventListener('wheel',e=>{e.preventDefault();const b=svg.getBoundingClientRect();zoomAt(e.deltaY<0?1.25:0.8,vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h)},{passive:false});
+  svg.addEventListener('pointerdown',e=>{drag={s:svg,x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
 }
-function drawStations(){gS.innerHTML='';
-  pre().slice(0,15).forEach(r=>{const s=D.st[r.code];if(!s)return;const [x,y]=P([s[9],s[8]]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gS);
-    el('circle',{r:7,class:'sm',stroke:'var(--accent)'},g);el('circle',{r:2.5,fill:'var(--accent)'},g);
-    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(r.name)}</b><br>ตอนนี้ ${fmt(r.now,2)} ม. → ลดให้ถึง ${fmt(r.onset_opt,2)} ม. ก่อนฝนหนัก<br>สูงสุด ${fmt(r.peak_opt,2)} ม. (ไม่พร่อง ${fmt(r.peak_base,2)}) · เตือน ${fmt(r.warn,2)} วิกฤต ${fmt(r.crit,2)}`));
-    g.addEventListener('mouseleave',hideTip)});setVB()}
-$('#tk').addEventListener('input',e=>{k=+e.target.value;drawStep()});
-let timer=null;$('#play').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('#play').textContent='▶ เล่น';return}
-  $('#play').textContent='❚❚ หยุด';timer=setInterval(()=>{k=(k+1)%K;drawStep()},800)};
+$('#maps').innerHTML=SC.map((S,i)=>`<div><h3 class="mh">${esc(S.label)} <span class="note">${S.key==='extreme'?`(สมมติ: ฝนตามคาดการณ์ × ${A.mult||3}) `:''}ฝนเฉลี่ยทั้งเมือง ${fmt(S.total_mm,0)} มม. ใน 48 ชม.</span></h3>
+  <div class="rainc" id="rc${i}"></div>
+  <div class="mapwrap">${i===0?'<div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งเมือง" style="font-size:12px">⤢</button></div>':''}<svg class="fmap" id="fm${i}" role="img" aria-label="แผนที่สภาพสูงสุด ${esc(S.label)}"></svg></div></div>`).join('');
+SC.forEach((S,i)=>{rainChart($('#rc'+i),S);drawMap($('#fm'+i),S,i)});
+$('#rainTog').addEventListener('change',e=>{const on=e.target.checked;document.querySelectorAll('.rainL').forEach(g=>g.style.display=on?'':'none');document.querySelectorAll('.dl').forEach(g=>g.style.opacity=on?.35:1);$('#rainLeg').hidden=!on});
+$('#zIn').onclick=()=>zoomAt(1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zOut').onclick=()=>zoomAt(1/1.5,vb.x+vb.w/2,vb.y+vb.h/2);$('#zReset').onclick=()=>{vb={...full};setVB()};
+setVB();
+$('#legend').innerHTML=`<span id="rainLeg" hidden style="display:contents"><span><b>เส้นชั้นฝน 48 ชม. (มม.)</b></span>${RC.map((c,i)=>`<span><i class="dot" style="border-radius:2px;width:14px;background:${c}"></i>${i===0?'< 5':i===RC.length-1?'≥ 100':RB[i-1]+'–'+RB[i]}</span>`).join('')}<span>+ จุดพยากรณ์ (ตาราง 25 จุด)</span><span style="flex-basis:100%;height:0"></span></span><span><b>สีพื้นเขต</b> ระดับน้ำเฉลี่ยสูงสุดเทียบเกณฑ์เตือน:</span>${LV.map(([t,c],i)=>`<span><i class="dot" style="background:${c}"></i>${['< −0.3','−0.3 – 0','0 – 0.15','0.15 – 0.4','> 0.4'][i]} ม.</span>`).join('')}
+ <span style="flex-basis:100%;height:0"></span>
+ <ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>● สถานีวัดน้ำ:</b> แสดงเฉพาะที่สูงสุดเกินเกณฑ์ <span style="color:var(--crit)">แดง = วิกฤต</span>, <span style="color:var(--warn)">เหลือง = เตือนภัย</span> วงแดงรอบนอก = ล่าสุดยังไม่วิกฤตแต่จะวิกฤต</li>
+ <li><b>■ ถนนเสี่ยงท่วม:</b> ฝน 24 ชม. ถึงระดับที่เคยทำให้ถนนจุดนั้นท่วม <span style="color:var(--crit)">แดง = เสี่ยงสูง</span>, <span style="color:var(--serious)">ส้ม = เสี่ยง</span></li>
+ <li><b>▲ สถานีสูบ:</b> สถานีที่โมเดลให้เดินเครื่องเพิ่มจากที่สูบจริง (เฉลี่ย 3 วันล่าสุด)</li></ul>`;
 
-// ---------- rain chart (hourly, city mean) ----------
-let rainCursor=null;
-function rainChart(){const c=$('#cRain');c.innerHTML='';const w=900,h=110,l=40,r=10,t=10,b=22;const v=S.city_mm,n=v.length;const mx=Math.max(5,...v);const bw=(w-l-r)/n;
-  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'ฝนคาดการณ์รายชั่วโมง เฉลี่ยทั้งเมือง'},c);
-  const y=x=>t+(1-x/mx)*(h-t-b);const A=el('g',{class:'ax'},g),G=el('g',{class:'grid'},g);
-  [0,Math.round(mx/2),Math.round(mx)].forEach(q=>{el('line',{x1:l,x2:w-r,y1:y(q),y2:y(q)},G);el('text',{x:l-6,y:y(q)+4,'text-anchor':'end'},A).textContent=q});
-  v.forEach((q,i)=>{if(q>0)el('rect',{x:l+i*bw+1,y:y(q),width:Math.max(1,bw-2),height:h-b-y(q),fill:'var(--seq-3)'},g);
-    if(i%6===0)el('text',{x:l+i*bw,y:h-6},A).textContent=tTxt(F.times[i/DT]||'').replace(/^\d+ \S+ /,i%24===0?tTxt(F.times[i/DT]).replace(/ \d+:\d+$/,' '):'')});
-  if(S.onset!=null){const x=l+S.onset*DT*bw;el('line',{x1:x,x2:x,y1:t,y2:h-b,stroke:'var(--crit)','stroke-dasharray':'3 3'},g);el('text',{x:x+4,y:t+10,class:'lab',fill:'var(--crit)'},g).textContent='ฝนหนัก'}
-  rainCursor=el('rect',{y:t,height:h-t-b,width:bw*DT,fill:'var(--accent)',opacity:.15},g);rainCursor._l=l;rainCursor._bw=bw;
-  c.insertAdjacentHTML('afterbegin','<div class="chips"><span>ฝนเฉลี่ยทั้งเมือง (มม./ชั่วโมง)</span><span>แถบสีจาง = ช่วงเวลาบนแผนที่</span></div>');drawRainCursor()}
-function drawRainCursor(){if(rainCursor)rainCursor.setAttribute('x',rainCursor._l+k*DT*rainCursor._bw)}
-
-// ---------- above-critical chart ----------
-function critChart(){const c=$('#cCrit');c.innerHTML='';const w=640,h=220,l=46,r=12,t=12,b=28;
-  const ZC=[['ชั้นในและฝั่งตะวันตก','--crit'],['เหนือ','--serious']];
-  const mx=Math.max(0.01,...ZC.flatMap(([z])=>[...S.crit_opt[z],...S.crit_base[z]]));const xs=i=>l+i/(K-1)*(w-l-r),ys=v=>t+(1-v/mx)*(h-t-b);
-  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'น้ำเกินเกณฑ์วิกฤตตามเวลา'},c);const A=el('g',{class:'ax'},g),G=el('g',{class:'grid'},g);
-  [0,mx/2,mx].forEach(v=>{el('line',{x1:l,x2:w-r,y1:ys(v),y2:ys(v)},G);el('text',{x:l-6,y:ys(v)+4,'text-anchor':'end'},A).textContent=fmt(v,v<1?2:0)});
-  for(let i=0;i<K;i+=4)el('text',{x:xs(i),y:h-8,'text-anchor':'middle'},A).textContent=tTxt(F.times[i]).replace(/^(\d+) \S+ /,'$1/ ');
-  ZC.forEach(([z,col])=>{const pl=(s,dash)=>el('path',{d:s.map((v,i)=>(i?'L':'M')+xs(i).toFixed(1)+','+ys(v).toFixed(1)).join(''),fill:'none',stroke:`var(${col})`,'stroke-width':2,'stroke-dasharray':dash||'none'},g);
-    pl(S.crit_base[z],'5 4');pl(S.crit_opt[z])});
-  c.insertAdjacentHTML('afterbegin',`<div class="chips">${ZC.map(([z,col])=>`<span><i class="dot" style="background:var(${col})"></i>${esc(z)}</span>`).join('')}</div>`)}
-
-// ---------- recommendations (all from forecast.json, recomputed with every update) ----------
-const pre=()=>S.onset==null||S.onset===0?[]:S.stations.filter(r=>r.extra>=0.05&&r.onset_opt<r.now-0.05);   // lowered below today's level and more than "as before"
-function advice(){const out=[];const A=F.assumptions;const onset=S.onset;const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];
-  const zIn=o=>o[IN[0]].map((_,i)=>IN.reduce((a,z)=>a+o[z][i],0));
-  const end=tTxt(F.times[K]);const OL=(F.outlook||[]).filter(o=>!o.in_plan&&o.max3_p90>=A.heavy_mm);
-  const later=OL.length?`ฝนอาจหนักวันที่ ${OL.map(o=>dTxt(o.day)).join(', ')} (ฝน 3 ชม. สูงสุด P90 ${fmt(Math.max(...OL.map(o=>o.max3_p90)),0)} มม.) ยังอยู่นอกช่วงที่คำนวณแผน ให้รันใหม่ภายในวันก่อนหน้า`:'';
-  if(onset==null){
-    out.push(['--ok','ไม่ต้องพร่องน้ำ',`ถึง ${end} ไม่มีช่วงไหนที่ฝนเฉลี่ยทั้งเมืองเกิน ${A.heavy_mm} มม. ใน 3 ชม. ระบายน้ำที่ค้างอยู่ตามหน้าสถานการณ์ปัจจุบัน`,[{t:'ไปหน้าสถานการณ์ปัจจุบัน',href:'bkk_model.html'}]]);
-    const ab=zIn(S.above_base),ao=zIn(S.above_opt),eO=S.above_opt['ตะวันออกรอบนอก'],eB=S.above_base['ตะวันออกรอบนอก'];
-    out.push(['--down','ถ้าสูบเต็มที่ใน 48 ชม.',`น้ำเกินเตือนปลาย 48 ชม. (ล้าน ลบ.ม.): สูบ 85% เทียบกับสูบเท่าที่วัดได้จริง${YD}`,[
-      {t:`ตะวันออกรอบนอก: ${fmt(eO[K-1],1)} เทียบกับ ${fmt(eB[K-1],1)} (ตอนนี้ ${fmt(S.above0['ตะวันออกรอบนอก'],1)})`},
-      {t:`ชั้นในและเหนือ: ${fmt(ao[K-1],2)} เทียบกับ ${fmt(ab[K-1],2)}`}]]);
-    if(later)out.push(['--warn','เฝ้าระวัง',later,[]]);
-  }else{
-    const hrs=onset*DT;
-    out.push(['--crit','เมื่อไร',hrs===0?'ฝนหนักเริ่มในช่วงนี้แล้ว ไม่มีเวลาพร่องน้ำ เดินเครื่องเต็มกำลังทันที':
-      `ฝนหนักคาดว่าเริ่ม ${tTxt(F.times[onset])} (อีกราว ${hrs} ชม.) ฝนเฉลี่ยทั้งเมือง ${fmt(S.total_mm,0)} มม. ใน 48 ชม. ต้องพร่องน้ำให้เสร็จก่อนเวลานั้น`,[]]);
-    const pk=S.pumps.filter(r=>r.start!=null&&r.start<=Math.max(0,onset)).sort((a,b)=>a.start-b.start||(b.cap-a.cap)).slice(0,8);
-    if(pk.length)out.push(['--warn','ทำอะไร: เดินเครื่อง',`สถานีสูบที่ต้องสูบมากกว่าที่วัดได้จริง${YD} (เริ่มเวลา · อัตราสูงสุดก่อนฝน ลบ.ม./วิ.)`,pk.map(r=>({t:`${short(r.name)}: ${tTxt(F.times[r.start])} · ${fmt(Math.max(...r.series.slice(r.start,onset+1)),1)} (ตอนนี้ ${fmt(r.now,1)})`,node:pumpById[r.id]&&pumpById[r.id].node}))]);
-    const ps=pre();
-    if(ps.length)out.push(['--s1','ทำอะไร: ระดับเป้าหมาย',`ระดับน้ำที่สถานีวัดน้ำควรลดถึงก่อนฝนหนัก (ม.รทก. ตอนนี้ → เป้า)`,ps.slice(0,8).map(r=>({t:`${short(r.name)} (${r.district}): ${fmt(r.now,2)} → ${fmt(r.onset_opt,2)} (ถ้าไม่พร่อง ${fmt(r.onset_base,2)})`,code:r.code}))]);
-    const cO=inRain(zIn(S.crit_opt)),cB=inRain(zIn(S.crit_base));
-    const gain=S.districts.filter(d=>d.crit_s_opt).map(d=>({d:d.district,o:inRain(d.crit_s_opt),b:inRain(d.crit_s_base)})).filter(x=>x.b-x.o>=0.01).sort((x,y)=>(y.b-y.o)-(x.b-x.o)).slice(0,6);
-    if(cB>cO+0.01)out.push(['--ok','จะเห็นอะไร',`น้ำเกินเกณฑ์วิกฤตช่วงฝนหนัก ชั้นในและฝั่งเหนือ: ถ้าพร่อง ${fmt(cO,2)} · ถ้าไม่พร่อง ${fmt(cB,2)} ล้าน ลบ.ม. (ลด ${fmt((1-cO/cB)*100)}%) เขตที่ได้ประโยชน์มากสุด (พร่อง / ไม่พร่อง):`,gain.map(x=>({t:`เขต${x.d}: ${fmt(x.o,2)} / ${fmt(x.b,2)}`,dist:x.d}))]);
-    else out.push(['--down','จะเห็นอะไร','การพร่องน้ำล่วงหน้าแทบไม่เปลี่ยนน้ำเกินวิกฤตในกรณีนี้ เพราะคลองหรือสถานีสูบเต็มกำลังอยู่แล้ว หรือฝนมาเร็วจนพร่องไม่ทัน',[]]);
-    const EAST=new Set(D.geo.filter(g=>[3,11,10,46,44,32].includes(+g[0].slice(2))).map(g=>g[1]));
-    const risk=S.districts.filter(d=>d.crit_s_opt&&inRain(d.crit_s_opt)>0.01&&!EAST.has(d.district)).sort((a,b)=>inRain(b.crit_s_opt)-inRain(a.crit_s_opt)).slice(0,6);
-    if(risk.length)out.push(['--crit','ยังเสี่ยงแม้พร่องแล้ว','เขตที่น้ำยังเกินวิกฤตช่วงฝนหนัก เตรียมเครื่องสูบเคลื่อนที่และกระสอบทราย (ล้าน ลบ.ม.)',risk.map(d=>({t:`เขต${d.district}: ${fmt(inRain(d.crit_s_opt),2)}`,dist:d.district}))]);
-    if(later)out.push(['--warn','เฝ้าระวังต่อ',later,[]]);
-  }
-  $('#advice').innerHTML=out.map(([c,t,p,li],i)=>`<div class="rec"><span class="tag" style="background:var(${c})">${esc(t)}</span><div><p>${esc(p)}</p>${li.length?`<ul>${li.map((x,j)=>x.href?`<li><a href="${x.href}">${esc(x.t)}</a></li>`:`<li tabindex="0" data-r="${i}" data-j="${j}">${esc(x.t)}</li>`).join('')}</ul>`:''}</div></div>`).join('');
-  $('#advice').onclick=e=>{const li=e.target.closest('li[data-r]');if(!li)return;const x=out[+li.dataset.r][3][+li.dataset.j];
-    if(x.code&&D.st[x.code])zoomTo(D.st[x.code][9],D.st[x.code][8]);else if(x.node!=null)zoomTo(...N[x.node]);else if(x.dist){const g=D.geo.find(q=>q[1]===x.dist);if(g){let sx_=0,sy_=0,c_=0;walk(g[2],([a,b])=>{sx_+=a;sy_+=b;c_++});zoomTo(sx_/c_,sy_/c_,W/3)}}else return;
-    $('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})};
-}
-const dTxt=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
-function outlook(){const O=F.outlook||[];if(!O.length){$('#outlook').hidden=true;return}const hv=F.assumptions.heavy_mm;
-  $('#outlook').innerHTML=`<div class="panel-h"><h2>แนวโน้มฝนรายวัน<span class="src p">พยากรณ์</span></h2></div><ul class="defs"><li><b>ตัวเลขใหญ่:</b> ฝนเฉลี่ยทั้งเมืองที่คาดการณ์ (มม./วัน) ในวงเล็บ = กรณีฝนมาก (P90)</li><li><b>⚠ ฝนหนัก:</b> ฝนใน 3 ชั่วโมงอาจถึง ${hv} มม.</li><li><b>นอกแผน:</b> แผนในหน้านี้คำนวณเฉพาะ 48 ชั่วโมงแรก</li></ul>
-  <div class="olk">${O.map(o=>`<div class="${o.in_plan?'':'out'}"><b>${dTxt(o.day)}</b><span class="v">${fmt(o.det,0)}<small> (${fmt(o.p90,0)})</small></span><span class="note">${o.max3_p90>=hv?'<span style="color:var(--crit)">⚠ ฝนหนัก</span>':o.hours<24?'บางส่วนของวัน':'&nbsp;'}${o.in_plan?'':' · นอกแผน'}</span></div>`).join('')}</div>`}
-// ---------- strip ----------
-function strip(){const IN=['ชั้นในและฝั่งตะวันตก','เหนือ'];const mx2=(o,zs)=>o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0));const mx=(o,zs)=>Math.max(...o[zs[0]].map((_,i)=>zs.reduce((a,z)=>a+o[z][i],0)));
-  const ens=F.ens_totals;const q=p=>ens[Math.round(p*(ens.length-1))];
-  $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">ฝน 48 ชม. (เฉลี่ยทั้งเมือง)<span class="src p">พยากรณ์</span></div><div class="v">${fmt(S.total_mm,0)}<small>มม.</small></div><div class="chips"><span>ensemble ${ens.length} ชุด: กลาง ${fmt(q(.5),0)} · P90 ${fmt(q(.9),0)} · สูงสุด ${fmt(q(1),0)} มม.</span></div></div>
-  <div class="kpi"><div class="eyebrow">ฝนหนักเริ่ม<span class="src p">พยากรณ์</span></div><div class="v">${S.onset==null?'ไม่มี':S.onset===0?'ตอนนี้':'อีก '+S.onset*DT}<small>${S.onset==null?`(≥ ${F.assumptions.heavy_mm} มม./3 ชม.)`:S.onset===0?'':'ชม. · '+tTxt(F.times[S.onset])}</small></div><div class="chips"><span>สูงสุด ${fmt(Math.max(...S.city_mm),1)} มม./ชม.</span></div></div>
-  ${S.onset!=null?`<div class="kpi"><div class="eyebrow">น้ำเกินวิกฤตช่วงฝนหนัก ชั้นใน+เหนือ<span class="src p">โมเดล</span></div><div class="v">${fmt(inRain(mx2(S.crit_opt,IN)),2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ถ้าไม่พร่อง ${fmt(inRain(mx2(S.crit_base,IN)),2)}</span></div></div>`
-    :`<div class="kpi"><div class="eyebrow">การพร่องน้ำ<span class="src p">โมเดล</span></div><div class="v" style="color:var(--ok)">ไม่จำเป็น</div><div class="chips"><span>ไม่มีฝนหนักถึง ${tTxt(F.times[K])}</span></div></div>`}
-  <div class="kpi"><div class="eyebrow">ตะวันออกรอบนอก (ท่วมอยู่แล้ว)<span class="src p">โมเดล</span></div><div class="v">${fmt(Math.max(...S.above_opt['ตะวันออกรอบนอก']),0)}<small>ล้าน ลบ.ม. เกินเตือน</small></div><div class="chips"><span>ตอนนี้ ${fmt(S.above0['ตะวันออกรอบนอก'],0)} · ดูหน้าสถานการณ์ปัจจุบัน</span></div></div>`}
-
-// ---------- tables ----------
-function tables(){const st=S.stations;const T=F.times;
-  $('#tSt').innerHTML=`<thead><tr><th class="l">สถานีวัดน้ำ</th><th class="l">เขต</th><th>ตอนนี้</th><th>เตือน</th><th>วิกฤต</th><th>${S.onset!=null?'เป้าก่อนฝนหนัก':'ปลาย 48 ชม. (แผน)'}</th><th>${S.onset!=null?'ถ้าไม่พร่อง':'ปลาย 48 ชม. (สูบเท่าเดิม)'}</th><th>สูงสุด (แผน)</th><th>สูงสุด (ไม่พร่อง)</th></tr></thead><tbody>${st.slice(0,120).map(r=>
-    `<tr data-c="${esc(r.code)}"><td class="l" style="white-space:normal">${esc(short(r.name))}</td><td class="l">${esc(r.district)}</td><td class="num">${fmt(r.now,2)}</td><td class="num">${fmt(r.warn,2)}</td><td class="num">${fmt(r.crit,2)}</td>
-     <td class="num ${r.extra>=0.05?'dn':''}">${fmt(r.onset_opt,2)}</td><td class="num">${fmt(r.onset_base,2)}</td><td class="num ${r.peak_opt>r.crit?'up':''}">${fmt(r.peak_opt,2)}</td><td class="num ${r.peak_base>r.crit?'up':''}">${fmt(r.peak_base,2)}</td></tr>`).join('')}</tbody>`;
-  const cols=[...Array(K).keys()].filter(i=>i%2===0);
-  $('#tPump').innerHTML=`<thead><tr><th class="l">สถานีสูบ</th><th>${YD}</th>${cols.map(i=>`<th>${tTxt(T[i]).replace(/^(\d+) \S+ /,'$1/ ')}</th>`).join('')}</tr></thead><tbody>${S.pumps.slice().sort((a,b)=>Math.max(...b.series)-Math.max(...a.series)).map(r=>
-    `<tr><td class="l">${esc(short(r.name))}</td><td class="num">${fmt(r.now,1)}</td>${cols.map(i=>{const v=r.series[i];return `<td class="num" style="${v>r.now+1?'color:var(--accent);font-weight:600':''}">${fmt(v,0)}</td>`}).join('')}</tr>`).join('')}</tbody>`}
-$('#tSt').addEventListener('click',e=>{const tr=e.target.closest('tr[data-c]');if(!tr)return;const s=D.st[tr.dataset.c];if(s){zoomTo(s[9],s[8]);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}});
+// ---------- where it floods, how to drain (per scenario): bars, click to highlight on the map ----------
+const centroid=n=>{const g=D.geo.find(q=>q[1]===n);let a=0,b=0,c=0;if(g)walk(g[2],([x,y])=>{a+=x;b+=y;c++});return c?[a/c,b/c]:null};
+function highlight(i,k,x){const M_=MAPS[i];if(!M_)return;const g=M_.gH;g.innerHTML='';let at=null,w=W/2.5;
+  if(k==='c'){E.forEach(e=>{if(e[7]===x.code)el('path',{d:line(e[6]),fill:'none',stroke:'var(--crit)','stroke-width':7,'stroke-linecap':'round',opacity:.9,'vector-effect':'non-scaling-stroke'},g)});
+    const s=D.st[x.code];if(s){at=[s[9],s[8]];const [px,py]=P(at);el('circle',{cx:px,cy:py,r:14/Math.sqrt(z),fill:'none',stroke:'var(--ink)','stroke-width':2,'vector-effect':'non-scaling-stroke'},g)}}
+  else if(k==='r'){at=[x.lon,x.lat];const sg=D.road_seg&&D.road_seg[x.code];
+    if(sg&&sg[1].length>1)el('path',{d:line(sg[1]),fill:'none',stroke:x.risk===2?'var(--crit)':'var(--serious)','stroke-width':9,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},g);
+    const [px,py]=P(at);el('circle',{cx:px,cy:py,r:14/Math.sqrt(z),fill:'none',stroke:'var(--ink)','stroke-width':2,'vector-effect':'non-scaling-stroke'},g);w=W/5}
+  else if(k==='d'){const gg=D.geo.find(q=>q[1]===x.d);if(gg)el('path',{d:gg[2].map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),fill:'var(--crit)','fill-opacity':.35,stroke:'var(--ink)','stroke-width':2.5,'vector-effect':'non-scaling-stroke'},g);at=centroid(x.d);w=W/2}
+  else if(k==='p'){const p=pumpById[x.id];if(p){at=N[p.node];const [px,py]=P(at);el('circle',{cx:px,cy:py,r:16/Math.sqrt(z),fill:'none',stroke:'var(--accent)','stroke-width':3,'vector-effect':'non-scaling-stroke'},g)}}
+  if(at){zoomTo(at[0],at[1],w);M_.svg.scrollIntoView({behavior:'smooth',block:'center'})}}
+const ITEMS=[];
+const bar=(i,k,x,label,segs,val,mx)=>{ITEMS.push([i,k,x]);const id=ITEMS.length-1;
+  return `<button type="button" class="bar" data-b="${id}" title="${esc(label)}"><span class="bl">${label}</span><span class="bt">${segs.filter(s=>s[0]>0).map(([v,c])=>`<i style="width:${(v/mx*100).toFixed(1)}%;background:${c}"></i>`).join('')}</span><span class="bv">${val}</span></button>`};
+const blg=a=>`<div class="blg">${a.map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')}</div>`;
+$('#advs').innerHTML=SC.map((S,i)=>{
+  // canals that reach critical, most severe first (the part above critical; overflow capped)
+  const cr=S.stations.filter(r=>stOf(r)==='วิกฤต').map(r=>{const pk=pkOf(r),ex=Math.min(OVR,pk-r.crit),now=Math.max(0,Math.min(ex,r.now-r.crit));return {r,ex,now,add:ex-now,isNew:nowOf(r)!=='วิกฤต'}}).sort((a,b)=>b.ex-a.ex).slice(0,10);
+  const mxC=Math.max(0.05,...cr.map(c=>c.ex));
+  const roads=(S.roads||[]).slice(0,10),mxR=Math.max(1,...roads.map(r=>r.r24));
+  const dist=S.districts.map(d=>({d:d.district,v:d.crit_s_opt?Math.max(...d.crit_s_opt):d.crit_opt})).filter(x=>x.v>=0.01).sort((a,b)=>b.v-a.v).slice(0,8),mxD=Math.max(0.01,...dist.map(x=>x.v));
+  const pumps=S.pumps.filter(r=>r.start!=null).map(r=>({r,mx:Math.max(...r.series)})).sort((a,b)=>b.mx-a.mx).slice(0,10),mxP=Math.max(1,...pumps.map(p=>p.mx));
+  const pre=S.onset==null||S.onset===0?[]:S.stations.filter(r=>r.extra>=0.05&&r.onset_opt<r.now-0.05).slice(0,6);
+  const none='<p class="note">ไม่มี</p>';
+  return `<div class="panel adv"><div class="panel-h"><h2>${esc(S.label)}<span class="src p">โมเดล</span></h2><span class="note">คลิกแถบเพื่อดูบนแผนที่</span></div>
+   <div><h3><span class="tagc" style="background:var(--crit)">จะท่วมตรงไหน</span></h3>
+    <p class="sub">คลองที่น้ำเกินเกณฑ์วิกฤต (ม. เหนือเกณฑ์วิกฤต)</p>${blg([['var(--crit)','เกินอยู่แล้ว (ล่าสุด)'],['var(--serious)','เพิ่มขึ้นใน 48 ชม.']])}
+    ${cr.length?`<div class="bars">${cr.map(c=>bar(i,'c',c.r,`${c.isNew?'<b class="up">ใหม่</b> ':''}${esc(short(c.r.name))} <span class="note">${esc(c.r.district)}</span>`,[[c.now,'var(--crit)'],[c.add,'var(--serious)']],c.ex>=OVR?'ล้นตลิ่ง':'+'+fmt(c.ex,2),mxC)).join('')}</div>`:none}
+    <p class="sub">ถนนเสี่ยงท่วม (ฝน 24 ชม. มม.)</p>${blg([['var(--axis)','ต่ำกว่าฝนที่เคยทำให้ท่วม'],['var(--serious)','ถึงค่าต่ำ (เสี่ยง)'],['var(--crit)','เกินค่ากลาง (เสี่ยงสูง)']])}
+    ${roads.length?`<div class="bars">${roads.map(r=>bar(i,'r',r,`${r.risk===2?'<b class="up">เสี่ยงสูง</b> ':''}${esc(r.name)}`,[[Math.min(r.r24,r.t25),'var(--axis)'],[Math.max(0,Math.min(r.r24,r.t50)-r.t25),'var(--serious)'],[Math.max(0,r.r24-r.t50),'var(--crit)']],`${fmt(r.r24,0)} / ${fmt(r.t25,0)}`,mxR)).join('')}</div>`:none}
+    <p class="sub">เขตที่น้ำเกินวิกฤต (ล้าน ลบ.ม., สูงสุดใน 48 ชม. ใช้ค่าเดียวกับแผนที่น้ำท่วม)</p>
+    ${dist.length?`<div class="bars">${dist.map(x=>bar(i,'d',x,`เขต${esc(x.d)}`,[[x.v,'var(--crit)']],fmt(x.v,2),mxD)).join('')}</div>`:none}</div>
+   <div><h3><span class="tagc" style="background:var(--accent)">ระบายอย่างไร</span></h3>
+    <p style="margin-top:6px">${S.onset==null?`ไม่มีฝนหนักใน 48 ชม. ไม่ต้องพร่องน้ำเป็นพิเศษ ระบายน้ำที่ค้างตาม<a href="bkk_model.html">หน้าสถานการณ์ปัจจุบัน</a>`:S.onset===0?'ฝนหนักเริ่มแล้ว เดินเครื่องเต็มกำลังทันที':`พร่องน้ำให้เสร็จก่อน ${tTxt(F.times[S.onset])} (อีก ${S.onset*DT} ชม.)`}</p>
+    <p class="sub">สถานีสูบที่ต้องเดินเครื่องเพิ่ม (ลบ.ม./วิ.)</p>${blg([['var(--axis)','สูบจริง (เฉลี่ย 3 วัน)'],['var(--accent)','เพิ่มตามโมเดล']])}
+    ${pumps.length?`<div class="bars">${pumps.map(p=>bar(i,'p',p.r,`${esc(short(p.r.name))} <span class="note">เริ่ม ${tTxt(F.times[p.r.start])}</span>`,[[Math.min(p.r.now,p.mx),'var(--axis)'],[Math.max(0,p.mx-p.r.now),'var(--accent)']],`${fmt(p.r.now,1)} → ${fmt(p.mx,1)}`,mxP)).join('')}</div>`:none}
+    ${pre.length?`<p class="sub">ระดับเป้าหมายก่อนฝนหนัก (ม.รทก. ล่าสุด → เป้า)</p><div class="bars">${pre.map(r=>bar(i,'c',r,esc(short(r.name)),[[r.now-r.onset_opt,'var(--accent)']],`${fmt(r.now,2)} → ${fmt(r.onset_opt,2)}`,Math.max(...pre.map(q=>q.now-q.onset_opt)))).join('')}</div>`:''}</div></div>`}).join('');
+$('#advs').addEventListener('click',e=>{const b=e.target.closest('.bar[data-b]');if(!b)return;const [i,k,x]=ITEMS[+b.dataset.b];
+  document.querySelectorAll('.bar.on').forEach(q=>q.classList.remove('on'));b.classList.add('on');highlight(i,k,x)});
+// ---------- flood map: depth on the ground (DEM), roads, what to do ----------
+let FLCRIT='';   // its method, listed with the other assumptions at the bottom
+(()=>{const FL=D.FL;if(!FL){$('#flood').hidden=true;return}
+  const G=FL.grid,LYR=FL.layers.filter(L=>L.key!=='hind'),svg=$('#flmap');const T=(t,m)=>`<span class="src ${m}">${t}</span>`;
+  const DC=[[0.10,'#9ecae1'],[0.20,'#4f9bd1'],[0.30,'#2166ac'],[0.50,'#0b3c7a']];          // 10-20, 20-30, 30-50, >50 cm
+  const RC_=['var(--warn)','var(--serious)','var(--crit)','var(--crit)'];
+  const cls=d=>d>=0.5?3:d>=0.3?2:d>=0.2?1:d>=0.1?0:-1;
+  const ACT=[['10–20 ซม.','ข้อเท้าถึงครึ่งแข้ง','เดินระวังท่อและฝาท่อเปิด รถเล็กขับช้า ไม่ทำคลื่นใส่บ้านริมทาง'],
+    ['20–30 ซม.','ครึ่งแข้งถึงเข่า','รถเก๋งเลี่ยงเส้นทาง (น้ำเข้าท่อไอดี) ย้ายรถไปจอดที่สูง ยกของใช้ชั้นล่างขึ้นที่สูง'],
+    ['30–50 ซม.','เข่าถึงต้นขา','รถเล็กไม่ควรผ่าน ปิดเบรกเกอร์ชั้นล่าง ย้ายของมีค่า สัตว์ และเครื่องจักรขึ้นที่สูง วางกระสอบทราย'],
+    ['มากกว่า 50 ซม.','เกินต้นขา','เตรียมอพยพเด็ก ผู้สูงอายุ ผู้ป่วย และสัตว์ ติดต่อสำนักงานเขตหรือสายด่วน 1555 ปิดกิจการที่มีคนจำนวนมาก']];
+  $('#flAct').innerHTML=ACT.map((a,k)=>`<tr><td><i class="sw" style="background:${DC[k][1]}"></i>${a[0]}</td><td><span class="note">${a[1]}</span><br>${a[2]}</td></tr>`).join('');
+  // static layers
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.aspectRatio=`${W}/${H}`;SV.push(svg);
+  const gD=el('g',{},svg);D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),fill:'var(--seq-0)',stroke:'var(--line)','stroke-width':1,'vector-effect':'non-scaling-stroke'},gD));
+  const cp=el('clipPath',{id:'bkFl'},el('defs',{},svg));D.geo.forEach(([c,n,coords])=>el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join('')},cp));
+  const gImg=el('g',{'clip-path':'url(#bkFl)'},svg),gCt=el('g',{'clip-path':'url(#bkFl)'},svg);
+  const gC=el('g',{},svg);E.forEach(e=>{if(e[3]!=='C')el('path',{d:line(e[6]),fill:'none',stroke:'var(--axis)','stroke-width':e[3]==='A'?.9:.5,opacity:.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'},gC)});
+  D.net.cp.forEach(pts=>el('path',{d:line(pts),fill:'none',stroke:'var(--river)','stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gC));
+  const gRd=el('g',{},svg),gRep=el('g',{style:'display:none'},svg),gMk=el('g',{},svg),gHl=el('g',{},svg);
+  const mk=(lon,lat,draw,tipf)=>{const [x,y]=P([lon,lat]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gMk);draw(g);g.addEventListener('mousemove',e=>showTip(e,tipf()));g.addEventListener('mouseleave',hideTip);return g};
+  // road sensors, drawn exactly as on the overview page: a flooded sensor draws a line along its road to the next sensor
+  // on the same road (full line if that one is also flooded, half-way if dry); dry / broken sensors are small dots
+  const KXm=Math.cos(13.75*Math.PI/180)*111320,KYm=110574;
+  const STC={'ปกติ':'--ok','ขัดข้อง':'--down','ท่วม':'--crit','ท่วมเล็กน้อย':'--warn'},stC=x=>`var(${STC[x]||'--down'})`;
+  const isWet=r=>r.status==='ท่วม'||r.status==='ท่วมเล็กน้อย',rdKey=r=>(r.road||'').replace(/\s+/g,'');
+  const rTip=r=>`ถนน: <b>${esc(r.name)}</b><br>เซนเซอร์ ${esc(r.status)}${r.depth_cm!=null?`, น้ำ ${fmt(r.depth_cm,0)} ซม.`:''}<br>${esc(r.measured||'')} <span class="src m">ตรวจวัด</span>`;
+  const gSen=el('g',{},svg);
+  (D.road||[]).filter(r=>r.lat&&isWet(r)).forEach(r=>{
+    const same=D.road.filter(q=>q!==r&&q.lat&&rdKey(q)&&rdKey(q)===rdKey(r)&&q.status!=='ขัดข้อง').map(q=>{const dx=(q.lon-r.lon)*KXm,dy=(q.lat-r.lat)*KYm;return {q,dx,dy,d:Math.hypot(dx,dy)}}).filter(o=>o.d<3000&&o.d>5).sort((a,b)=>a.d-b.d);
+    const sg=D.road_seg&&D.road_seg[r.code]&&D.road_seg[r.code][1],a=same[0],b=a?same.find(o=>o.dx*a.dx+o.dy*a.dy<0):null;
+    const end=o=>isWet(o.q)?[o.q.lon,o.q.lat]:[(r.lon+o.q.lon)/2,(r.lat+o.q.lat)/2];const parts=[];if(a)parts.push(end(a));if(b)parts.push(end(b));
+    if(sg&&sg.length>1&&parts.length<2){if(a){const pick=[sg[0],sg[sg.length-1]].sort((u,v)=>((v[0]-r.lon)*KXm*a.dx+(v[1]-r.lat)*KYm*a.dy)-((u[0]-r.lon)*KXm*a.dx+(u[1]-r.lat)*KYm*a.dy))[0];parts.push(pick)}else parts.push(sg[0],sg[sg.length-1])}
+    if(!parts.length)parts.push([r.lon+0.0012,r.lat]);
+    parts.forEach(q=>{const m=el('path',{d:line([[r.lon,r.lat],q]),fill:'none',stroke:stC(r.status),'stroke-width':7,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gSen);m.addEventListener('mousemove',e=>showTip(e,rTip(r)));m.addEventListener('mouseleave',hideTip)})});
+  (D.road||[]).forEach(r=>{if(!r.lat)return;const w=isWet(r);mk(r.lon,r.lat,g=>el('circle',{r:w?5:2.6,fill:stC(r.status),stroke:'var(--surface)','stroke-width':w?1.5:0,opacity:w?1:.85},g),()=>rTip(r))});
+  // decode a layer
+  const dec=b=>{if(!b)return null;const s=atob(b),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a};
+  let cur=null;const BLT=dec(FL.built);
+  const cellLL=(j,i)=>[G.lon0+(i+.5)*G.cell,G.lat0-(j+.5)*G.cell];
+  function draw(L){cur={L,dep:dec(L.depth),src:dec(L.src),on:dec(L.onset)};gImg.innerHTML='';gCt.innerHTML='';gRd.innerHTML='';gRep.innerHTML='';gHl.innerHTML='';
+    if(L.box){const [j0,i0,h,w]=L.box,cv=document.createElement('canvas');cv.width=w;cv.height=h;const cx=cv.getContext('2d'),im=cx.createImageData(w,h);
+      for(let k=0;k<w*h;k++){const d=cur.dep[k]/100,c=cls(d);if(c<0)continue;const hex=DC[c][1],gk=(j0+Math.floor(k/w))*G.w+i0+k%w,bt=BLT?(BLT[gk>>3]>>(7-(gk&7)))&1:1;im.data[4*k]=parseInt(hex.slice(1,3),16);im.data[4*k+1]=parseInt(hex.slice(3,5),16);im.data[4*k+2]=parseInt(hex.slice(5,7),16);im.data[4*k+3]=bt?225:45}
+      cx.putImageData(im,0,0);const [x0,y0]=P([G.lon0+i0*G.cell,G.lat0-j0*G.cell]),[x1,y1]=P([G.lon0+(i0+w)*G.cell,G.lat0-(j0+h)*G.cell]);
+      el('image',{href:cv.toDataURL(),x:x0,y:y0,width:x1-x0,height:y1-y0,preserveAspectRatio:'none',style:'image-rendering:pixelated'},gImg);
+      // contour lines at 10 / 30 / 50 cm (marching squares on cell centres)
+      const v=(j,i)=>cur.dep[j*w+i]/100,seg=[];
+      [0.1,0.3,0.5].forEach(t=>{for(let j=0;j<h-1;j++)for(let i=0;i<w-1;i++){const q=[v(j,i),v(j,i+1),v(j+1,i+1),v(j+1,i)];if(q.every(x=>x<t)||q.every(x=>x>=t))continue;
+        const C4=[[j,i],[j,i+1],[j+1,i+1],[j+1,i]].map(([a,b])=>P(cellLL(j0+a,i0+b)));const cut=[];
+        for(let k=0;k<4;k++){const a=q[k],b=q[(k+1)%4];if((a<t)!==(b<t)){const u=(t-a)/(b-a),A=C4[k],B=C4[(k+1)%4];cut.push([A[0]+u*(B[0]-A[0]),A[1]+u*(B[1]-A[1])])}}
+        for(let k=0;k+1<cut.length;k+=2)seg.push(`M${cut[k][0].toFixed(1)},${cut[k][1].toFixed(1)}L${cut[k+1][0].toFixed(1)},${cut[k+1][1].toFixed(1)}`)}});
+      el('path',{d:seg.join(''),fill:'none',stroke:'var(--ink)','stroke-width':.7,opacity:.55,'vector-effect':'non-scaling-stroke'},gCt)}
+    (L.roads||[]).slice().reverse().forEach(([nm,c,cm,len,pts])=>{const k=cls(cm/100);const p=el('path',{d:line(pts),fill:'none',stroke:RC_[Math.max(0,k)],'stroke-width':k>=2?4:3,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gRd);
+      p.addEventListener('mousemove',e=>showTip(e,`ถนน: <b>${esc(nm||'ไม่มีชื่อ')}</b><br>ลึกสุดประมาณ ${fmt(cm,0)} ซม. ช่วงยาว ${fmt(len/1000,1)} กม.<br>${ACT[Math.max(0,k)][2]}`));p.addEventListener('mouseleave',hideTip)});
+    (L.reports||[]).forEach(([lo,la])=>{const [x,y]=P([lo,la]);el('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:1.6,fill:'var(--serious)',opacity:.75},gRep)});
+    $('#flTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===L.key));
+    $('#flDesc').innerHTML={now:`<li><b>สถานการณ์ ${thDT(D.fetched)} น.:</b> น้ำเหนือเกณฑ์วิกฤตจากระดับคลองที่วัดได้ ${T('ตรวจวัด','m')} แผ่จากคลองไปยังที่ต่ำ (DEM) รวมกับเซนเซอร์ถนนที่ท่วมอยู่ ${T('ตรวจวัด','m')}</li>`,
+      forecast:`<li><b>48 ชม. ข้างหน้า ฝนตามคาดการณ์:</b> ฝนคาดการณ์ ${T('พยากรณ์','f')} ส่วนที่เกินกำลังระบายของพื้นที่ + ระดับคลองเมื่อสูบตามที่โมเดลแนะนำ ${T('โมเดล','p')} + ถนนที่ท่วมอยู่ (ล่าสุด) ${T('ตรวจวัด','m')} ฝนสูงสุดใน 24 ชม. ${fmt(L.r24max,0)} มม.</li>`,
+      extreme:`<li><b>48 ชม. ข้างหน้า ฝน ${A.mult||3} เท่า:</b> เหมือนฝนตามคาดการณ์ แต่ฝนมากขึ้น ${A.mult||3} เท่า ${T('พยากรณ์','f')} ฝนสูงสุดใน 24 ชม. ${fmt(L.r24max,0)} มม.</li>`,}[L.key]||'';
+    const pc=x=>fmt(100*x,0)+'%';
+    $('#flKpi').innerHTML=`<div><b>${fmt(L.area10_built,0)}</b><span>ตร.กม. ชุมชนและถนน<br>ลึก ≥ 10 ซม.</span></div><div><b>${fmt(L.area30_built,0)}</b><span>ตร.กม. ชุมชนและถนน<br>ลึก ≥ 30 ซม.</span></div><div><b>${fmt(L.area10_open,0)}</b><span>ตร.กม. ทุ่งและพื้นที่โล่ง<br>ลึก ≥ 10 ซม.</span></div>`;
+    const RN=L.road_names||[],mxR=Math.max(10,...RN.map(r=>r[2]));
+    $('#flRoads').innerHTML=!FL.has_roads?'<p class="note">ยังไม่มีข้อมูลถนน (ต้องอัปเดตแบบดึงข้อมูลครั้งหนึ่งเพื่อดาวน์โหลดถนนจาก OpenStreetMap)</p>':RN.length?`<div class="bars w">${RN.slice(0,15).map((r,k)=>`<button type="button" class="bar" data-r="${k}"><span class="bl">${esc(r[0])}</span><span class="bt"><i style="width:${(r[2]/mxR*100).toFixed(1)}%;background:${RC_[Math.max(0,cls(r[2]/100))]}"></i></span><span class="bv">${fmt(r[2],0)} ซม., ${fmt(r[3],1)} กม.</span></button>`).join('')}</div>`:'<p class="note">ไม่มีถนนสายหลักที่คาดว่าท่วมเกิน 10 ซม.</p>';
+    }
+  // nearest canal (model network) and flooded road piece to a point, in metres
+  const segD=(lo,la,a,b)=>{const ax=(a[0]-lo)*KXm,ay=(a[1]-la)*KYm,bx=(b[0]-lo)*KXm,by=(b[1]-la)*KYm,dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy||1;const t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/L));return Math.hypot(ax+t*dx,ay+t*dy)};
+  const nearest=(lo,la,lines,maxd)=>{let best=null,bd=maxd;for(const [nm,pts] of lines){if(!nm)continue;for(let k=0;k+1<pts.length;k++){const d=segD(lo,la,pts[k],pts[k+1]);if(d<bd){bd=d;best=nm}}}return best?[best,bd]:null};
+  const CAN=E.filter(e=>D.net.names[e[2]]).map(e=>[D.net.names[e[2]],e[6]]);
+  const names=(lo,la)=>{const c=nearest(lo,la,CAN,400),r=cur?nearest(lo,la,(cur.L.roads||[]).map(x=>[x[0],x[4]]),250):null;
+    return (r?`ถนน: <b>${esc(r[0])}</b><br>`:'')+(c?`คลองใกล้สุด: <b>${esc(c[0])}</b> (${fmt(Math.round(c[1]/10)*10,0)} ม.)<br>`:'')};
+  // hover: depth / cause / start time at the cell under the mouse
+  svg.addEventListener('mousemove',e=>{if(e.target.closest('[data-x]')||e.target.tagName==='path'&&(e.target.parentNode===gRd||e.target.parentNode===gSen))return;if(!cur||!cur.L.box){hideTip();return}
+    const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());const [lo,la]=invP(q.x,q.y);
+    const [j0,i0,h,w]=cur.L.box,j=Math.floor((G.lat0-la)/G.cell)-j0,i=Math.floor((lo-G.lon0)/G.cell)-i0;
+    const nm=names(lo,la);
+    if(j<0||i<0||j>=h||i>=w||cls(cur.dep[j*w+i]/100)<0){if(nm)showTip(e,nm.replace(/<br>$/,''));else hideTip();return}
+    const k=j*w+i,d=cur.dep[k]/100,c=cls(d);
+    const sr=cur.src?cur.src[k]:1,on=cur.on?cur.on[k]:255;
+    const why=sr===2?'น้ำล้นคลองแผ่ออกมา (ระดับคลองเกินเกณฑ์วิกฤต) น้ำส่วนนี้มักค้างหลายวัน':sr===3?`ท่วมอยู่ (เซนเซอร์ถนน ${thDT(D.fetched)} น.)`:'ฝนเกินกำลังระบาย น้ำไหลมาขังที่ต่ำ';
+    const when=cur.L.key==='now'?'':on===255?'':on===0?'<br>ท่วมอยู่แล้ว':`<br>คาดว่าเริ่มราว ${tTxt(F.times[Math.min(F.times.length-1,Math.round(on/DT))])}`;
+    showTip(e,`${nm}<b>ลึกประมาณ ${fmt(d*100,0)} ซม.</b> <span class="src p">โมเดล</span><br>สาเหตุ: ${why}${when}<br><br><b>ควรทำ:</b> ${ACT[c][2]}`)});
+  svg.addEventListener('mouseleave',hideTip);
+  svg.addEventListener('wheel',e=>{e.preventDefault();const b=svg.getBoundingClientRect();zoomAt(e.deltaY<0?1.25:0.8,vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h)},{passive:false});
+  svg.addEventListener('pointerdown',e=>{drag={s:svg,x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
+  $('#flTabs').innerHTML=LYR.map(L=>`<button type="button" data-k="${L.key}">${L.key==='now'?'สถานการณ์ '+thDT(D.fetched)+' น.':'48 ชม. '+esc(L.label)}</button>`).join('');
+  $('#flTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)draw(LYR.find(L=>L.key===b.dataset.k))});
+  $('#flRep').addEventListener('change',e=>gRep.style.display=e.target.checked?'':'none');
+  $('#flRoads').addEventListener('click',e=>{const b=e.target.closest('.bar[data-r]');if(!b||!cur)return;const r=cur.L.road_names[+b.dataset.r];
+    document.querySelectorAll('#flRoads .bar.on').forEach(q=>q.classList.remove('on'));b.classList.add('on');gHl.innerHTML='';
+    (cur.L.roads||[]).filter(x=>x[0]===r[0]).forEach(x=>el('path',{d:line(x[4]),fill:'none',stroke:'var(--ink)','stroke-width':7,opacity:.35,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gHl));
+    zoomTo(r[4][0],r[4][1],W/6);svg.scrollIntoView({behavior:'smooth',block:'center'})});
+  $('#flLeg').innerHTML=`<span><b>ความลึกโดยประมาณ</b></span>${['10–20','20–30','30–50','> 50'].map((t,k)=>`<span><i class="dot" style="border-radius:2px;width:14px;background:${DC[k][1]}"></i>${t} ซม.</span>`).join('')}<span><i class="dot" style="border-radius:2px;width:14px;background:#4f9bd1;opacity:.25"></i>สีจาง = ทุ่งและพื้นที่โล่ง (ไม่มีอาคาร)</span><span>เส้นบาง = เส้นชั้นความลึก 10, 30, 50 ซม.</span>
+    <span style="flex-basis:100%;height:0"></span><span><b>ถนนที่คาดว่าท่วม</b></span>${['10–20','20–30','≥ 30'].map((t,k)=>`<span><i class="dot" style="border-radius:2px;width:14px;height:4px;background:${RC_[k]}"></i>${t} ซม.</span>`).join('')}<span style="flex-basis:100%;height:0"></span><span><b>เซนเซอร์ถนน</b> (${thDT(D.fetched)} น., เหมือนหน้าภาพรวม) <span class="src m">ตรวจวัด</span></span><span><i class="dot" style="background:var(--crit)"></i>ท่วม</span><span><i class="dot" style="background:var(--warn)"></i>ท่วมเล็กน้อย</span><span><i class="dot" style="background:var(--ok)"></i>ปกติ</span><span><i class="dot" style="background:var(--down)"></i>ขัดข้อง</span><span>เส้นหนา = ช่วงถนนที่เซนเซอร์วัดว่าท่วม</span>`;
+  const LM=FL.limit||{};
+  FLCRIT=[
+    ['กำลังระบายของแต่ละพื้นที่',`ฝน 24 ชม. ที่เคยทำให้เซนเซอร์ถนนใกล้ ๆ เริ่มท่วม (ค่าต่ำสุดหนึ่งในสี่ของครั้งที่ท่วม) จาก ${LM.n||0} จุดที่มีประวัติพอ ช่วง ${LM.period?dTxt(LM.period[0])+'–'+dTxt(LM.period[1]):'–'} ค่ากลาง ${fmt(LM.median,0)} มม. คำนวณใหม่ทุกครั้งที่อัปเดต ${T('ตรวจวัด','m')}`],
+    ['ฝนที่ระบายไม่ทัน','ฝน 24 ชม. สูงสุดในช่วง 48 ชม. ลบกำลังระบาย คิดเป็นปริมาตรน้ำรายเขต แล้วให้ไหลไปขังที่พื้นต่ำสุดของเขตก่อน (DEM) จนครบปริมาตร จึงเป็นหย่อมตามที่ต่ำ ไม่ใช่ทั้งเขต DEM ที่มีอยู่ (ช่อง 120 ม.) ยังบอกจุดต่ำทีละซอยไม่ได้'],
+    ['น้ำล้นคลอง',`ปริมาตรน้ำเหนือเกณฑ์วิกฤตรายเขตจากโมเดลคลอง ${T('โมเดล','p')} (เริ่มจากระดับที่วัดได้) แผ่จากคลองออกไปยังพื้นที่ต่ำที่ต่อเนื่องกับคลองภายใน 2 กม. จนครบปริมาตร (DEM Copernicus 30 ม. รวมเป็นช่อง 120 ม.) เขตที่โมเดลไม่มีน้ำเกินวิกฤตแต่สถานีวัดเกิน ใช้ส่วนที่เกิน (ไม่เกิน ${OVR} ม.) ท่วมที่ต่ำตามแนวคลองนั้นไม่เกิน 400 ม. น้ำส่วนนี้ค้างนานที่สุด`],
+    ['ชุมชนกับทุ่ง','แยกจาก DEM: ช่องที่ผิวบนสุด (อาคาร ต้นไม้) สูงกว่าพื้นดิน ≥ 0.5 ม. หรือเป็นหมู่บ้าน/ถนนใน OpenStreetMap ถือเป็นชุมชนและถนน (57% ของ กทม. มีรายงานน้ำท่วม 77%) ที่เหลือเป็นทุ่งและพื้นที่โล่ง น้ำในทุ่งท่วมจริงแต่กระทบคนน้อยกว่า จึงแสดงสีจาง'],
+    ['ท่วมอยู่แล้ว','เซนเซอร์ถนนที่วัดความลึกได้ล่าสุด ถือว่าบริเวณนั้นยังท่วมอย่างน้อยเท่าเดิม ส่วนแผนที่สถานการณ์ปัจจุบัน ถนนที่เซนเซอร์วัดว่าปกติจะไม่แสดงเป็นถนนท่วมจากโมเดลในรัศมี 300 ม. (ข้อมูลตรวจวัดมาก่อนโมเดล) เซนเซอร์ใช้ชุดเดียวกับหน้าภาพรวม'],
+    ['ระดับเตือน','ตามความลึกในตาราง “ควรทำอย่างไร” (10 / 20 / 30 / 50 ซม.)'],
+    ['รายงานประชาชน (Traffy)','ไม่ได้ใช้คำนวณ ใช้ตรวจความแม่นภายหลังเท่านั้น ถ้าไม่มีคนรายงานหรือข้อมูลเก่า แผนที่ยังคำนวณได้เหมือนเดิม']
+  ].map(([a,b])=>`<li><b>แผนที่น้ำท่วม, ${a}:</b> ${b}</li>`).join('');
+  draw(LYR.find(L=>L.key==='forecast')||LYR[0]);
+  setVB();
+})();
 
 // ---------- assumptions ----------
-(()=>{const A=F.assumptions;const rows=[
-  ['วิธีคำนวณ',`LP หลายช่วงเวลา (time-expanded min-cost flow, HiGHS) ช่วงละ ${DT} ชม. ${K} ช่วง โครงข่ายคลองเดียวกับหน้าสถานการณ์ปัจจุบัน ลงโทษน้ำเกินเกณฑ์เตือน (×1) และเกินวิกฤต (×20) ถ่วงน้ำหนักชั้นใน 3 เหนือ 2 ตะวันออก 1`],
-  ['ฝน',`${F.source} ตาราง ${F.points.length} จุดทั่ว กทม. เฉลี่ยถ่วงระยะ 4 จุดที่ใกล้ที่สุด · กรณีสุดขีดเพิ่มฝน 84 มม. ใน 6 ชม. ทั้งเมือง (เท่าฝนเฉลี่ยวันที่ 25 ก.ย. 2569) ในช่วงที่ ensemble ชุดฝนมากที่สุดตกหนักสุด`],
-  ['น้ำฝนที่เข้าคลอง',`C = ${A.C} × ฝน × พื้นที่รับน้ำ (ปรับเทียบ) ไหลเข้าคลอง ${A.lag.map(x=>Math.round(x*100)+'%').join(' / ')} ในช่วง 3 ชม. นี้/ถัดไป/ถัดไปอีก + น้ำพื้นฐาน ${A.base} ลบ.ม./วิ./ตร.กม.`],
-  ['ระดับต่ำสุดที่พร่องได้',`เกณฑ์เตือน − ${A.D_LOW} ม. (สมมติ) · คลองที่ไม่มีสถานีวัดน้ำใกล้ ถือว่าต่ำกว่าเกณฑ์เตือน ${A.no_gauge_below} ม.`],
-  ['อัตราลดระดับ',`ไม่เกิน ${fmt(A.drawdown_m_h*100)} ซม./ชม. (P75 ของอัตราลดที่วัดได้หลังฝนหยุด)`],
-  ['ที่เก็บน้ำ',`ต่ำกว่าเกณฑ์เตือน: ผิวน้ำคลอง · เหนือเกณฑ์เตือน: ผิวน้ำคลอง × ${Object.entries(A.lambda_zone).map(([z,v])=>`${z} ${v}`).join(', ')} (ปรับเทียบในแผน 30 วัน)`],
-  ['เครื่องสูบ',`แผน: ${Math.round(A.avail*100)}% ของกำลังสูบตั้งแต่ตอนนี้ · ไม่พร่อง: สูบเท่าที่วัดได้จริง${YD} (ทั้งระบบราว ${Math.round(A.fleet_util_now*100)}%) จนฝนหนักเริ่ม แล้วเต็มกำลัง`],
-  ['ความจุคลอง / ทางออกขอบเขต',`ความเร็ว ${A.v} ม./วิ. × หน้าตัดตามประเภทคลอง · ทางออกด้านใต้จุดละ ${A.outlet} ลบ.ม./วิ.`],
-  ['สิ่งที่ยังไม่รวม','อุโมงค์ระบายน้ำ แก้มลิง ท่อระบายน้ำ น้ำขึ้นน้ำลง น้ำเหนือ และการเปิดปิดประตูระบายน้ำรายชั่วโมง']];
-  $('#tAs').innerHTML=`<tbody>${rows.map(([a,b])=>`<tr><td class="l" style="white-space:nowrap">${esc(a)}</td><td class="l">${esc(b)}</td></tr>`).join('')}</tbody>`})();
-
-function legend(){$('#legend').innerHTML=(mode==='diff'?`<span>พื้นเขต = ระดับน้ำที่ต่ำลงเพราะพร่อง (ไม่พร่อง − พร่อง)</span>${DF.map(([t,c],i)=>`<span><i class="dot" style="background:${c}"></i>${['< 0.02','0.02–0.05','0.05–0.1','0.1–0.2','0.2–0.4','> 0.4'][i]} ม.</span>`).join('')}`:`<span>พื้นเขต = ระดับน้ำเฉลี่ยเทียบเกณฑ์เตือน (แผน)</span>${LV.map(([t,c],i)=>`<span><i class="dot" style="background:${c}"></i>${['< −0.6','−0.6 – −0.3','−0.3 – 0','0 – 0.15','0.15 – 0.4','> 0.4'][i]} ม.</span>`).join('')}`)+`
- <ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>เส้น:</b> น้ำไหลในคลอง สี = % ความจุ</li><li><b>▲ สถานีสูบ:</b> สี = % ของกำลังสูบที่ใช้</li><li><b style="color:var(--accent)">◎</b> สถานีวัดน้ำที่ควรพร่องก่อน</li></ul>`;}
-function renderAll(){$('#mapNote').textContent=`${S.label} · ${S.total_mm} มม.`;
-  const hv=S.onset!=null;$('#seg').hidden=!hv;if(!hv&&mode!=='opt'){mode='opt';document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m==='opt'))}
-  strip();rainChart();critChart();advice();tables();drawStations();legend();
-  if(!hv){$('#cCrit').insertAdjacentHTML('afterbegin','<p class="note" style="margin:0 0 6px">กรณีนี้ไม่มีฝนหนัก เส้นสองเส้นจึงเกือบทับกัน น้ำเกินวิกฤตที่เห็นเป็นน้ำที่ค้างอยู่แล้วตั้งแต่ตอนนี้</p>');}
-  k=S.onset!=null&&S.onset>0?Math.max(0,S.onset-1):0;drawStep()}
-outlook();renderAll();
+(()=>{const RH=F.road_hist||{};$('#assume').innerHTML=[
+  ['วิธีคำนวณ',`LP หลายช่วงเวลา (HiGHS) ช่วงละ ${DT} ชม. ${K} ช่วง บนโครงข่ายคลองเดียวกับหน้าสถานการณ์ปัจจุบัน ลงโทษน้ำเกินเกณฑ์เตือน (×1) และเกินวิกฤต (×20) ถ่วงน้ำหนักชั้นใน 3, เหนือ 2, ตะวันออก 1`],
+  ['ฝนตามคาดการณ์',`${F.source} ตาราง ${F.points.length} จุดทั่ว กทม. เฉลี่ยถ่วงระยะ 4 จุดที่ใกล้ที่สุด`],
+  ['ฝน 3 เท่า',`ฝนตามคาดการณ์ × ${A.mult||3} ทุกจุดและทุกชั่วโมง`],
+  ['น้ำฝนที่เข้าคลอง',`C = ${A.C} × ฝน × พื้นที่รับน้ำ ไหลเข้าคลอง ${A.lag.map(v=>Math.round(v*100)+'%').join(' / ')} ในช่วง 3 ชม. นี้ ถัดไป และถัดไปอีก + น้ำพื้นฐาน ${A.base} ลบ.ม./วิ./ตร.กม.`],
+  ['การสูบที่แนะนำ',`ไม่เกิน ${Math.round(A.avail*100)}% ของกำลังสูบ ตั้งแต่เวลาข้อมูลล่าสุด และพร่องน้ำได้ถึงเกณฑ์เตือน − ${A.D_LOW} ม. ระดับลดไม่เร็วกว่า ${fmt(A.drawdown_m_h*100)} ซม./ชม. (P75 ที่วัดได้) เทียบกับไม่พร่อง: สูบเท่าที่วัดได้จริงจนฝนหนักเริ่ม`],
+  ['ถนนเสี่ยงท่วม',`จากประวัติเซนเซอร์ สนน. ${RH.period?dTxt(RH.period[0])+' – '+dTxt(RH.period[1]):''}: ฝนสูงสุดในเขตในวันที่ถนนจุดนั้นเคยท่วม (ใช้ ${RH.n||0} จุดที่ท่วม ≥ 2 ครั้ง) เสี่ยง = ฝน 24 ชม. ถึงค่าต่ำ (เปอร์เซ็นไทล์ 25), เสี่ยงสูง = ถึงค่ากลาง`],
+  ['ล้นตลิ่ง','โมเดลเก็บน้ำไว้ในคลองทั้งหมด ไม่คิดน้ำที่ล้นออกไปท่วมพื้นที่ ถ้าระดับสูงสุดเกินเกณฑ์วิกฤตมากกว่า 0.5 ม. จะแสดงเป็น "ล้นตลิ่ง" แทนตัวเลข เพราะระดับจริงจะไม่สูงขนาดนั้น น้ำจะล้นออกไปท่วมพื้นที่รอบคลองแทน'],
+  ['สิ่งที่ยังไม่รวม','อุโมงค์ระบายน้ำ แก้มลิง ท่อระบายน้ำ น้ำขึ้นน้ำลง น้ำเหนือ และการเปิดปิดประตูระบายน้ำรายชั่วโมง']]
+  .map(([a,b])=>`<li><b>${esc(a)}:</b> ${esc(b)}</li>`).join('');$('#assume').insertAdjacentHTML('beforeend',FLCRIT)})();
 })();
 </script>
 __UPDATE_BUTTON__

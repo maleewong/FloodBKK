@@ -4,8 +4,12 @@
 .nav a{color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;background:var(--surface)}
 .nav a[aria-current="page"]{background:var(--accent-soft);color:var(--ink);font-weight:600;border-color:var(--accent)}
 .nav a:focus-visible{outline:2px solid var(--accent)}
-.mgrid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
-@media (max-width:1100px){.mgrid{grid-template-columns:1fr}}
+.twomap{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:1000px){.twomap{grid-template-columns:1fr}}
+.mh{display:flex;align-items:baseline;gap:4px;font-size:1rem;margin:4px 0 8px}
+#map2{touch-action:none;cursor:grab;background:var(--bg);border-radius:var(--r)}
+.advgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start}
+.advgrid>.recs{grid-column:1/-1}
 .sbars{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px 24px}
 .sbar{display:grid;grid-template-columns:110px minmax(0,1fr) 34px;gap:8px;align-items:center;font-size:12.5px;cursor:pointer;padding:2px 4px;border-radius:4px}
 .sbar:hover,.sbar:focus-visible{background:var(--accent-soft);outline:none}
@@ -84,43 +88,64 @@
 <div class="wrap">
   <header>
     <div>
-      <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html" aria-current="page">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a><a href="bkk_ponding.html">จำลองสถานการณ์</a></nav>
+      <nav class="nav" aria-label="หน้า"><a href="bkk_drainage.html">ภาพรวมและแผนที่คลอง</a><a href="bkk_model.html" aria-current="page">สถานการณ์ปัจจุบัน</a><a href="bkk_forecast.html">คาดการณ์ฝน 48 ชม.</a></nav>
       <h1 style="margin-top:10px">สถานการณ์ปัจจุบัน: ระบายน้ำที่ค้างอยู่อย่างไร</h1>
        <p class="note srckey"><span><span class="src m">ตรวจวัด</span> ค่าที่วัดได้จริง</span><span><span class="src p">โมเดล</span> ผลคำนวณจากโมเดล</span></p>
     </div>
     <div class="hdr-r"><div class="stamp" id="stamp"></div><p class="updmsg note" id="updMsg" hidden></p></div>
   </header>
 
-  <div class="sect now"><span class="sect-t">ตอนนี้</span><span class="note meta"><span>สถานการณ์และคำแนะนำจากข้อมูลล่าสุด</span></span></div>
   <section class="strip" id="strip" aria-label="สรุปสถานการณ์"></section>
 
-  <section class="mgrid">
-    <div class="panel">
-      <div class="panel-h"><h2>เส้นทางระบายตามแผน (วันแรก)<span class="src p">โมเดล</span></h2><span class="note" id="mapNote"></span></div>
-      <div class="mapwrap" id="mapbox">
-        <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งเมือง" style="font-size:12px">⤢</button></div>
-        <svg id="map" role="img" aria-label="แผนที่เส้นทางระบายน้ำตามแผน"></svg>
-        <div class="tip" id="tip" hidden></div>
+  <section class="panel">
+    <div class="panel-h"><h2>การระบายน้ำ: สถานการณ์ปัจจุบัน (ตรวจวัด) กับข้อเสนอจากโมเดล</h2><span class="note">ลาก/ซูมแผนที่ใดก็ได้ อีกแผนที่จะตามไปด้วย</span></div>
+    <div class="twomap">
+      <div>
+        <h3 class="mh"><span id="m1h">ที่เป็นอยู่</span><span class="src m">ตรวจวัด</span></h3>
+        <div class="mapwrap" id="mapbox2"><svg id="map2" role="img" aria-label="แผนที่ระดับน้ำและการสูบที่วัดได้จริง"></svg></div>
+        <div class="legend" id="legend2"></div>
       </div>
-      <p class="note" id="pathNote">คลิกคลองหรือสถานีสูบเพื่อดูเส้นทางที่น้ำไหลไป</p>
-      <div class="legend" id="legend"></div>
+      <div>
+        <h3 class="mh"><span id="m2h">แผนที่เสนอ</span><span class="src p">โมเดล</span><span class="note" id="mapNote" style="margin-left:auto"></span></h3>
+        <div class="mapwrap" id="mapbox">
+          <div class="zoom"><button type="button" id="zIn" aria-label="ซูมเข้า">+</button><button type="button" id="zOut" aria-label="ซูมออก">−</button><button type="button" id="zReset" aria-label="แสดงทั้งเมือง" style="font-size:12px">⤢</button></div>
+          <svg id="map" role="img" aria-label="แผนที่เส้นทางระบายน้ำตามโมเดล"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <p class="note" id="pathNote">คลิกคลองหรือสถานีสูบเพื่อดูเส้นทางที่น้ำไหลไป</p>
+        <div class="legend" id="legend"></div>
+      </div>
     </div>
-    <aside class="panel advice" aria-live="polite">
-      <div><div class="panel-h"><h2>คำแนะนำตอนนี้<span class="src p">โมเดล</span></h2></div><div class="recs" id="pRecs"></div></div>
-      <div><div class="eyebrow" id="aPumpH">สถานีที่ควรเพิ่มการสูบ</div><ul class="alist" id="aPump"></ul><p class="note" id="aTrend" style="margin:6px 0 0"></p></div>
-      <div><div class="eyebrow">คลองคอขวด: ความยาวช่วงที่เต็ม (กม.) · น้ำไหล (ลบ.ม./วิ.)<span class="src p">โมเดล</span></div><ul class="alist" id="aNeck"></ul></div>
-      <div><div class="eyebrow" id="aLeftH">น้ำที่ยังเกินระดับเตือนอีก 3 วัน (ล้าน ลบ.ม.)</div><ul class="alist" id="aLeft"></ul></div>
-      <div><div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)<span class="src m">ตรวจวัด</span></div><div id="gateSum" style="font-size:13px;display:grid;gap:4px"></div></div>
-    </aside>
   </section>
 
   <section class="panel">
-    <div class="panel-h"><h2>สถานะสถานีวัดน้ำรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note">เรียงจากเขตที่มีสถานีวิกฤตมากที่สุด · คลิกเพื่อดูบนแผนที่</span></div>
+    <div class="panel-h"><h2 id="upH">สถานีสูบ: โมเดล A เทียบกับสูบจริง</h2><span class="note meta"><span>ลบ.ม./วิ.</span><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
+    <div class="tbl"><table id="tUp"></table></div>
+    <ul class="defs" style="margin-top:10px">
+      <li><b>สูบจริง:</b> อัตราสูบจริงเฉลี่ย 3 วันล่าสุด จากมาตรวัดของ สนน.</li>
+      <li><b>โมเดล A:</b> อัตราที่โมเดลเสนอสำหรับวันแรก (ไม่เกิน 85% ของกำลังสูบ)</li>
+      <li><b>น้ำมาจาก:</b> คลองที่ส่งน้ำเข้าสถานีในโมเดล A และปริมาณที่ไหลเข้า (ลบ.ม./วิ.)</li>
+    </ul>
+  </section>
+
+  <section class="panel advice" aria-live="polite">
+    <div class="panel-h"><h2 id="advH">คำแนะนำจากโมเดล<span class="src p">โมเดล</span></h2></div>
+    <div class="advgrid">
+      <div class="recs" id="pRecs"></div>
+      <div><div class="eyebrow" id="aPumpH">สถานีที่ควรเพิ่มการสูบ</div><ul class="alist" id="aPump"></ul><p class="note" id="aTrend" style="margin:6px 0 0"></p></div>
+      <div><div class="eyebrow">คลองคอขวด: ความยาวช่วงที่เต็ม, น้ำไหล<span class="src p">โมเดล</span></div><ul class="alist" id="aNeck"></ul></div>
+      <div><div class="eyebrow" id="aLeftH">น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า (ล้าน ลบ.ม.)</div><ul class="alist" id="aLeft"></ul></div>
+      <div><div class="eyebrow">ประตูระบายน้ำ (ข้อมูลสด สนน.)<span class="src m">ตรวจวัด</span></div><div id="gateSum" style="font-size:13px;display:grid;gap:4px"></div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>สถานะสถานีวัดน้ำรายเขต<span class="src m">ตรวจวัด</span></h2><span class="note">เรียงจากเขตที่มีสถานีวิกฤตมากที่สุด, คลิกเพื่อดูบนแผนที่</span></div>
     <div class="chips" id="stLeg"></div>
     <div class="sbars" id="stBars"></div>
   </section>
 
-  <div class="sect past"><span class="sect-t">แผนระบาย 30 วัน</span><span class="note meta"><span>ผลโมเดล ถ้าไม่มีฝนเพิ่ม</span></span></div>
+  <div class="sect past"><span class="sect-t">โมเดลระบาย 30 วัน</span><span class="note meta"><span>ผลโมเดล ถ้าไม่มีฝนเพิ่ม</span></span></div>
   <section class="panel" id="planPanel">
     <div class="panel-h"><h2>ถ้าไม่มีฝนเพิ่ม ต้องใช้เวลาระบายอีกกี่วัน<span class="src p">โมเดล</span></h2><span class="note" id="planNote"></span></div>
     <div class="pgrid">
@@ -128,7 +153,7 @@
       <div class="chart" id="cPlan"></div>
     </div>
     <div class="grid2">
-      <div><div class="eyebrow">สูบตรงไหน (วันแรกของแผน)<span class="src p">โมเดล</span></div><div class="tbl" style="max-height:330px"><table id="tPlanPump"></table></div></div>
+      <div><div class="eyebrow">สูบตรงไหน (วันแรกของโมเดล A)<span class="src p">โมเดล</span></div><div class="tbl" style="max-height:330px"><table id="tPlanPump"></table></div></div>
       <div><div class="eyebrow">คอขวด (ไหลเต็มความจุใน 2 วันแรก)<span class="src p">โมเดล</span></div><div class="tbl" style="max-height:330px"><table id="tPlanNeck"></table></div></div>
     </div>
     <p class="note" id="planCaveat"></p>
@@ -142,7 +167,7 @@
   </section>
 
   <section class="panel" id="verPanel">
-    <div class="panel-h"><h2>ตรวจสอบเบื้องต้น</h2><span class="note">เทียบกับรายงานในโฟลเดอร์ Report_Book และข้อมูลจริงที่ดึงมา</span></div>
+    <div class="panel-h"><h2>ตรวจสอบเบื้องต้น</h2><span class="note">เทียบกับรายงานแผนปฏิบัติการฯ กทม. 2557 และข้อมูลจริงที่ดึงมา</span></div>
     <div class="ver" id="ver"></div>
   </section>
 
@@ -176,7 +201,7 @@ const DN={};M.geo.forEach(([c,n])=>DN[+c.slice(2)]=n);
 const short=s=>String(s).replace(/^สถานีสูบน้ำ|^สถานีสุบน้ำ/,'ส.').replace(/^อาคารสูบน้ำ/,'อาคารสูบ ').replace(/\*$/,'').trim();
 const canalName=k=>NM[E[k][2]]||'คลองไม่มีชื่อ';
 $('#stamp').textContent=`ข้อมูล ณ ${thDT(M.fetched)} น.`;
-$('#srcLine').textContent=`ระดับน้ำ ฝน สถานีสูบ: สำนักการระบายน้ำ กทม. (weather.bangkok.go.th) · ${M.net.source}`;
+$('#srcLine').textContent=`ระดับน้ำ ฝน สถานีสูบ: สำนักการระบายน้ำ กทม. (weather.bangkok.go.th), ${M.net.source}`;
 
 // ---------- map ----------
 const svg=$('#map'),W=1000;let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;const k=Math.cos(13.75*Math.PI/180);
@@ -192,12 +217,13 @@ const dPaths=[];M.geo.forEach(([c,n,coords])=>{const d=coords.map(poly=>poly.map
 M.net.cp.forEach(pts=>el('path',{d:line(pts),class:'cp','stroke-width':6,'vector-effect':'non-scaling-stroke'},gR));
 const ePath=E.map((e,i)=>{const p=el('path',{d:line(e[6]),class:'cn','vector-effect':'non-scaling-stroke','data-k':i},gC);return p});
 let z=1;
-function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);z=W/vb.w;
+function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);if(window.svg2_){svg2_.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`)}z=W/vb.w;
+  document.querySelectorAll('#map2 [data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${(1/Math.sqrt(z)).toFixed(3)})`));
   gP.querySelectorAll('[data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${(1/Math.sqrt(z)).toFixed(3)})`));
   gU.querySelectorAll('[data-x]').forEach(m=>m.setAttribute('transform',`translate(${m.dataset.x} ${m.dataset.y}) scale(${(1/Math.sqrt(z)).toFixed(3)})`))}
 function zoomAt(f,cx,cy){const nw=Math.min(W,Math.max(W/40,vb.w/f)),nh=nw*H/W;vb={x:cx-(cx-vb.x)*nw/vb.w,y:cy-(cy-vb.y)*nh/vb.h,w:nw,h:nh};clampVB();setVB()}
 function clampVB(){vb.x=Math.max(-W*.1,Math.min(W*1.1-vb.w,vb.x));vb.y=Math.max(-H*.1,Math.min(H*1.1-vb.h,vb.y))}
-const toSvg=e=>{const b=svg.getBoundingClientRect();return [vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h]};
+const toSvg=e=>{const b=(e.currentTarget&&e.currentTarget.getBoundingClientRect?e.currentTarget:svg).getBoundingClientRect();return [vb.x+(e.clientX-b.left)/b.width*vb.w,vb.y+(e.clientY-b.top)/b.height*vb.h]};
 svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=toSvg(e);zoomAt(e.deltaY<0?1.25:0.8,x,y)},{passive:false});
 let drag=null,moved=false;
 svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
@@ -211,7 +237,7 @@ const zoomTo=(lon,lat,w=W/5)=>{const [x,y]=P([lon,lat]);vb={x:x-w/2,y:y-w*H/W/2,
 
 // tooltip
 const tip=$('#tip');
-function showTip(e,html){tip.innerHTML=html;tip.hidden=false;const b=$('#mapbox').getBoundingClientRect();let x=e.clientX-b.left+14,y=e.clientY-b.top+14;
+function showTip(e,html){const box=(e.target&&e.target.closest&&e.target.closest('.mapwrap'))||$('#mapbox');if(tip.parentNode!==box)box.appendChild(tip);tip.innerHTML=html;tip.hidden=false;const b=box.getBoundingClientRect();let x=e.clientX-b.left+14,y=e.clientY-b.top+14;
   if(x+tip.offsetWidth>b.width)x=e.clientX-b.left-tip.offsetWidth-10;if(y+tip.offsetHeight>b.height)y=e.clientY-b.top-tip.offsetHeight-10;tip.style.left=Math.max(0,x)+'px';tip.style.top=Math.max(0,y)+'px'}
 const hideTip=()=>tip.hidden=true;
 
@@ -227,6 +253,9 @@ const yest={};((PL.current&&PL.current.pumps)||[]).forEach(p=>{yest[p.name]=p.us
 // yesterday's rate is measured only at telemetry stations; others carry the fleet-average assumption
 const yTxt=p=>p.src!=='telemetry'?'ไม่มีมาตรวัด':notRep.has(short(p.name))?'ไม่มีค่า':yest[short(p.name)]!=null?fmt(yest[short(p.name)],1):'–';
 const notRep=new Set(PL.not_reporting||[]);
+// stations the plan asks to pump more than measured (the plan does not run every station at 85%: only where the water is)
+const curUse={};((PL.current&&PL.current.pumps)||[]).forEach(p=>curUse[p.name]=p.use);
+const UP=((PL.plan&&PL.plan.pumps)||[]).filter(p=>p.use>(curUse[p.name]||0)+1);
 const MONS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 // measured pumping used for the "as now" scenario: average of the last 3 measured days (pump_days)
 const PD=(PL.assumptions||{}).pump_days||[(PL.assumptions||{}).pump_day].filter(Boolean);
@@ -240,7 +269,7 @@ const pumpAt={};PU.forEach((p,i)=>pumpAt[p.node]=i);const outAt={};OU.forEach((o
 // districts: water still left after 3 days of the plan
 const left={},leftC={};((PL.plan&&PL.plan.left_day3)||[]).forEach(([d,v])=>left[d]=v);((PL.current&&PL.current.left_day3)||[]).forEach(([d,v])=>leftC[d]=v);const rampL=[0.05,0.5,2,5,15];
 dPaths.forEach(([id,p])=>{const v=left[DN[id]]||0;p.style.fill=`var(--seq-${rampL.filter(t=>v>=t).length})`;p.style.fillOpacity=.55;
-  p.addEventListener('mousemove',e=>showTip(e,`<b>เขต${esc(DN[id]||'–')}</b><br>น้ำเกินระดับเตือนที่ยังเหลืออีก 3 วัน (ไม่มีฝนเพิ่ม)<br>ถ้าสูบตามแผน ${fmt(v,1)} ล้าน ลบ.ม.<br>ถ้าสูบเท่า${YA} ${fmt(leftC[DN[id]]||0,1)} ล้าน ลบ.ม.<br><span style="opacity:.7">ผลโมเดล</span>`));p.addEventListener('mouseleave',hideTip)});
+  p.addEventListener('mousemove',e=>showTip(e,`<b>เขต${esc(DN[id]||'–')}</b><br>น้ำเกินระดับเตือนที่ยังเหลืออีก 3 วัน (ไม่มีฝนเพิ่ม)<br>โมเดล A ${fmt(v,1)} ล้าน ลบ.ม.<br>ถ้าสูบเท่า${YA} ${fmt(leftC[DN[id]]||0,1)} ล้าน ลบ.ม.<br><span style="opacity:.7">ผลโมเดล</span>`));p.addEventListener('mouseleave',hideTip)});
 const mx=Math.max(...F.map(Math.abs),1);
 F.forEach((f,i)=>{const p=ePath[i],a=Math.abs(f),cap=E[i][5],u=cap>0?Math.min(1,a/cap):0;
   if(a<0.05){p.setAttribute('stroke','var(--axis)');p.setAttribute('stroke-width',E[i][3]==='C'?0.6:1);p.setAttribute('opacity',.7);return}
@@ -249,8 +278,8 @@ F.forEach((f,i)=>{const p=ePath[i],a=Math.abs(f),cap=E[i][5],u=cap>0?Math.min(1,
 PU.forEach((p,i)=>{if(p.internal)return;const [x,y]=P(N[p.node]);const q=pumpPlan[p.id]||0,c=p.cap*avail,u=c?q/c:0,ye=yest[short(p.name)];
   const s=4+Math.sqrt(p.cap)*1.3;const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
   const m=el('path',{d:`M0,${-s}L${s*0.9},${s*0.6}L${-s*0.9},${s*0.6}Z`,class:'pm',fill:q>0.05?utilColor(u):'var(--axis)',tabindex:0},g);
-  m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>แผน: สูบ ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>สูบจริง ${YA}: ${yTxt(p)}${p.src==='telemetry'&&ye!=null&&!notRep.has(short(p.name))?' ลบ.ม./วิ.':''}`));m.addEventListener('mouseleave',hideTip);
-  m.addEventListener('click',()=>{gH.innerHTML='';$('#pathNote').innerHTML=`<b>${esc(short(p.name))}</b>: แผนวันแรกสูบ ${fmt(q,1)} ลบ.ม./วิ. (${fmt(u*100)}% ของกำลังที่ใช้ได้)`})});
+  m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>โมเดล A: สูบ ${fmt(q,1)} จาก ${fmt(p.cap,1)} ลบ.ม./วิ.<br>สูบจริง ${YA}: ${yTxt(p)}${p.src==='telemetry'&&ye!=null&&!notRep.has(short(p.name))?' ลบ.ม./วิ.':''}`));m.addEventListener('mouseleave',hideTip);
+  m.addEventListener('click',()=>{gH.innerHTML='';$('#pathNote').innerHTML=`<b>${esc(short(p.name))}</b>: โมเดล A วันแรกสูบ ${fmt(q,1)} ลบ.ม./วิ. (${fmt(u*100)}% ของกำลังที่ใช้ได้)`})});
 OU.forEach((o,i)=>{const [x,y]=P(N[o.node]);const q=OD[i]||0;const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
   const m=el('rect',{x:-3.5,y:-3.5,width:7,height:7,transform:'rotate(45)',class:'ol',fill:q>0.05?'var(--seq-2)':'var(--down)',tabindex:0},g);
   m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(o.name)}</b><br>สมมติฐาน: ไหลออกนอกเขต ${fmt(q,1)} ลบ.ม./วิ.`));m.addEventListener('mouseleave',hideTip)});
@@ -258,12 +287,52 @@ OU.forEach((o,i)=>{const op=outerBy[o.node];if(!op||!((OD[i]||0)>0.05))return;
   el('path',{d:line(op.xy),fill:'none',stroke:'var(--seq-2)','stroke-width':1.6,'stroke-dasharray':'2 4','stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gF);
   const [x,y]=P(op.xy[op.xy.length-1]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);el('circle',{r:4,fill:'var(--seq-2)',stroke:'var(--surface)','stroke-width':1.2},g);
   g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(op.end)}</b><br>ปลายทางของ${esc(o.name.replace('ทางออกขอบเขต ',''))} นอกเขต กทม. ${fmt(op.km,0)} กม.<br>ผ่าน ${op.via.slice(0,4).map(esc).join(' → ')}`));g.addEventListener('mouseleave',hideTip)});
+// ---------- left map: measured now (canal levels, measured pumping) ----------
+const svg2=$('#map2');window.svg2_=svg2;svg2.setAttribute('viewBox',`0 0 ${W} ${H}`);svg2.style.aspectRatio=`${W}/${H}`;svg2.style.width='100%';
+{const g2D=el('g',{},svg2),g2R=el('g',{},svg2),g2C=el('g',{},svg2),g2P=el('g',{},svg2);
+ M.geo.forEach(([c,n,coords])=>{const p=el('path',{d:coords.map(poly=>poly.map(r=>line(r)+'Z').join('')).join(''),class:'dfill'},g2D);p.style.fill='var(--seq-0)';p.style.fillOpacity=.5;
+   p.addEventListener('mousemove',e=>{const ss=Object.values(M.st).filter(x=>x[7]===n);const c_=ss.filter(x=>x[4]==='วิกฤต').length,w_=ss.filter(x=>x[4]==='เตือนภัย').length;showTip(e,`<b>เขต${esc(n)}</b><br>สถานีวัดน้ำ ${ss.length}<br>วิกฤต ${c_}, เตือนภัย ${w_}`)});p.addEventListener('mouseleave',hideTip)});
+ M.net.cp.forEach(pts=>el('path',{d:line(pts),class:'cp','stroke-width':6,'vector-effect':'non-scaling-stroke'},g2R));
+ const SC_={'วิกฤต':'var(--crit)','เตือนภัย':'var(--warn)','ปกติ':'var(--ok)'};
+ E.forEach(e=>{const st=e[7]&&M.st[e[7]];const c=st&&SC_[st[4]];el('path',{d:line(e[6]),fill:'none',stroke:c||'var(--axis)','stroke-width':c?(e[3]==='C'?1.2:2):(e[3]==='C'?0.5:0.9),opacity:c?.85:.6,'vector-effect':'non-scaling-stroke'},g2C)});
+ Object.entries(M.st).forEach(([code,x])=>{if(x[8]==null||x[9]==null||!SC_[x[4]])return;const [px,py]=P([x[9],x[8]]);if(px<-20||px>W+20||py<-20||py>H+20)return;
+   const g=el('g',{'data-x':px.toFixed(1),'data-y':py.toFixed(1)},g2P);const m=el('circle',{r:x[4]==='ปกติ'?2.6:4.2,fill:SC_[x[4]],stroke:'var(--surface)','stroke-width':x[4]==='ปกติ'?0:1},g);
+   m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(x[0])}</b><br>${esc(x[4])}<br>ระดับน้ำ ${fmt(x[1],2)} ม.รทก.<br>เตือน ${fmt(x[2],2)}, วิกฤต ${fmt(x[3],2)}`));m.addEventListener('mouseleave',hideTip)});
+ PU.forEach(p=>{if(p.internal)return;const [px,py]=P(N[p.node]);const s=4+Math.sqrt(p.cap)*1.3;const tel=p.src==='telemetry'&&!notRep.has(short(p.name));const q=yest[short(p.name)];const u=tel&&q!=null&&p.cap?q/p.cap:null;
+   const g=el('g',{'data-x':px.toFixed(1),'data-y':py.toFixed(1)},g2P);
+   const m=el('path',{d:`M0,${-s}L${s*0.9},${s*0.6}L${-s*0.9},${s*0.6}Z`,class:'pm',fill:u==null?'none':u>0.02?utilColor(u):'var(--axis)',stroke:u==null?'var(--muted)':'var(--surface)','stroke-width':u==null?1.4:1,'stroke-dasharray':u==null?'2 2':'none'},g);
+   m.addEventListener('mousemove',e=>showTip(e,`<b>${esc(short(p.name))}</b><br>กำลังสูบ ${fmt(p.cap,1)} ลบ.ม./วิ.<br>${u==null?'ไม่มีมาตรวัด':`สูบจริง${YA} ${fmt(q,1)} ลบ.ม./วิ. (${fmt(u*100)}%)`}`));m.addEventListener('mouseleave',hideTip)});
+ svg2.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=toSvg(e);zoomAt(e.deltaY<0?1.25:0.8,x,y)},{passive:false});
+ svg2.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});}
+{const dTH=x=>x?`${+x.slice(8,10)} ${MONS[+x.slice(5,7)-1]} ${+x.slice(0,4)+543}`:'';
+ $('#m1h').textContent=`สถานการณ์ปัจจุบัน: ระดับน้ำ ณ ${thDT(M.fetched)} น., การสูบ${YA}`;
+ $('#m2h').textContent=PL.made?`โมเดล A และ B สำหรับวันที่ ${dTH(PL.made)} (ยังไม่ได้ปฏิบัติจริง)`:'โมเดล';
+ $('#advH').innerHTML=`คำแนะนำจากโมเดล${PL.made?' สำหรับวันที่ '+dTH(PL.made):''}<span class="src p">โมเดล</span>`;
+ $('#legend2').innerHTML=`<span><b>คลองและสถานีวัดน้ำ</b> สีตามสถานะของสถานีบนคลองนั้น:</span><span><i class="dot" style="background:var(--crit)"></i>วิกฤต</span><span><i class="dot" style="background:var(--warn)"></i>เตือนภัย</span><span><i class="dot" style="background:var(--ok)"></i>ปกติ</span>
+  <span style="flex-basis:100%;height:0"></span><span><b>▲ สถานีสูบ</b> สี = % ของกำลังสูบที่ใช้จริง:</span><span><i class="dot" style="background:var(--s1)"></i>&lt; 30%</span><span><i class="dot" style="background:var(--warn)"></i>30–70%</span><span><i class="dot" style="background:var(--serious)"></i>70–99%</span><span><i class="dot" style="background:var(--crit)"></i>เต็ม</span><span>△ เส้นประ = ไม่มีมาตรวัด</span><span>▬ ประตูระบายน้ำ: ทึบ = เปิด, โปร่ง = ปิด, วงประ = ควรเปลี่ยน</span><span>A1–A${UP.length} = สถานีที่โมเดล A เสนอให้เพิ่มการสูบ (ดูตารางด้านล่าง)</span>`}
+// mobile pumps: extra outflow at canal ends in the "+ mobile" scenario compared with the plan (0.25 m3/s per unit)
+const MOB=((PL.mobile&&PL.mobile.outlets)||[]).map(o=>{const i=OU.findIndex(x=>x.name===o.name);const add=o.use-(i>=0?(OD[i]||0):0);return {name:o.name,i,add,n:Math.ceil(add/0.25)}}).filter(o=>o.i>=0&&o.add>=0.5);
+MOB.forEach((o,j)=>{const [x,y]=P(N[OU[o.i].node]);const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},gP);
+  el('circle',{r:9,fill:'var(--ok)',stroke:'var(--surface)','stroke-width':1.5},g);el('path',{d:'M-5,0H5M0,-5V5',stroke:'var(--surface)','stroke-width':2.2},g);
+  const t=el('text',{x:11,y:-8,'font-size':12,'font-weight':700,fill:'var(--ok)',stroke:'var(--bg)','stroke-width':3,'paint-order':'stroke'},g);t.textContent='B'+(j+1);
+  g.addEventListener('mousemove',e=>showTip(e,`<b>โมเดล B: เครื่องสูบเคลื่อนที่ B${j+1}</b><br>${esc(o.name.replace('ทางออกขอบเขต ','ปลาย'))}<br>เพิ่ม ${fmt(o.add,1)} ลบ.ม./วิ. (≈ ${fmt(o.n)} เครื่อง)`));g.addEventListener('mouseleave',hideTip)});
+// stations the plan asks to raise: numbered on both maps, compared in a table
+const UPS=UP.map(p=>{const q=PU.find(x=>x.name===p.name);return q?{p:q,plan:p.use,now:curUse[p.name]||0}:null}).filter(Boolean).sort((a,b)=>(b.plan-b.now)-(a.plan-a.now));
+const inflowNames=node=>{const c={};adj[node].forEach(([i,o,d])=>{const f=F[i]*d;if(f<-0.05){const nm=canalName(i);c[nm]=(c[nm]||0)-f}});
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([n,v])=>`${n} ${fmt(v,0)}`)};
+UPS.forEach((u,j)=>{const [x,y]=P(N[u.p.node]);[gP,$('#map2').lastChild].forEach(G=>{const g=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},G);
+  el('circle',{r:13,fill:'none',stroke:'var(--ink)','stroke-width':1.6},g);const t=el('text',{x:15,y:-10,'font-size':13,'font-weight':700,fill:'var(--ink)',stroke:'var(--bg)','stroke-width':3,'paint-order':'stroke'},g);t.textContent='A'+(j+1)})});
+{const meas=u=>u.p.src==='telemetry'&&!notRep.has(short(u.p.name));
+ $('#tUp').innerHTML=`<thead><tr><th>#</th><th class="l">สถานีสูบ</th><th>กำลังสูบ</th><th>สูบจริง${YA} (ตรวจวัด)</th><th>โมเดล A</th><th>เพิ่ม</th><th class="l">น้ำที่เข้าสถานีในโมเดล A มาจาก</th></tr></thead><tbody>${UPS.map((u,j)=>
+  `<tr data-n="${u.p.node}"><td>${j+1}</td><td class="l">${esc(short(u.p.name))}</td><td class="num">${fmt(u.p.cap,0)}</td><td class="num">${meas(u)?fmt(u.now,1):`<span class="note">${u.p.src==='telemetry'?'มาตรวัดไม่ส่งค่า':'ไม่มีมาตรวัด'}</span>`}</td><td class="num"><b>${fmt(u.plan,1)}</b></td><td class="num">${meas(u)?'+'+fmt(u.plan-u.now,1):'–'}</td><td class="l" style="white-space:normal">${esc(inflowNames(u.p.node).join(', ')||'–')}</td></tr>`).join('')}</tbody>`;
+ $('#tUp').onclick=e=>{const tr=e.target.closest('tr[data-n]');if(tr){zoomTo(...N[+tr.dataset.n].slice(0,2),W/6);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}};
+ $('#upH').innerHTML=`สถานีสูบ: โมเดล A เทียบกับสูบจริง (${UPS.length} สถานี)`;}
 setVB();
-$('#legend').innerHTML=`<span><b>เส้นคลอง</b> ความกว้าง = ปริมาณน้ำวันแรกของแผน, สี = % ความจุที่ใช้:</span>
+$('#legend').innerHTML=`<span><b>เส้นคลอง</b> ความกว้าง = ปริมาณน้ำวันแรกของโมเดล A, สี = % ความจุที่ใช้:</span>
  <span><i class="dot" style="background:var(--s1)"></i>&lt; 30%</span><span><i class="dot" style="background:var(--warn)"></i>30–70%</span><span><i class="dot" style="background:var(--serious)"></i>70–99%</span><span><i class="dot" style="background:var(--crit)"></i>เต็ม (คอขวด)</span><span><i class="dot" style="background:var(--axis)"></i>ไม่มีน้ำไหล</span>
- <span style="flex-basis:100%;height:0"></span><ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>▲ สถานีสูบ:</b> ขนาด = กำลังสูบ, สี = % ที่แผนใช้</li><li><b>◆ ทางออกขอบเขต:</b> จุดที่น้ำออกนอก กทม. (สมมติ)</li><li><b>▬ ประตูระบายน้ำ:</b> ทึบ = เปิด, โปร่ง = ปิด, วงประ = ควรเปลี่ยน</li><li><b>เส้นประ:</b> ทางน้ำต่อนอกเขต กทม. ถึงทะเล/แม่น้ำ (OSM, แสดงทิศทางเท่านั้น)</li></ul>
+ <span style="flex-basis:100%;height:0"></span><ul class="defs" style="flex-basis:100%;margin:2px 0"><li><b>โมเดล A:</b> เพิ่มการสูบ ${UP.length} สถานีที่รับน้ำจากพื้นที่ท่วม (วงกลม A1–A${UP.length}) ไม่เกิน ${Math.round(avail*100)}% ของกำลัง สถานีอื่นสูบตามปกติ</li><li><b style="color:var(--ok)">โมเดล B:</b> โมเดล A + เครื่องสูบเคลื่อนที่ที่ปลายคลอง (วงกลมเขียว B1–B${MOB.length})</li><li><b>เส้นคลองบนแผนที่นี้:</b> การไหลวันแรกของโมเดล A</li><li><b>▲ สถานีสูบ:</b> ขนาด = กำลังสูบ, สี = % ที่โมเดล A ใช้</li><li><b>◆ ทางออกขอบเขต:</b> จุดที่น้ำออกนอก กทม. (สมมติ)</li><li><b>เส้นประ:</b> ทางน้ำต่อนอกเขต กทม. ถึงทะเล/แม่น้ำ (OSM, แสดงทิศทางเท่านั้น)</li></ul>
  <span><b>สีพื้นเขต</b> น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า</span><span class="ramp">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--seq-${i})"></i>`).join('')}</span><span class="num">0 / 0.05 / 0.5 / 2 / 5 / 15 ล้าน ลบ.ม.</span>`;
-$('#mapNote').textContent=PL.made?`แผนคำนวณ ${thDT(PL.made)} น.`:'ยังไม่มีแผน';
+$('#mapNote').textContent=PL.made?`คำนวณ ${thDT(PL.made)} น.`:'ยังไม่มีผลโมเดล';
 // click a canal: trace where its water goes
 function trace(start){const seen=new Set([start]);const path=[];let cur=start,guard=0;
   while(guard++<3000){if(pumpAt[cur]!=null&&(pumpPlan[PU[pumpAt[cur]].id]||0)>0.01)return {path,end:short(PU[pumpAt[cur]].name)};
@@ -273,48 +342,48 @@ function trace(start){const seen=new Set([start]);const path=[];let cur=start,gu
   return {path,end:null}}
 function showEdge(i){const f=F[i],e=E[i];const t=trace(f>=0?e[1]:e[0]);gH.innerHTML='';[i,...t.path].forEach(ei=>el('path',{d:line(E[ei][6]),class:'hl','stroke-width':3.5,'vector-effect':'non-scaling-stroke'},gH));
   const names=[canalName(i)];t.path.forEach(ei=>{const n=canalName(ei);if(names[names.length-1]!==n)names.push(n)});const L=t.path.reduce((a,ei)=>a+E[ei][4],0);
-  $('#pathNote').innerHTML=Math.abs(f)<0.05?`<b>${esc(canalName(i))}</b>: วันแรกของแผนไม่มีน้ำไหล`:`<b>${esc(canalName(i))}</b> ${fmt(Math.abs(f),1)} / ${fmt(E[i][5],1)} ลบ.ม./วิ. → ${names.slice(1).map(esc).join(' → ')}${names.length>1?' → ':''}<b>${esc(t.end||'ไม่ถึงจุดระบาย')}</b>${t.node!=null?outerTxt(t.node):''} <span class="note">(${fmt(L/1000,1)} กม.)</span>`}
+  $('#pathNote').innerHTML=Math.abs(f)<0.05?`<b>${esc(canalName(i))}</b>: วันแรกของโมเดล A ไม่มีน้ำไหล`:`<b>${esc(canalName(i))}</b> ${fmt(Math.abs(f),1)} / ${fmt(E[i][5],1)} ลบ.ม./วิ. → ${names.slice(1).map(esc).join(' → ')}${names.length>1?' → ':''}<b>${esc(t.end||'ไม่ถึงจุดระบาย')}</b>${t.node!=null?outerTxt(t.node):''} <span class="note">(${fmt(L/1000,1)} กม.)</span>`}
 gC.addEventListener('mousemove',e=>{const p=e.target.closest('.cn');if(!p)return;const i=+p.dataset.k;showTip(e,`<b>${esc(canalName(i))}</b><br>แผนวันแรก ${fmt(Math.abs(F[i]),1)} / ความจุ ${fmt(E[i][5],1)} ลบ.ม./วิ.`)});
 gC.addEventListener('mouseleave',hideTip);
 gC.addEventListener('click',e=>{const p=e.target.closest('.cn');if(p)showEdge(+p.dataset.k)});
 
 // ---------- water gates ----------
 const GT=M.gates||[];
-drawGates(GT,gG,P,showTip,hideTip,esc,g=>zoomTo(g[3],g[2],W/8));setVB();
+drawGates(GT,el('g',{},$('#map2')),P,showTip,hideTip,esc,g=>zoomTo(g[3],g[2],W/8));setVB();
 (()=>{const c=gateSummary(GT);const li=arr=>arr.slice(0,6).map(([g,a])=>`<li tabindex="0" data-g="${esc(g[0])}"><span>${esc(g[1].replace(/^ปตร\./,''))}</span><span class="num">${a.open?'เปิด '+g[4]+' ม.':'ปิด'}</span></li>`).join('');
-  $('#gateSum').innerHTML=`<span>${GT.length} ประตูที่รายงานค่า · เปิด ${GT.filter(g=>g[4]>0).length} · ปิด ${GT.filter(g=>!(g[4]>0)).length}</span>
+  $('#gateSum').innerHTML=`<span>${GT.length} ประตูที่รายงานค่า: เปิด ${GT.filter(g=>g[4]>0).length}, ปิด ${GT.filter(g=>!(g[4]>0)).length}</span>
    ${c.open.length?`<b style="color:var(--accent)">ควรเปิด (ด้านในสูงกว่า)</b><ul class="alist">${li(c.open)}</ul>`:''}
    ${c.close.length?`<b style="color:var(--crit)">ควรหรี่/ปิด (น้ำไหลเข้าพื้นที่ที่ใกล้เกินเกณฑ์)</b><ul class="alist">${li(c.close)}</ul>`:''}
-   <span class="note">ดูจากระดับน้ำสองฝั่งเท่านั้น ไม่รวมแผนผันน้ำของ กทม./กรมชลประทาน แผน LP ไม่ได้สั่งเปิดปิดประตู (ถือว่าประตูในเมืองเปิด ประตูริมแม่น้ำปิดและสูบออก)</span>`;
+   <span class="note">ดูจากระดับน้ำสองฝั่งเท่านั้น ไม่รวมแผนผันน้ำของ กทม./กรมชลประทาน โมเดล LP ไม่ได้สั่งเปิดปิดประตู (ถือว่าประตูในเมืองเปิด ประตูริมแม่น้ำปิดและสูบออก)</span>`;
   $('#gateSum').addEventListener('click',e=>{const l=e.target.closest('li[data-g]');if(!l)return;const g=GT.find(x=>x[0]===l.dataset.g);if(g){zoomTo(g[3],g[2],W/8);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}})})();
 
 // ---------- strip ----------
 const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['ปกติ','--ok'],['ขัดข้อง','--axis']];
 (()=>{if(!PL.volume0){$('#strip').hidden=true;return}const ZN=Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง');const tot=PL.volume0['รวมทั้งเมือง'];
   const main=ZN.slice().sort((a,b)=>PL.volume0[b]-PL.volume0[a])[0];const d=k=>PL[k].days[main]?.['90%'];const dt=v=>v==null?'> 30':v;
-  const st=Object.values(M.st);const crit=st.filter(s=>s[4]==='วิกฤต').length,warn=st.filter(s=>s[4]==='เตือนภัย').length;
+  const BKN=new Set(M.geo.map(g=>g[1]));const st=Object.values(M.st).filter(x=>BKN.has(x[7]));const crit=st.filter(s=>s[4]==='วิกฤต').length,warn=st.filter(s=>s[4]==='เตือนภัย').length;
   const neck=(PL.plan.bottlenecks||[]).filter(b=>b.name!=='คลองไม่มีชื่อ').length;
   $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">น้ำเกินเกณฑ์เตือนภัย<span class="src p">โมเดล</span></div><div class="v">${fmt(tot,1)}<small>ล้าน ลบ.ม. เทียบเท่า</small></div><div class="sub2">${ZN.map(z=>`${esc(z)} ${fmt(PL.volume0[z],1)}`).join(' · ')}</div></div>
-  <div class="kpi"><div class="eyebrow">สถานีวัดน้ำ ${st.length} สถานี<span class="src m">ตรวจวัด</span></div><div class="v" style="color:${crit?'var(--crit)':'inherit'}">${crit}<small>วิกฤต · ${warn} เตือนภัย</small></div>
+  <div class="kpi"><div class="eyebrow">น้ำเกินเกณฑ์เตือนภัย<span class="src p">โมเดล</span></div><div class="v">${fmt(tot,1)}<small>ล้าน ลบ.ม. เทียบเท่า</small></div><div class="sub2">${ZN.map(z=>`${esc(z)} ${fmt(PL.volume0[z],1)}`).join('<br>')}</div></div>
+  <div class="kpi"><div class="eyebrow">สถานีวัดน้ำในคลอง (ใน กทม.) ${st.length} สถานี<span class="src m">ตรวจวัด</span></div><div class="v" style="color:${crit?'var(--crit)':'inherit'}">${crit}<small>วิกฤต, ${warn} เตือนภัย</small></div>
     <div class="bar">${STS.map(([k,c])=>{const n=st.filter(x=>x[4]===k).length;return n?`<span style="width:${n/st.length*100}%;background:var(${c})" title="${k} ${n}"></span>`:''}).join('')}</div>
     <div class="chips">${STS.map(([k,c])=>`<span><i class="dot" style="background:var(${c})"></i>${k} ${st.filter(x=>x[4]===k).length}</span>`).join('')}</div></div>
-  <div class="kpi"><div class="eyebrow">${esc(main)}: ลด 90% ถ้าสูบเท่าเดิม<span class="src p">โมเดล</span></div><div class="v">${dt(d('current'))}<small>วัน</small></div><div class="sub2">${YAY} สูบจริงราว ${Math.round(PL.assumptions.fleet_util_now*100)}% ของกำลังสูบรวม (สถานีที่มีมาตรวัด)</div></div>
-  <div class="kpi"><div class="eyebrow">ถ้าเดินเครื่องตามแผน<span class="src p">โมเดล</span></div><div class="v" style="color:var(--accent)">${dt(d('plan'))}<small>วัน</small></div><div class="sub2">สูบ ${Math.round(avail*100)}% ของกำลังสูบรวมทุกสถานี · คลองคอขวด ${neck} สาย</div></div>`})();
+  <div class="kpi"><div class="eyebrow">${esc(main)}: ลด 90% ถ้าสูบเท่าเดิม<span class="src p">โมเดล</span></div><div class="v">${dt(d('current'))}<small>วัน</small></div><div class="sub2">ทุกสถานีสูบเท่าที่วัดได้จริง<br>${YAY}</div></div>
+  <div class="kpi"><div class="eyebrow">โมเดล A<span class="src p">โมเดล</span></div><div class="v" style="color:var(--accent)">${dt(d('plan'))}<small>วัน</small></div><div class="sub2">เพิ่มการสูบ ${UP.length} สถานีที่รับน้ำจากพื้นที่ท่วม (ไม่เกิน ${Math.round(avail*100)}% ของกำลัง)<br>สถานีอื่นสูบตามปกติ<br>คลองคอขวด ${neck} สาย</div></div>`})();
 
 // ---------- advice lists (clickable, zoom to place) ----------
 (()=>{if(!PL.plan)return;
   const pumps=PU.filter(p=>!p.internal).map(p=>{const q=pumpPlan[p.id]||0,ye=p.src==='telemetry'?yest[short(p.name)]:null;return {p,q,ye,gap:q-(ye||0)}}).filter(x=>x.q>0.5&&x.gap>1).sort((a,b)=>b.gap-a.gap).slice(0,10);
-  $('#aPumpH').innerHTML=`สถานีที่ควรเพิ่มการสูบ: แผน ลบ.ม./วิ. (สูบจริง${YA})<span class="src p">โมเดล</span>`;
+  $('#aPumpH').innerHTML=`สถานีที่ควรเพิ่มการสูบ: โมเดล A ลบ.ม./วิ. (สูบจริง${YA})<span class="src p">โมเดล</span>`;
   const PM=(PL.assumptions||{}).pump_measured||[];
-  $('#aTrend').innerHTML=PM.length?`สูบจริงรวม สถานีที่มีมาตรวัด<span class="src m">ตรวจวัด</span><br>`+PM.map(([d,v,u])=>`${dm(d)} <b>${fmt(v,1)}</b> ล้าน ลบ.ม. (${Math.round(u*100)}%)`).join(' · ')+`<br><span style="opacity:.75">% = ของกำลังสูบเต็มวันของสถานีเหล่านั้น</span>`:'';
-  $('#aPump').innerHTML=pumps.length?pumps.map(x=>`<li tabindex="0" data-n="${x.p.node}"><span>${esc(short(x.p.name))}</span><span class="num">${fmt(x.q,1)} <span class="note">(จริง: ${yTxt(x.p)})</span></span></li>`).join(''):'<li>ทุกสถานีสูบใกล้เคียงแผนแล้ว</li>';
+  $('#aTrend').innerHTML=PM.length?`ปริมาณสูบจริงรวมรายวัน (สถานีที่มีมาตรวัด)<span class="src m">ตรวจวัด</span><br>`+PM.map(([d,v])=>`${dm(d)} <b>${fmt(v,1)}</b> ล้าน ลบ.ม.`).join('<br>')+`<br><span style="opacity:.75">สถานีหลักฝั่งตะวันออก เช่น พระโขนง ไม่มีมาตรวัด จึงไม่รวมในยอดนี้</span>`:'';
+  $('#aPump').innerHTML=pumps.length?pumps.map(x=>`<li tabindex="0" data-n="${x.p.node}"><span>${esc(short(x.p.name))}</span><span class="num">${fmt(x.q,1)} <span class="note">(จริง: ${yTxt(x.p)})</span></span></li>`).join(''):'<li>ทุกสถานีสูบใกล้เคียงโมเดลแล้ว</li>';
   const bn=PL.plan.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,8).map(b=>{let k=-1,v=-1;E.forEach((e,i)=>{if(NM[e[2]]===b.name&&Math.abs(F[i])>v){v=Math.abs(F[i]);k=i}});return {...b,k}});
-  $('#aNeck').innerHTML=bn.length?bn.map(b=>`<li tabindex="0" data-k="${b.k}"><span>${esc(b.name)} <span class="note">${esc(b.district)}</span></span><span class="num">${fmt(b.km,1)} กม. · ${fmt(b.q,1)} ลบ.ม./วิ.</span></li>`).join(''):'<li>ไม่มีคลองที่ไหลเต็มความจุ</li>';
+  $('#aNeck').innerHTML=bn.length?bn.map(b=>`<li tabindex="0" data-k="${b.k}"><span>${esc(b.name)} <span class="note">${esc(b.district)}</span></span><span class="num">${fmt(b.km,1)} กม., ${fmt(b.q,1)} ลบ.ม./วิ.</span></li>`).join(''):'<li>ไม่มีคลองที่ไหลเต็มความจุ</li>';
   const cen={};M.geo.forEach(([c,n,coords])=>{let sx=0,sy=0,k=0;walk(coords,([x,y])=>{sx+=x;sy+=y;k++});cen[n]=[sx/k,sy/k]});
   const lf=PL.plan.left_day3.filter(x=>x[0]!=='นอกเขต'&&x[1]>=0.05).slice(0,8);
   $('#aLeft').innerHTML=lf.length?lf.map(([d,v])=>`<li tabindex="0" data-d="${esc(d)}"><span>เขต${esc(d)}</span><span class="num">${fmt(v,1)} <span class="note">(${fmt(leftC[d]||0,1)})</span></span></li>`).join(''):'<li>ทุกเขตลดต่ำกว่าระดับเตือนได้ภายใน 3 วัน</li>';
-  $('#aLeftH').innerHTML=`น้ำที่ยังเกินระดับเตือนอีก 3 วัน (ล้าน ลบ.ม.): ตามแผน (สูบเท่า${YA})<span class="src p">โมเดล</span>`;
+  $('#aLeftH').innerHTML=`น้ำที่ยังเกินระดับเตือนอีก 3 วันข้างหน้า (ล้าน ลบ.ม.): โมเดล A (ในวงเล็บ = สูบเท่าเดิม${YA})<span class="src p">โมเดล</span>`;
   const go=li=>{if(li.dataset.k){const k=+li.dataset.k;zoomTo(...N[E[k][0]].slice(0,2));showEdge(k)}else if(li.dataset.n){zoomTo(...N[+li.dataset.n].slice(0,2))}else if(li.dataset.d&&cen[li.dataset.d]){zoomTo(...cen[li.dataset.d],W/3)}
     $('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})};
   document.querySelectorAll('.alist').forEach(ul=>{ul.addEventListener('click',e=>{const li=e.target.closest('li[tabindex]');if(li)go(li)});ul.addEventListener('keydown',e=>{const li=e.target.closest('li[tabindex]');if(li&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(li)}})});
@@ -332,7 +401,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
 })();
 
 // ---------- calibration chart ----------
-(()=>{const s=cal.series;$('#calNote').textContent=`${thDT(cal.period[0]).replace(/\/\d+$/,'')} – ${thDT(cal.period[1])} · ${cal.n_tel} สถานีสูบที่มีข้อมูลออนไลน์ · พื้นที่รับน้ำ ${fmt(cal.A_tel_km2)} ตร.กม.`;
+(()=>{const s=cal.series;$('#calNote').textContent=`${thDT(cal.period[0]).replace(/\/\d+$/,'')} – ${thDT(cal.period[1])}, ${cal.n_tel} สถานีสูบที่มีข้อมูลออนไลน์, พื้นที่รับน้ำ ${fmt(cal.A_tel_km2)} ตร.กม.`;
   $('#calText').textContent=`ปริมาณน้ำที่สูบออกรายวัน ≈ ${fmt(cal.base_m3_day/1e6,2)} ล้าน ลบ.ม. (น้ำพื้นฐาน) + ${cal.C_same_day} × ฝนวันนั้น + ${cal.C_next_day} × ฝนวันก่อน (คูณพื้นที่รับน้ำ) อธิบายความแปรปรวนได้ ${Math.round(cal.r2*100)}% ค่ารวม C = ${cal.C} ใช้เป็นสัดส่วนฝนที่ต้องสูบออกในโมเดล`;
   const w=900,h=190,l=48,r=48,t=12,b=24;const mx=Math.max(...s.map(d=>Math.max(d[2],d[3])))*1.08,mr=Math.max(...s.map(d=>d[1]))*1.08;const n=s.length,bw=(w-l-r)/n;
   const y=v=>t+(1-v/mx)*(h-t-b),yr=v=>t+(1-v/mr)*(h-t-b);
@@ -368,15 +437,15 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const rows=[
   ['โครงข่ายคลอง','dat',`OpenStreetMap: ${fmt(E.length)} ช่วงคลอง ${fmt(N.length)} จุดต่อในเขต กทม. ความต่อเนื่องของคลองตามแผนที่ OSM ซึ่งอาจขาดคลองย่อยหรือท่อระบายน้ำ`],
   ['แม่น้ำเจ้าพระยา','ass','คลองที่บรรจบแม่น้ำถือว่าปิดด้วยประตูระบายน้ำ น้ำออกสู่แม่น้ำได้ทางสถานีสูบเท่านั้น (ระดับน้ำนอกสูงกว่าด้านในเกือบทุกจุด)'],
-  ['สถานีสูบ','dat',`${tel} สถานีจากข้อมูลออนไลน์ (กำลังสูบรายวัน) + ${rep} สถานีจากแผนปฏิบัติการฯ 2557 วางตำแหน่งตรงที่คลองชื่อเดียวกันบรรจบแม่น้ำ · สถานีสูบภายในที่ถ่ายน้ำระหว่างคลอง 3 แห่งไม่นับเป็นจุดระบายออก`],
-  ['ความจุคลอง','ass',Object.values(CL).map(c=>`${c.label}: กว้าง ${c.w} ม. ลึก ${c.d} ม.`).join(' · ')+` · คลองช่วง 6 กม. แรกที่ไหลเข้าสถานีสูบ ถือว่ารับน้ำได้เท่ากำลังสูบ (ลดลงตามระยะ)`],
+  ['สถานีสูบ','dat',`${tel} สถานีจากข้อมูลออนไลน์ (กำลังสูบรายวัน) + ${rep} สถานีจากแผนปฏิบัติการฯ 2557 วางตำแหน่งตรงที่คลองชื่อเดียวกันบรรจบแม่น้ำ, สถานีสูบภายในที่ถ่ายน้ำระหว่างคลอง 3 แห่งไม่นับเป็นจุดระบายออก`],
+  ['ความจุคลอง','ass',Object.values(CL).map(c=>`${c.label}: กว้าง ${c.w} ม. ลึก ${c.d} ม.`).join(', ')+`, คลองช่วง 6 กม. แรกที่ไหลเข้าสถานีสูบ ถือว่ารับน้ำได้เท่ากำลังสูบ (ลดลงตามระยะ)`],
   ['ความเร็วน้ำ','ass','0.5 ม./วิ. (ค่าระมัดระวัง) เทียบกรณีศึกษา SWE ปี 2561 แล้วค่า 0.65–0.7 ให้ผลใกล้กว่า ปรับได้'],
   ['พื้นที่รับน้ำ','dat',`แบ่งพื้นที่ กทม. เป็นตาราง 300 ม. แต่ละช่องส่งน้ำเข้าจุดต่อคลองที่ใกล้ที่สุด รวม ${fmt(N.reduce((a,n)=>a+n[2],0),0)} ตร.กม.`],
   ['ฝน','ass','หน้านี้ถือว่าไม่มีฝนตกเพิ่ม (กรณีมีฝนดูหน้าคาดการณ์ฝน) ฝนย้อนหลังใช้ปรับเทียบเท่านั้น'],
-  ['สัดส่วนฝนที่ต้องสูบ (C)','cal',`${cal.C} จากสมการปริมาณสูบรายวันกับฝน ${cal.n_days} วัน (R² ${cal.r2}) ${cal.n_tel} สถานีที่รายงานค่า รวมผลการซึม ระเหย และน้ำที่ค้างในพื้นที่แล้ว · ทดลองปรับเทียบโดยรันโมเดลจริงทุกวันได้ C ใกล้เคียงกัน (0.66)`],
+  ['สัดส่วนฝนที่ต้องสูบ (C)','cal',`${cal.C} จากสมการปริมาณสูบรายวันกับฝน ${cal.n_days} วัน (R² ${cal.r2}) ${cal.n_tel} สถานีที่รายงานค่า รวมผลการซึม ระเหย และน้ำที่ค้างในพื้นที่แล้ว, ทดลองปรับเทียบโดยรันโมเดลจริงทุกวันได้ C ใกล้เคียงกัน (0.66)`],
   ['น้ำพื้นฐาน','cal',`${cal.base_m3s_km2} ลบ.ม./วิ./ตร.กม. (น้ำเสียและน้ำซึมที่ต้องสูบแม้ไม่มีฝน) จากค่าคงที่ของสมการเดียวกัน ได้จากสถานีเขตชั้นในซึ่งหนาแน่น จึงน่าจะสูงเกินจริงในเขตชานเมือง`],
   ['น้ำเกินเกณฑ์ในคลอง','cal','ระดับน้ำปัจจุบันที่สูงกว่าเกณฑ์เตือนภัย × พื้นที่ผิวน้ำคลองรอบจุดต่อ × ตัวคูณพื้นที่เก็บน้ำของแต่ละโซน (ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด รวมน้ำบนพื้นที่ข้างคลอง)'],
-  ['เครื่องสูบใช้งานได้','ass',`แผน LP ใช้ 85% ของกำลังสูบ ช่วงฝนตกหนัก ก.ค.–ต.ค. สถานีใช้จริงสูงสุดค่ามัธยฐาน ${Math.round(cal.pump_used_median*100)}% (ส่วนหนึ่งเพราะน้ำไม่มากพอ ไม่ใช่เครื่องเสีย)`],
+  ['เครื่องสูบใช้งานได้','ass',`โมเดล LP ใช้ 85% ของกำลังสูบ ช่วงฝนตกหนัก ก.ค.–ต.ค. สถานีใช้จริงสูงสุดค่ามัธยฐาน ${Math.round(cal.pump_used_median*100)}% (ส่วนหนึ่งเพราะน้ำไม่มากพอ ไม่ใช่เครื่องเสีย)`],
   ['ทางออกขอบเขต','ass',`${OU.length} จุดที่คลองหลักไหลออกด้านใต้ไปสมุทรปราการ/สมุทรสาคร ให้ระบายได้จุดละ 5 ลบ.ม./วิ. ด้านเหนือและตะวันออกถือว่าปิด ฝั่งตะวันออก (หนองจอก ลาดกระบัง คลองสามวา) จึงมักขึ้นว่าระบายไม่ทัน ซึ่งตรงกับบทบาทพื้นที่รับน้ำ/ฟลัดเวย์ของ กทม. แต่ควรตรวจกับกำลังสูบจริงของกรมชลประทานด้านท้ายน้ำ`],
   ['สิ่งที่ยังไม่รวม','ass','อุโมงค์ระบายน้ำ บ่อหน่วงน้ำ (แก้มลิง) ท่อระบายน้ำ การบริหารประตูระบายน้ำภายใน และน้ำขึ้นน้ำลง'],
   ];
@@ -384,16 +453,16 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
 
 // ---------- 30-day plan (multi-period LP) ----------
 (()=>{const PL=M.plan;if(!PL){$('#planPanel').hidden=true;return}
-  const SC=[['current','ทำแบบเดิม','--down','สูบเท่า'+YA+' (~'+Math.round(PL.assumptions.fleet_util_now*100)+'% ของกำลังสูบ)'],
-    ['plan','เดินเครื่องตามแผน LP','--accent','สูบ '+Math.round(PL.assumptions.avail*100)+'% ของกำลังสูบ ส่งน้ำตามเส้นทางที่ดีที่สุด'],
-    ['mobile','+ เครื่องสูบเคลื่อนที่','--s1','เพิ่มที่ทางออกด้านใต้/ตะวันออก เป็นจุดละ 15 ลบ.ม./วิ.'],
-    ['trunk','+ ขยายคลองสายหลัก ×2','--s2','ระยะยาว: '+PL.trunk_canals.join(' ')]];
+  const MOBTXT=MOB.length?'โมเดล A + เครื่องสูบเคลื่อนที่ที่ปลายคลอง '+MOB.length+' จุด (B1–B'+MOB.length+' บนแผนที่) รวม '+fmt(MOB.reduce((a,o)=>a+o.add,0),0)+' ลบ.ม./วิ. หรือราว '+fmt(MOB.reduce((a,o)=>a+o.n,0))+' เครื่อง (เครื่องละ 0.25 ลบ.ม./วิ.)':'ไม่ช่วย';
+  const SC=[['current','สูบเท่าเดิม (ตรวจวัด)','--down','ทุกสถานีสูบเท่าที่วัดได้จริง'+YA],
+    ['plan','โมเดล A','--accent','เพิ่มการสูบ '+UP.length+' สถานีที่รับน้ำจากพื้นที่ท่วม (ไม่เกิน '+Math.round(PL.assumptions.avail*100)+'% ของกำลัง)'],
+    ['mobile','โมเดล B','--s1',MOBTXT]];
   const z=Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง').sort((a,b)=>PL.volume0[b]-PL.volume0[a])[0],alt=M.plan_alt||{};
   const dd=(k,a)=>{const d=(a?alt[k]:PL[k].days)?.[z]?.['90%'];return d==null?'> 30':d};
   if(PL.fetched!==M.fetched)$('#planCaveat').insertAdjacentHTML('beforebegin',`<p class="callout" style="border-color:var(--warn)">แผนนี้คำนวณจากข้อมูล ${thDT(PL.fetched)} แต่ข้อมูลในหน้าเป็น ${thDT(M.fetched)} ยังไม่ได้คำนวณแผนใหม่ (เครื่องนี้ต้องมี numpy scipy networkx)</p>`);
-  $('#planNote').textContent=`LP หลายช่วงเวลา ช่วงละ ${PL.dt_h} ชม. ${PL.steps} ช่วง · ข้อมูล ${thDT(PL.fetched)} · คำนวณ ${thDT(PL.made)}`;
+  $('#planNote').textContent=`LP หลายช่วงเวลา ช่วงละ ${PL.dt_h} ชม. ${PL.steps} ช่วง, ข้อมูล ${thDT(PL.fetched)}, คำนวณ ${thDT(PL.made)}`;
   $('#pDays').innerHTML=`<div class="eyebrow">${esc(z)} ลดน้ำส่วนเกิน 90% (วัน)<span class="src p">โมเดล</span></div>`+SC.map(([k,t,c,d])=>`<div class="pday"><i style="background:var(${c})"></i><span>${esc(t)}</span><b>${dd(k)}${alt[k]?`<small style="display:inline;font-size:12px;color:var(--muted)"> (${dd(k,1)})</small>`:''}</b><small>${esc(d)}</small></div>`).join('')+
-    `<p class="note" style="margin:0">${Object.keys(alt).length?'ตัวเลขในวงเล็บ: ความเร็วน้ำ 0.68 ม./วิ. (เทียบกรณีศึกษา SWE ปี 2561) · ':''}โซนอื่น: ${Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง'&&k!==z).map(k=>`${k} ${PL.plan.days[k]?.['90%']??'–'} วัน`).join(' · ')}</p>`;
+    `<p class="note" style="margin:0">${Object.keys(alt).length?'ตัวเลขในวงเล็บ: ความเร็วน้ำ 0.68 ม./วิ. (เทียบกรณีศึกษา SWE ปี 2561), ':''}โซนอื่น: ${Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง'&&k!==z).map(k=>`${k} ${PL.plan.days[k]?.['90%']??'–'} วัน`).join(', ')}</p>`;
   // chart: total effective excess volume over days
   const w=640,h=230,l=46,r=16,t=12,b=30;const n=PL.steps+1;const ser=SC.map(([k,,c])=>[PL[k].series['รวมทั้งเมือง'],c]);
   const mx=Math.max(...ser.flatMap(s=>s[0]));const xs=i=>l+i/(n-1)*(w-l-r),ys=v=>t+(1-v/mx)*(h-t-b);
@@ -403,14 +472,14 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   for(let d=0;d<n;d+=5){el('text',{x:xs(d),y:h-10,'text-anchor':'middle'},A).textContent=d}
   ser.forEach(([s,c])=>{el('path',{d:s.map((v,i)=>(i?'L':'M')+xs(i).toFixed(1)+','+ys(v).toFixed(1)).join(''),fill:'none',stroke:`var(${c})`,'stroke-width':2.2,'stroke-linejoin':'round'},g)});
   el('line',{x1:l,x2:w-r,y1:ys(0),y2:ys(0),stroke:'var(--axis)'},g);
-  $('#cPlan').insertAdjacentHTML('afterbegin',`<div class="chips"><span>น้ำส่วนเกินเกณฑ์เตือนภัยที่เหลือทั้งเมือง (ล้าน ลบ.ม. เทียบเท่า) · แกนนอน: วันนับจากตอนนี้</span></div>`);
+  $('#cPlan').insertAdjacentHTML('afterbegin',`<div class="chips"><span>น้ำส่วนเกินเกณฑ์เตือนภัยที่เหลือทั้งเมือง (ล้าน ลบ.ม. เทียบเท่า), แกนนอน: วันนับจากวันที่ข้อมูล</span></div>`);
   const P0=PL.plan,C0=PL.current;const cu={};C0.pumps.forEach(p=>cu[p.name]=p.use);
-  $('#tPlanPump').innerHTML=`<thead><tr><th>สถานีสูบ</th><th>แผน (ลบ.ม./วิ.)</th><th>สูบจริง ${YA}</th><th>% กำลัง</th></tr></thead><tbody>${P0.pumps.filter(p=>p.use>0.5||cu[p.name]>0.5).map(p=>`<tr><td>${esc(short(p.name))}</td><td class="num">${fmt(p.use,1)}</td><td class="num">${(PU.find(q=>q.name===p.name)||{}).src!=='telemetry'?'ไม่มีมาตรวัด':PL.not_reporting&&PL.not_reporting.includes(p.name)?'ไม่มีค่า':fmt(cu[p.name]||0,1)}</td><td class="num">${fmt(p.util*100)}<span class="cellbar" style="width:${p.util*50}px;background:${utilColor(p.util)}"></span></td></tr>`).join('')}</tbody>`;
-  $('#tPlanNeck').innerHTML=`<thead><tr><th>คลอง</th><th class="l">เขต</th><th>ยาว (กม.)</th><th>ไหล (ลบ.ม./วิ.)</th></tr></thead><tbody>${P0.bottlenecks.map(b=>`<tr><td>${esc(b.name)}</td><td class="l">${esc(b.district)}</td><td class="num">${fmt(b.km,1)}</td><td class="num">${fmt(b.q,1)}</td></tr>`).join('')}</tbody>`;
+  $('#tPlanPump').innerHTML=`<thead><tr><th>สถานีสูบ</th><th>โมเดล A (ลบ.ม./วิ.)</th><th>สูบจริง ${YA}</th><th>% กำลัง</th></tr></thead><tbody>${P0.pumps.filter(p=>p.use>0.5||cu[p.name]>0.5).map(p=>`<tr><td>${esc(short(p.name))}</td><td class="num">${fmt(p.use,1)}</td><td class="num">${(PU.find(q=>q.name===p.name)||{}).src!=='telemetry'?'ไม่มีมาตรวัด':PL.not_reporting&&PL.not_reporting.includes(p.name)?'ไม่มีค่า':fmt(cu[p.name]||0,1)}</td><td class="num">${fmt(p.util*100)}<span class="cellbar" style="width:${p.util*50}px;background:${utilColor(p.util)}"></span></td></tr>`).join('')}</tbody>`;
+  $('#tPlanNeck').innerHTML=`<thead><tr><th>คลอง</th><th class="l">เขต</th><th>ยาว (กม.)</th><th>ไหล (ลบ.ม./วิ.)</th></tr></thead><tbody>${P0.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').map(b=>`<tr><td>${esc(b.name)}</td><td class="l">${esc(b.district)}</td><td class="num">${fmt(b.km,1)}</td><td class="num">${fmt(b.q,1)}</td></tr>`).join('')}</tbody>`;
   // computed values are shown bold (V), fixed general advice is muted (G); everything else is connecting text
   const Vc=x=>`<b class="cv">${esc(x)}</b>`,Gt=x=>`<span class="gen">${esc(x)}</span>`,list=a=>a.map(Vc).join(', ');
-  const leftL=P0.left_day3.filter(x=>x[0]!=='นอกเขต').slice(0,5).map(x=>`${Vc(x[0])} ${Vc(fmt(x[1],1))}`).join(' · ');
-  const pumpsNow=P0.pumps.filter(p=>p.use>0.5).slice(0,6).map(p=>short(p.name));
+  const leftL=P0.left_day3.filter(x=>x[0]!=='นอกเขต').slice(0,5).map(x=>`${Vc(x[0])} ${Vc(fmt(x[1],1))}`).join(', ');
+  const pumpsNow=UP.slice(0,6).map(p=>short(p.name));
   const necks=P0.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,4).map(b=>`${Vc(b.name)} (${esc(b.district)})`).join(', ');
   const ZN=Object.keys(PL.volume0).filter(k=>k!=='รวมทั้งเมือง');const tot=PL.volume0['รวมทั้งเมือง']||0;
   const dz=(k,zz)=>PL[k].days[zz]?.['90%'];const dTxt=v=>v==null?'เกิน 30 วัน':v<=1?'ภายใน 1 วัน':`${v} วัน`;
@@ -419,24 +488,23 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   const trunk=P0.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,2).map(b=>b.name);
   const leftD=P0.left_day3.filter(x=>x[0]!=='นอกเขต').slice(0,2).map(x=>x[0]);
   const gain=(a,b)=>{const x=dz(a,main),y=dz(b,main);return x!=null&&y!=null?x-y:null};
-  const g1=gain('current','plan'),g2=gain('plan','mobile'),g3=gain('mobile','trunk');
+  const g1=gain('current','plan'),g2=gain('plan','mobile');
   const pct=v=>v>0.995&&v<1?'เกือบ 100%':Math.round(v*100)+'%';
   // every number below comes from plan.json (recomputed with each update); muted text = general advice
   const mmT=v=>`${Vc(fmt(v,1))} ล้าน ลบ.ม.`;const ddT=k=>{const v=dz(k,main);return v==null?Vc('เกิน 30 วัน'):Vc(v+' วัน')};
   const leftLi=P0.left_day3.filter(x=>x[0]!=='นอกเขต'&&x[1]>=0.05).slice(0,5).map(x=>`<li>เขต${esc(x[0])} ${mmT(x[1])}</li>`).join('');
   const neckLi=P0.bottlenecks.filter(b=>b.name!=='คลองไม่มีชื่อ').slice(0,4).map(b=>`<li>${Vc(b.name)} (${esc(b.district)}) ยาว ${fmt(b.km,1)} กม.</li>`).join('');
-  const R2=tot<0.05?[['--ok','ทำอะไรตอนนี้',`ไม่มีน้ำเกินเกณฑ์เตือนภัย ${Gt('เดินเครื่องตามปกติและพร่องน้ำรอฝน')}`]]:[
-    ['--crit','ทำอะไรตอนนี้',`<p>น้ำเกินเกณฑ์เตือนภัย ${Vc(pct(share))} อยู่${Vc(main)}${quick.length?` ส่วน${list(quick)}ลดได้${Vc('ภายใน 1 วัน')}`:''}</p>
-      <p>${esc(YAY)} สูบจริงราว ${Vc(Math.round(PL.assumptions.fleet_util_now*100)+'%')} ของกำลังสูบรวม ควรเพิ่มการสูบที่ ${list(pumpsNow)}${trunk.length?` โดยส่งน้ำผ่าน${list(trunk)}`:''}</p>`],
+  const R2=tot<0.05?[['--ok','สิ่งที่ควรทำ',`ไม่มีน้ำเกินเกณฑ์เตือนภัย ${Gt('เดินเครื่องตามปกติและพร่องน้ำรอฝน')}`]]:[
+    ['--crit','สิ่งที่ควรทำ',`<p>น้ำเกินเกณฑ์เตือนภัย ${Vc(pct(share))} อยู่${Vc(main)}${quick.length?` ส่วน${list(quick)}ลดได้${Vc('ภายใน 1 วัน')}`:''}</p>
+      <p>ควรเพิ่มการสูบ ${Vc(UP.length+' สถานี')} ที่รับน้ำจากพื้นที่ท่วม ได้แก่ ${list(pumpsNow)}${trunk.length?` โดยส่งน้ำผ่าน${list(trunk)}`:''}</p>`],
     ['--warn','คอขวด',`<p>คลองที่น้ำไหลเต็มความจุ (ส่งน้ำได้ไม่ทัน)</p><ul>${neckLi||'<li>ไม่มี</li>'}</ul>
-      ${leftLi?`<p>เขตที่อีก 3 วันยังมีน้ำเกินระดับเตือน แม้สูบตามแผน</p><ul>${leftLi}</ul>`:''}`],
+      ${leftLi?`<p>เขตที่อีก 3 วันยังมีน้ำเกินระดับเตือน แม้ใช้โมเดล A</p><ul>${leftLi}</ul>`:''}`],
     ['--s1','ระยะสั้น',`<p>เวลาที่${esc(main)}ลดน้ำส่วนเกินได้ 90%</p><ul>
       <li>สูบเท่า${esc(YA)} (แบบเดิม): ${ddT('current')}</li>
-      <li>เพิ่มการสูบเป็น ${Math.round(PL.assumptions.avail*100)}% ของกำลังสูบ ตามแผน: ${ddT('plan')}</li>
-      <li>+ เครื่องสูบเคลื่อนที่ที่ทางออกคลองด้านใต้/ตะวันออก${leftD.length?` (ใกล้${leftD.map(esc).join(' ')})`:''}: ${ddT('mobile')}</li></ul>
+      <li>โมเดล A: เพิ่มการสูบ ${UP.length} สถานี (ไม่เกิน ${Math.round(PL.assumptions.avail*100)}% ของกำลัง): ${ddT('plan')}</li>
+      <li>โมเดล B: โมเดล A + เครื่องสูบเคลื่อนที่: ${ddT('mobile')}${MOB.length?`<br>${MOB.map((o,j)=>`B${j+1} ${esc(o.name.replace('ทางออกขอบเขต ',''))} +${fmt(o.add,0)} ลบ.ม./วิ. (≈ ${fmt(o.n)} เครื่อง)`).join('<br>')}`:''}</li></ul>
       <p>${Gt('ทั่วไป: ประสานหน่วยงานด้านท้ายน้ำ เปิดทางน้ำ เก็บผักตบตามแนวคอขวด พร่องน้ำในคลองหลักก่อนฝนรอบใหม่')}</p>`],
-    ['--s2','ระยะยาว',`<ul><li>ขยายคลองคอขวด ${list(PL.trunk_canals)} เป็น 2 เท่า (รวมกับข้อระยะสั้น): ${ddT('trunk')}</li></ul>
-      <p>${Gt('ทั่วไป: ทำทางผันน้ำ/อุโมงค์ เพิ่มกำลังสูบด้านท้ายพื้นที่ที่น้ำค้าง ติดมาตรวัดอัตราสูบให้ครบ')}${PL.not_reporting&&PL.not_reporting.length?` (ตอนนี้ ${Vc(PL.not_reporting.length+' สถานี')}ไม่มีค่า)`:''}</p>`]];
+    ['--s2','ระยะยาว',`<p>${Gt('ทั่วไป: ทำทางผันน้ำ/อุโมงค์ เพิ่มกำลังสูบด้านท้ายพื้นที่ที่น้ำค้าง ติดมาตรวัดอัตราสูบให้ครบ')}${PL.not_reporting&&PL.not_reporting.length?` (ปัจจุบัน ${Vc(PL.not_reporting.length+' สถานี')}ไม่มีค่า)`:''}</p>`]];
   $('#pRecs').innerHTML=R2.map(([c,t,p])=>`<div class="rec"><span class="tag" style="background:var(${c})">${esc(t)}</span><div class="rb">${p.startsWith('<')?p:`<p>${p}</p>`}</div></div>`).join('')+
     `<ul class="defs" style="margin:0"><li><b class="cv">ตัวหนา</b> คำนวณจากข้อมูลล่าสุด (เปลี่ยนทุกครั้งที่อัปเดต)</li><li><span class="gen">ตัวจาง</span> คำแนะนำทั่วไปที่ไม่ขึ้นกับข้อมูล</li></ul>`;
   $('#planCaveat').textContent=`ข้อควรระวัง: ปริมาตรน้ำ${z}ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด ได้ค่าพื้นที่เก็บน้ำเทียบเท่า ${fmt(PL.assumptions.lambda_zone[z],0)} เท่าของผิวน้ำคลอง (ราว ${fmt(PL.volume0[z],0)} ล้าน ลบ.ม.) ซึ่งรวมน้ำบนพื้นที่ข้างคลองและน้ำที่ไหลเข้าจากทางเหนือไว้ด้วย ความจุคลองและทางออกขอบเขตเป็นค่าสมมติ ตัวเลขวันจึงใช้เทียบระหว่างทางเลือกได้ดีกว่าใช้เป็นค่าพยากรณ์`;
@@ -463,16 +531,20 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
       <ul class="defs" style="margin:0 0 6px"><li><b>สถานีสูบ:</b> เฉพาะ ${B.n_tel} สถานีที่มีมาตรวัด ซึ่งรับน้ำจากพื้นที่ราว ${fmt(A,0)} ตร.กม.</li><li><b>ช่วงฝน:</b> วันที่ฝนเฉลี่ยทั้งเมือง ≥ 10 มม. รวม 2 วันหลังฝน</li></ul>
       <div class="tbl"><table><thead><tr>${head.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
   $('#ver').innerHTML=`
-  <div><h3>1. ตัวแก้สมการ</h3><p class="note" style="margin:0"><span class="ok">ผ่าน</span> · ${esc(V.lp_check.text)}</p></div>
-  <div><h3>2. กำลังสูบ: ข้อมูลออนไลน์เทียบแผนปฏิบัติการฯ 2557</h3><p class="note" style="margin:0 0 6px">ตรงกันภายใน ±10% ${pc.within10} จาก ${pc.n} สถานีที่จับคู่ชื่อได้ ส่วนที่ต่างน่าจะมาจากการปรับปรุงสถานีหลังปี 2557 จึงใช้ข้อมูลรายงานเติมสถานีที่ไม่มีข้อมูลออนไลน์ได้</p>
-    ${t(['สถานี','ออนไลน์ (ลบ.ม./วิ.)','รายงาน 2557'],pc.rows)}</div>
-  <div><h3>3. ข้อเท็จจริงจากรายงาน 2557 เทียบกับข้อมูลในโมเดล</h3>${t(['เรื่อง','รายงาน 2557','ข้อมูลที่ใช้ตอนนี้'],V.report2557)}</div>
-  <div><h3>4. ระดับเตือนภัย/วิกฤต: ปัจจุบันเทียบปี 2557</h3><p class="note" style="margin:0 0 6px">จับคู่ชื่อได้ ${lv.n} จุด ตรงกัน (±5 ซม.) ${lv.same} จุด บางจุดน่าจะเป็นคนละตำแหน่งวัด แต่ประตูระบายน้ำฝั่งตะวันออกหลายแห่ง (คลองสามวา คลองสองสายใต้) เกณฑ์ปัจจุบันต่ำกว่าปี 2557 ราว 0.4–0.9 ม. สถานะ "วิกฤต" ฝั่งตะวันออกตอนนี้จึงอาจมาจากเกณฑ์ที่เข้มขึ้นส่วนหนึ่ง</p>
-    ${t(['สถานีปัจจุบัน','เตือน','วิกฤต','เตือน 2557','วิกฤต 2557','สถานะตอนนี้'],lv.rows)}</div>
-  ${balanceHTML()}
-  <div><h3>6. กรณีศึกษาเดิม: ฝน 10 ม.ค. 2561</h3><p class="note" style="margin:0 0 6px">${esc(c.text)}</p>
-    ${t(['ความเร็วน้ำในคลอง (ม./วิ.)','โมเดลนี้ระบายได้ (ลบ.ม./วิ.) จาก 277'],c.rows)}<p class="note" style="margin:6px 0 0">${esc(c.note)}</p></div>`;
+  <div><h3>1. ตัวแก้สมการ</h3><p class="note" style="margin:0"><span class="ok">ผ่าน</span>: ${esc(V.lp_check.text)}</p></div>
+  <div><h3>2. กำลังสูบ: ข้อมูลออนไลน์ สนน. เทียบแผนปฏิบัติการฯ 2557</h3><p class="note" style="margin:0 0 6px">ตรงกันภายใน ±10% ${pc.within10} จาก ${pc.n} สถานีที่จับคู่ชื่อได้ ส่วนที่ต่างน่าจะมาจากการปรับปรุงสถานีหลังปี 2557 จึงใช้ข้อมูลรายงานเติมสถานีที่ไม่มีข้อมูลออนไลน์ได้</p>
+    ${t(['สถานี',`ข้อมูลออนไลน์ สนน. ${cal.period?((d1,d2)=>`${+d1.slice(8,10)} ${MONS[+d1.slice(5,7)-1]} – ${+d2.slice(8,10)} ${MONS[+d2.slice(5,7)-1]} ${+d2.slice(0,4)+543}`)(cal.period[0],cal.period[1]):''} (ลบ.ม./วิ.)`,'รายงาน 2557 (ลบ.ม./วิ.)'],pc.rows)}</div>
+  <div><h3>3. ข้อเท็จจริงจากรายงาน 2557 เทียบกับข้อมูลในโมเดล</h3>${t(['เรื่อง','รายงาน 2557','ข้อมูลที่ใช้ในโมเดล'],V.report2557.map(r=>r.map(c=>String(c).replace(/\s*\(ตาราง 300 ม\.\)/,'').replace(/, /g,', '))))}</div>
+  <div><h3>4. เกณฑ์เตือนภัยและเกณฑ์วิกฤตของสถานีวัดน้ำ: ปัจจุบันเทียบปี 2557</h3>
+    <ul class="defs" style="margin:0 0 6px"><li><b>เกณฑ์เตือนภัย / วิกฤต:</b> ระดับน้ำ (ม.รทก.) ที่ สนน. กำหนดให้แต่ละสถานี ถ้าน้ำสูงถึงระดับนี้ สถานะจะเป็น "เตือนภัย" หรือ "วิกฤต"</li>
+    <li><b>ปัจจุบัน:</b> เกณฑ์ที่เว็บ สนน. ใช้ปัจจุบัน</li><li><b>2557:</b> เกณฑ์ในแผนปฏิบัติการฯ ปี 2557</li>
+    <li><b>ผล:</b> จับคู่ชื่อสถานีได้ ${lv.n} จุด เกณฑ์ตรงกัน (ต่างไม่เกิน 5 ซม.) ${lv.same} จุด ประตูฝั่งตะวันออกหลายแห่ง (คลองสามวา คลองสองสายใต้) เกณฑ์ปัจจุบันต่ำกว่าปี 2557 ราว 0.4–0.9 ม. สถานะ "วิกฤต" ฝั่งตะวันออกจึงอาจมาจากเกณฑ์ที่ตั้งต่ำลงส่วนหนึ่ง</li></ul>
+    ${t(['สถานี','เตือนภัย ปัจจุบัน (ม.)','วิกฤต ปัจจุบัน (ม.)','เตือนภัย 2557 (ม.)','วิกฤต 2557 (ม.)','สถานะล่าสุด'],lv.rows)}</div>
+  ${balanceHTML()}`;
 })();
 })();
+
+// data strings (sources, verification) use ' · ' as a separator: show them as commas like the rest of the site
+(()=>{const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())if(n.nodeValue.includes(' · '))n.nodeValue=n.nodeValue.replace(/ · /g,', ')})();
 </script>
 __UPDATE_BUTTON__

@@ -317,7 +317,7 @@ function draw(){gF.innerHTML='';gH.innerHTML='';gP.innerHTML='';
     if(h.ring)el('path',{d:line(h.ring)+'Z',class:'ring','vector-effect':'non-scaling-stroke'},g);
     const [x,y]=P([h.lon,h.lat]);const r=4+10*Math.sqrt(vol(h)/vmax);const m=el('g',{'data-x':x.toFixed(1),'data-y':y.toFixed(1)},g);
     el('circle',{r:r*1.6,class:'halo'},m);el('circle',{r,fill:o.state==='ok'?'var(--ok)':o.state==='pump'?'var(--crit)':'var(--surface)',stroke:o.state==='canal'?'var(--crit)':'var(--bg)','stroke-width':o.state==='canal'?2:1.2},m);
-    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(h.name)}</b><br>${esc(h.district)} · ลึก ~${fmt(h.depth*100)} ซม. · ${fmt(vol(h)/1e3)} พัน ลบ.ม.`));g.addEventListener('mouseleave',hideTip);
+    g.addEventListener('mousemove',e=>showTip(e,`<b>${esc(h.name)}</b><br>${esc(h.district)}<br>ลึก ~${fmt(h.depth*100)} ซม.<br>${fmt(vol(h)/1e3)} พัน ลบ.ม.`));g.addEventListener('mouseleave',hideTip);
     g.addEventListener('click',()=>showHot(h.id))});
   setVB();
   $('#legend').innerHTML=`<span>จุดน้ำท่วมขัง (ขนาด = ปริมาณน้ำ):</span><span><i class="dot" style="background:var(--ok)"></i>สูบได้ตามแผน</span><span><i class="dot" style="background:var(--crit)"></i>เครื่องไม่พอ</span><span><i class="dot" style="background:var(--surface);box-shadow:inset 0 0 0 2px var(--crit)"></i>คลองใกล้เคียงรับน้ำไม่ได้</span><span><i class="dot" style="background:var(--s2);border-radius:1px;height:3px;width:14px"></i>สูบข้ามคันลงคลอง</span>
@@ -330,8 +330,8 @@ function summary(){const o=R.out;const cnt=f=>HOT.filter(h=>!h.user&&h.n>=prm.mi
   const short_=o.filter(x=>x.alloc<x.need).length;const served=o.reduce((a,x)=>a+x.served,0),q=o.reduce((a,x)=>a+x.q,0);
   const hrs=o.map(x=>x.hours).filter(x=>x!=null);const worst=hrs.length?Math.max(...hrs):null;
   $('#strip').innerHTML=`
-  <div class="kpi"><div class="eyebrow">จุดน้ำท่วมขังที่ยังมีรายงาน<span class="src r">รายงานประชาชน</span></div><div class="v">${o.length}<small>จุด · ${fmt(D.pond.n_reports)} รายงาน</small></div><div class="chips"><span>ยังท่วม ${cnt('ยืนยัน')} · น่าจะยังท่วม ${cnt('น่าจะยังท่วม')} · อาจลดแล้ว ${cnt('อาจลดแล้ว')}${prm.stale?'':' (ไม่นับ)'}</span></div></div>
-  <div class="kpi"><div class="eyebrow">ปริมาณน้ำขัง (ประมาณ)<span class="src p">โมเดล</span></div><div class="v">${fmt(V/1e6,2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ช่วง ${fmt(Math.min(vA,vD)/1e6,1)}–${fmt(Math.max(vA,vD)/1e6,1)} ล้าน ลบ.ม. (หมู่บ้าน / DEM) · สูบหมดใน ${prm.T} ชม. ต้องการ ${fmt(q,1)} ลบ.ม./วิ.</span></div></div>
+  <div class="kpi"><div class="eyebrow">จุดน้ำท่วมขังที่ยังมีรายงาน<span class="src r">รายงานประชาชน</span></div><div class="v">${o.length}<small>จุด, ${fmt(D.pond.n_reports)} รายงาน</small></div><div class="chips"><span>ยังท่วม ${cnt('ยืนยัน')}<br>น่าจะยังท่วม ${cnt('น่าจะยังท่วม')}<br>อาจลดแล้ว ${cnt('อาจลดแล้ว')}${prm.stale?'':' (ไม่นับ)'}</span></div></div>
+  <div class="kpi"><div class="eyebrow">ปริมาณน้ำขัง (ประมาณ)<span class="src p">โมเดล</span></div><div class="v">${fmt(V/1e6,2)}<small>ล้าน ลบ.ม.</small></div><div class="chips"><span>ช่วง ${fmt(Math.min(vA,vD)/1e6,1)}–${fmt(Math.max(vA,vD)/1e6,1)} ล้าน ลบ.ม. (หมู่บ้าน / DEM)<br>สูบหมดใน ${prm.T} ชม. ต้องการ ${fmt(q,1)} ลบ.ม./วิ.</span></div></div>
   <div class="kpi"><div class="eyebrow">เครื่องสูบเคลื่อนที่ที่ต้องใช้<span class="src p">โมเดล</span></div><div class="v" style="color:${need>prm.F?'var(--crit)':'inherit'}">${fmt(need)}<small>เครื่อง (${prm.U.toFixed(2)} ลบ.ม./วิ.) มี ${prm.F}</small></div><div class="chips"><span>${short_?`${short_} จุดได้เครื่องไม่ครบ`:'เครื่องพอทุกจุด'}</span></div></div>
   <div class="kpi"><div class="eyebrow">คลองรับน้ำเพิ่มได้<span class="src p">โมเดล</span></div><div class="v">${fmt(served/q*100||0)}<small>% ของน้ำที่ต้องสูบออก</small></div><div class="chips"><span>${worst?`จุดที่ช้าที่สุดหมดใน ${fmt(worst/24,1)} วัน`:''}</span></div></div>`;
 }

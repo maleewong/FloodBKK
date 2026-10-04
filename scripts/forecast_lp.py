@@ -30,7 +30,7 @@ WEIGHT = {'ชั้นในและฝั่งตะวันตก': 3.0, '
 ZONES = {'ตะวันออกรอบนอก': {3, 11, 10, 46, 44, 32}, 'เหนือ': {42, 5, 41, 36, 43, 27}}
 zone_of = lambda d: next((z for z, s in ZONES.items() if d in s), 'ชั้นในและฝั่งตะวันตก')
 HEAVY_MM = 10.0                      # city-mean rain in a 3-h step that counts as heavy (pre-drain deadline)
-EXTREME_MM, EXTREME_H = 84.0, 6      # heaviest city-mean day in the calibration record (25 Sep 2026 / 2569) in 6 h
+MULT = 3.0                           # second scenario: the forecast rain x 3 (same places and timing, heavier)
 
 M = json.load(open(P('model_data.json'), encoding='utf-8'))
 PLAN = json.load(open(P('plan.json'), encoding='utf-8'))
@@ -73,14 +73,42 @@ d2 = ((np.array([x[0] for x in N])[:, None] - pts[None, :, 0]) * kx) ** 2 + (np.
 wts = 1 / np.maximum(d2, 1e-6); idx = np.argsort(d2, 1)[:, 4:]; np.put_along_axis(wts, idx, 0, 1); wts /= wts.sum(1, keepdims=True)
 tot_m = ens.mean(0).sum(1)                                                  # city-mean total per member
 m90 = int(np.argsort(tot_m)[int(round(0.9 * (len(tot_m) - 1)))]); mmax = int(np.argmax(tot_m))
-rain_pt = {'forecast': det, 'p90': ens[:, m90, :]}
-# extreme: the forecast plus a repeat of the heaviest recorded day, 84 mm in 6 h city-wide, at the wettest 6 h of the wettest member
-wet = ens[:, mmax, :].mean(0); s6 = np.convolve(wet, np.ones(EXTREME_H), 'valid'); t_ex = int(np.argmax(s6)) if s6.max() > 1 else 12
-ext = det.copy(); ext[:, t_ex:t_ex + EXTREME_H] += EXTREME_MM / EXTREME_H
-rain_pt['extreme'] = ext
-SCEN = [('forecast', 'ฝนตามคาดการณ์', 'Open-Meteo best match'),
-        ('p90', 'ฝนมากกว่าคาด (P90)', f'สมาชิก ensemble ECMWF ที่ฝนรวมสูงลำดับ 90% (สมาชิกที่ {m90 + 1} จาก {len(tot_m)})'),
-        ('extreme', 'กรณีสุดขีด', f'ฝนตามคาดการณ์ + ฝนแบบ 25 ก.ย. 2569 ({EXTREME_MM:.0f} มม. ใน {EXTREME_H} ชม. ทั้งเมือง)')]
+rain_pt = {'forecast': det}
+# second scenario: the same forecast rain, three times heavier
+rain_pt['extreme'] = det * MULT
+SCEN = [('forecast', 'ฝนตามคาดการณ์', 'Open-Meteo (ECMWF / best match) 48 ชม. ข้างหน้า'),
+        ('extreme', f'ฝน {MULT:.0f} เท่า', f'ฝนตามคาดการณ์ × {MULT:.0f} (ตำแหน่งและเวลาเดียวกัน)')]
+
+# ---------- roads: rain that flooded each road sensor before (history Jul-Oct 2026) ----------
+def road_thresholds():
+    rain = collections.defaultdict(dict); days = set()
+    for r in csv.DictReader(open(P('rain_daily_top50.csv'), encoding='utf-8-sig')):
+        if not r['rf24h_mm']: continue
+        d = r['day']; days.add(d); rain[d][r['district']] = max(rain[d].get(r['district'], 0.0), float(r['rf24h_mm']))
+    if not days: return {}, []
+    days = sorted(days); prev = {d: (datetime.fromisoformat(d) - timedelta(days=1)).strftime('%Y-%m-%d') for d in days}
+    rd = lambda d, k: max(rain.get(d, {}).get(k, 0.0), rain.get(prev[d], {}).get(k, 0.0))   # same or previous day
+    sens = {r['code']: r for r in csv.DictReader(open(P('road_sensor.csv'), encoding='utf-8-sig'))}
+    ev = collections.defaultdict(set)
+    for r in csv.DictReader(open(P('road_flood_event.csv'), encoding='utf-8-sig')):
+        d = r['start'][:10]
+        if days[0] <= d <= days[-1]: ev[r['code']].add(d)
+    out = {}
+    for c, ds in ev.items():
+        s = sens.get(c)
+        if not s or len(ds) < 2: continue
+        v = sorted(rd(d, s['district']) for d in ds if d in prev)
+        v = [x for x in v if x >= 5] or v
+        if not v: continue
+        t25 = v[max(0, int(0.25 * (len(v) - 1)))]; t50 = v[len(v) // 2]
+        over = [d for d in days if rd(d, s['district']) >= t25]
+        hit = sum(1 for d in over if d in ds or any(x in ds for x in [d]))
+        out[c] = dict(code=c, name=s['name'], district=s['district'], lat=float(s['lat']), lon=float(s['lon']),
+                      t25=round(t25, 1), t50=round(t50, 1), n=len(ds), p=round(hit / max(1, len(over)), 2))
+    return out, days
+ROAD_T, ROAD_DAYS = road_thresholds()
+_nxy = np.array([[x[0] * kx, x[1]] for x in N])
+road_node = {c: int(np.argmin(((_nxy[:, 0] - r['lon'] * kx) ** 2 + (_nxy[:, 1] - r['lat']) ** 2))) for c, r in ROAD_T.items()}
 
 # ---------- pumps: yesterday's rate and plan rate ----------
 pdays = collections.defaultdict(dict)
@@ -169,7 +197,7 @@ dists = sorted(set(geo.values()))
 res = dict(made=time.strftime('%Y-%m-%d %H:%M'), fetched=M['fetched'], forecast_fetched=FC['fetched'], source=FC['source'],
            start=t_all[i0].strftime('%Y-%m-%dT%H:%M'), dt_h=DT_H, steps=K,
            times=[(t_all[i0] + timedelta(hours=DT_H * k)).strftime('%Y-%m-%dT%H:%M') for k in range(K + 1)],
-           assumptions=dict(heavy_mm=HEAVY_MM, D_LOW=D_LOW, drawdown_m_h=DRAW, no_gauge_below=NO_ST_BELOW, avail=AVAIL, outlet=OUTLET, v=V_MS, C=C, base=base, lag=LAG,
+           assumptions=dict(heavy_mm=HEAVY_MM, mult=MULT, D_LOW=D_LOW, drawdown_m_h=DRAW, no_gauge_below=NO_ST_BELOW, avail=AVAIL, outlet=OUTLET, v=V_MS, C=C, base=base, lag=LAG,
                             fleet_util_now=round(fleet, 2), lambda_zone=lam_z, pump_day=last, pump_days=days3),
            points=FC['points'], ens_totals=[round(float(v), 1) for v in sorted(tot_m)], scenarios=[])
 print('rain start', res['start'], 'members', len(tot_m), 'P90 member', m90, 'max member', mmax)
@@ -180,6 +208,12 @@ for key, label, desc in SCEN:
     k_on = next((k for k, v in enumerate(step_mm) if v >= HEAVY_MM), None)   # first 3-h step with heavy rain (city mean)
     print(f'{key}: city mean {city_h.sum():.1f} mm, onset step {k_on}')
     OPT = solve(rn, [cap_full] * K, f'{key} pre-drain')
+    roads = []                                   # road sensors whose 24-h rain reaches the rain that flooded them before
+    for c, t in ROAD_T.items():
+        h = rn[road_node[c]]; r24 = float(max(np.convolve(h, np.ones(24), 'valid'))) if len(h) >= 24 else float(h.sum())
+        risk = 2 if r24 >= t['t50'] else 1 if r24 >= t['t25'] else 0
+        if risk: roads.append(dict(t, r24=round(r24, 1), risk=risk))
+    roads.sort(key=lambda x: (-x['risk'], -x['r24']))
     kb = K if k_on is None else k_on
     BASE = solve(rn, [rate_now if k < kb else cap_full for k in range(K)], f'{key} no pre-drain')
     def zser(X): return {z: [round(float(X[k][[i for i in range(n) if zone[i] == z]].sum()) / 1e6, 3) for k in range(K)] for z in WEIGHT}
@@ -226,7 +260,8 @@ for key, label, desc in SCEN:
     res['scenarios'].append(dict(key=key, label=label, desc=desc, city_mm=[round(float(v), 2) for v in city_h], total_mm=round(float(city_h.sum()), 1),
                                  onset=k_on, above_opt=zser(above(OPT)), above_base=zser(above(BASE)), crit_opt=zser(OPT['W3']), crit_base=zser(BASE['W3']),
                                  above0={z: round(float(sum(W0[i] - min(W0[i], cap1[i]) for i in range(n) if zone[i] == z)) / 1e6, 3) for z in WEIGHT},
-                                 stations=st_rows, pumps=prow, districts=drow, flow=fl,
+                                 stations=st_rows, pumps=prow, districts=drow, flow=fl, roads=roads,
+                                 pt_mm=[round(float(v), 1) for v in rain_pt[key].sum(1)],   # 48-h rain at each forecast grid point (map contours)
                                  pump_total=[round(float(v), 1) for v in OPT['pump'].sum(1)], pump_total_base=[round(float(v), 1) for v in BASE['pump'].sum(1)]))
 # ---------- outlook: rain per calendar day over the whole fetched forecast (early warning beyond the 48-h plan) ----------
 det_all = np.array(FC['det'], float); ens_all = np.array(FC['ens'], float)            # point x hour, point x member x hour
@@ -242,6 +277,7 @@ for d, hs in outl.items():
                                p90=round(float(tot_e[int(round(0.9 * (len(tot_e) - 1)))]), 1), max3_det=round(m3(dm_), 1),
                                max3_p90=round(float(max3_e[int(round(0.9 * (len(max3_e) - 1)))]), 1),
                                in_plan=bool(t_all[hs[0]] < t_all[i0] + timedelta(hours=H))))
+res['road_hist'] = dict(n=len(ROAD_T), period=[ROAD_DAYS[0], ROAD_DAYS[-1]] if ROAD_DAYS else None)
 json.dump(res, open(P('forecast.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print('forecast.json', os.path.getsize(P('forecast.json')) // 1024, 'KB')
 for s in res['scenarios']:

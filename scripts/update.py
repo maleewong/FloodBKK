@@ -164,7 +164,7 @@ def forecast():
 
 
 def rebuild(plan=True):
-    """build.py (tables/CSV) -> build_model.py -> [plan_lp.py x2 -> build_model.py] -> render.py"""
+    """build.py (tables/CSV) -> build_model.py -> [plan_lp.py x2 -> build_model.py -> forecast_lp.py] -> build_flood.py -> render.py"""
     env = dict(os.environ, PYTHONUTF8='1')
     run = lambda s, extra=None: subprocess.run([sys.executable, os.path.join(HERE, s)], check=True, env=dict(env, **(extra or {})))
     run('build.py'); run('build_model.py')
@@ -179,9 +179,17 @@ def rebuild(plan=True):
             if os.path.exists(P('forecast_raw.json')):
                 print('คำนวณแผนพร่องน้ำตามฝนคาดการณ์ 48 ชม. ราว 2 นาที...'); run('forecast_lp.py')
             if os.path.exists(P('osm_outer.json')): run('build_outer.py')      # where boundary outlets drain outside BKK
-            if os.path.exists(P('traffy_flood.json')): run('build_ponding.py')
         except ImportError:
             print('ข้ามแผนระบาย: ยังไม่ได้ติดตั้ง numpy scipy networkx (pip install numpy scipy networkx)')
+    if not os.path.exists(P('road_segments.json')):   # once: road geometry under each flood sensor (OpenStreetMap)
+        try: run('build_roads.py')
+        except Exception as e: print('ข้ามเส้นถนน (ต้องต่ออินเทอร์เน็ตครั้งแรก):', e)
+    if not os.path.exists(P('road_net.json')):         # once: main roads for the flood map (OpenStreetMap)
+        try: run('build_roadnet.py')
+        except Exception as e: print('ข้ามถนนสายหลัก (ต้องต่ออินเทอร์เน็ตครั้งแรก):', e)
+    if os.path.exists(P('forecast.json')) and os.path.exists(P('forecast_raw.json')):   # flood map (depth, roads) for the forecast page
+        try: run('build_flood.py')
+        except Exception as e: print('ข้ามแผนที่น้ำท่วม:', e)
     run('render.py')
 
 

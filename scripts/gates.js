@@ -15,6 +15,6 @@ function drawGates(G,layer,P,showTip,hideTip,esc,onClick){layer.innerHTML='';con
     // a bar across the canal: filled = open, hollow = closed; colour = advice
     mk('rect',{x:-5,y:-2.2,width:10,height:4.4,rx:1,fill:a.open?GATE_COL[a.k]:'var(--surface)',stroke:GATE_COL[a.k],'stroke-width':1.6},gg);
     if(a.k==='open'||a.k==='close')mk('circle',{r:8,fill:'none',stroke:GATE_COL[a.k],'stroke-width':1.2,'stroke-dasharray':'2 2'},gg);
-    gg.addEventListener('mousemove',e=>showTip(e,`<b>${esc(g[1])}</b><br>${a.open?`เปิด ${g[4]} ม.`:'ปิด'} · ใน ${g[5]??'–'} / นอก ${g[6]!=null&&g[6]>-1.5?g[6]:'–'} ม.รทก. · เตือน ${g[7]??'–'}<br>${esc(a.t)}`));
+    gg.addEventListener('mousemove',e=>showTip(e,`<b>${esc(g[1])}</b><br>${a.open?`เปิด ${g[4]} ม.`:'ปิด'}<br>ใน ${g[5]??'–'} / นอก ${g[6]!=null&&g[6]>-1.5?g[6]:'–'} ม.รทก.<br>เตือน ${g[7]??'–'}<br>${esc(a.t)}`));
     gg.addEventListener('mouseleave',hideTip);if(onClick)gg.addEventListener('click',()=>onClick(g,a))})}
 function gateSummary(G){const c={open:[],close:[],ok:[],na:[]};G.forEach(g=>{const a=gateAdvice(g);c[a.k].push([g,a])});return c}
