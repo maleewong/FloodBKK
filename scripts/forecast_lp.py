@@ -217,6 +217,7 @@ for key, label, desc in SCEN:
         drow.append(dict(district=d, rain=round(float((rn[ii].sum(1) * A[ii]).sum() / max(A[ii].sum(), 1e-9)), 1),
                          above_opt=[round(float(v) / 1e6, 3) for v in a_o], above_base=[round(float(v) / 1e6, 3) for v in a_b],
                          crit_opt=round(float(c_o.max()) / 1e6, 3), crit_base=round(float(c_b.max()) / 1e6, 3),
+                         crit_s_opt=[round(float(v) / 1e6, 3) for v in c_o], crit_s_base=[round(float(v) / 1e6, 3) for v in c_b],
                          h_opt=[round(float(np.average(OPT['h'][k, ii], weights=S[ii])), 2) for k in range(K)],
                          h_base=[round(float(np.average(BASE['h'][k, ii], weights=S[ii])), 2) for k in range(K)]))
     # canal flows for the animation (pre-drain plan), only canals that carry water
@@ -227,6 +228,20 @@ for key, label, desc in SCEN:
                                  above0={z: round(float(sum(W0[i] - min(W0[i], cap1[i]) for i in range(n) if zone[i] == z)) / 1e6, 3) for z in WEIGHT},
                                  stations=st_rows, pumps=prow, districts=drow, flow=fl,
                                  pump_total=[round(float(v), 1) for v in OPT['pump'].sum(1)], pump_total_base=[round(float(v), 1) for v in BASE['pump'].sum(1)]))
+# ---------- outlook: rain per calendar day over the whole fetched forecast (early warning beyond the 48-h plan) ----------
+det_all = np.array(FC['det'], float); ens_all = np.array(FC['ens'], float)            # point x hour, point x member x hour
+day0 = t_all[i0].date(); outl = collections.OrderedDict()
+for h, t in enumerate(t_all):
+    if h >= i0: outl.setdefault(t.date(), []).append(h)
+res['outlook'] = []
+for d, hs in outl.items():
+    dm_ = det_all[:, hs].mean(0); em = ens_all[:, :, hs].mean(0)                       # city mean per hour (det), member x hour
+    m3 = lambda v: float(max(v[j:j + 3].sum() for j in range(max(1, len(v) - 2))))
+    tot_e = np.sort(em.sum(1)); max3_e = np.sort([m3(x) for x in em])
+    res['outlook'].append(dict(day=d.isoformat(), hours=len(hs), det=round(float(dm_.sum()), 1), p50=round(float(tot_e[len(tot_e) // 2]), 1),
+                               p90=round(float(tot_e[int(round(0.9 * (len(tot_e) - 1)))]), 1), max3_det=round(m3(dm_), 1),
+                               max3_p90=round(float(max3_e[int(round(0.9 * (len(max3_e) - 1)))]), 1),
+                               in_plan=bool(t_all[hs[0]] < t_all[i0] + timedelta(hours=H))))
 json.dump(res, open(P('forecast.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print('forecast.json', os.path.getsize(P('forecast.json')) // 1024, 'KB')
 for s in res['scenarios']:

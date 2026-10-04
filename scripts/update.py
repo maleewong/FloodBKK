@@ -149,7 +149,7 @@ def forecast():
     la, lo = [], []
     for a in (13.55, 13.65, 13.75, 13.85, 13.93):
         for b in (100.36, 100.48, 100.60, 100.72, 100.84): la.append(a); lo.append(b)
-    q = f"latitude={','.join(map(str, la))}&longitude={','.join(map(str, lo))}&hourly=precipitation&forecast_days=3&timezone=Asia%2FBangkok"
+    q = f"latitude={','.join(map(str, la))}&longitude={','.join(map(str, lo))}&hourly=precipitation&forecast_days=5&timezone=Asia%2FBangkok"
     def js(url):
         with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=90, context=CTX) as r: return json.loads(r.read().decode('utf-8'))
     det = js('https://api.open-meteo.com/v1/forecast?' + q)
