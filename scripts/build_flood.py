@@ -16,7 +16,7 @@ Inputs : data/forecast.json, forecast_raw.json, model_data.json, dem.json, dem_g
 Output : data/flood.json
 Needs numpy.
 """
-import base64, collections, csv, json, math, os
+import base64, collections, csv, json, math, os, re
 from datetime import datetime, timedelta
 import numpy as np
 
@@ -183,37 +183,47 @@ def spread_volume(vol_m3, region, seed, cap=1.0, lmax=None):
     out = np.zeros((H, W)); out[w] = np.minimum(cap, lo - GR[w]); return out
 
 
+def _num(x):
+    try:
+        v = float(x); return None if v <= -90 else v
+    except (TypeError, ValueError): return None
+_SNAP = json.load(open(P('snapshot.json'), encoding='utf-8'))
+BANK = {}                       # lowest bank per canal station (snapshot: left_bank, right_bank)
+for x in _SNAP['W']:
+    bs = [v for v in (_num(x[16]), _num(x[17])) if v is not None]
+    if bs: BANK[x[0]] = min(bs)
+
+
 def canal_overflow(stations, districts, use_now=False, rain_ex=None, rain_on=None):
-    """(a) districts where the canal model holds water above the critical level: spread that volume over low ground
-           connected to the canals of the district (inside the district, within 2 km of a canal)
-       (b) other stations above critical: water above the bank floods low ground within 400 m along that station's canal"""
-    dep = np.zeros((H, W)); on = np.full((H, W), 255.0); vols = {}
-    src = np.zeros((H, W)); byd = {d['district']: d for d in districts}
+    """three parts, returned separately:
+       field : canal water above critical per district (forecast_lp, measured levels) = water in the floodway fields
+               and retention land: spread from the canals over OPEN low ground only (not communities, not roads)
+       rain  : rain the drains cannot take: gathers at the low ground of the district (communities included)
+       bank  : canal stations whose level is above the bank (and above critical): low ground within 400 m along the canal.
+               Forecast layers raise the level by the model's rise only where the forecast rain beats the drain limit."""
+    field = np.zeros((H, W)); rain = np.zeros((H, W)); bank = np.zeros((H, W))
+    on = np.full((H, W), 255.0); vols = {}; byd = {d['district']: d for d in districts}; wet_rain = set()
     for name, dm in DIST.items():
         d = byd.get(name, {}); s = d.get('crit_s_opt') or [d.get('crit_opt', 0) or 0]
-        k = 0 if use_now else int(np.argmax(s)); vc = float(s[k]) * 1e6                 # canal water above critical (model)
-        vr = float(rain_ex[dm].sum()) * CELL_AREA if rain_ex is not None else 0.0         # rain the drains cannot take
-        if vc + vr < 1e4: continue
-        lmax = None
-        if vc >= vr:                                                                      # spreads from the canals
-            region, seed = dm & NEAR, CANAL & dm
-            # water from a canal cannot stand higher than the canal water: bank (ground at the canals) + the largest
-            # measured/forecast excess over critical of the district's stations (<= OVR); the rest stays in the canals
+        k = 0 if use_now else int(np.argmax(s)); vc = float(s[k]) * 1e6
+        vr = float(rain_ex[dm].sum()) * CELL_AREA if rain_ex is not None else 0.0
+        if vc >= 1e4:
+            region, seed = dm & NEAR & ~BUILT, CANAL & dm
             hs = [min(OVR, (r['now'] if use_now else max(r['now'], r['peak_opt'])) - r['crit']) for r in stations
                   if r.get('district') == name and r.get('crit') is not None]
             hmax = max([h for h in hs if h > 0], default=0.2)
             lmax = float(np.median(GR[seed])) + hmax if seed.any() else None
-        else: region, seed = dm, dm                                                       # gathers at the low ground of the district
-        dd = spread_volume(vc + vr, region, seed, lmax=lmax); dep = np.maximum(dep, dd)
-        w = dd >= 0.05; src[w] = 2 if vc >= vr else 1
-        kc = 0 if use_now else next((i for i, x in enumerate(s) if x * 1e6 >= 1e4), 0)
-        kr = float(rain_on[dm].min()) if rain_on is not None and vr > 0 else 255
-        on[w] = np.minimum(on[w], min(kc * DT_H if vc >= 1e4 else 255, kr))
+            field = np.maximum(field, spread_volume(vc, region, seed, cap=0.5, lmax=lmax))
+        if vr >= 1e4:
+            dd = spread_volume(vr, dm, dm, cap=0.6); rain = np.maximum(rain, dd); wet_rain.add(name)
+            w = dd >= 0.05; on[w] = np.minimum(on[w], float(rain_on[dm].min()) if rain_on is not None else 255)
         vols[name] = [round(vc / 1e6, 2), round(vr / 1e6, 2)]
     used = []
     for r in stations:
-        if r.get('crit') is None or (r['district'] in vols and vols[r['district']][0] > 0): continue
-        pk = r['now'] if use_now else max(r['now'], r['peak_opt']); h = min(OVR, pk - r['crit'])
+        if r.get('crit') is None: continue
+        bk = max(BANK.get(r['code'], r['crit'] + 0.3), r['crit'])            # bank data below critical: use critical
+        rise = 0.0 if use_now or r.get('district') not in wet_rain else max(0.0, max(r['series']) - r['series'][0])
+        h = min(OVR, r['now'] + rise - bk)
         s = MD['st'].get(r['code'])
         if h < 0.05 or not s or s[8] is None: continue
         lines = CANAL_ST.get(r['code']) or []
@@ -222,12 +232,9 @@ def canal_overflow(stations, districts, use_now=False, rain_ex=None, rain_on=Non
         g0 = float(np.median(GR[seed]))
         region = grow(seed, 400 / CELL_M) & ~WATER & (GR < g0 + h)
         lab = label(region); ids = np.unique(lab[seed & region]); w = np.isin(lab, ids[ids > 0])
-        dd = np.where(w, np.minimum(h + 0.3, g0 + h - GR), 0)
-        dep = np.maximum(dep, dd)
-        k0 = 0 if use_now else next((i for i, x in enumerate(r['series']) if x >= r['crit'] + 0.05), 0)
-        w = dd >= 0.05; src[w & (src == 0)] = 2
-        on[w] = np.minimum(on[w], k0 * DT_H); used.append(r['code'])
-    return dep, on, used, vols, src
+        bank = np.maximum(bank, np.where(w, np.minimum(h + 0.3, g0 + h - GR), 0))
+        on[w] = np.minimum(on[w], 0 if rise == 0 else 24); used.append(r['code'])
+    return field, rain, bank, on, used, vols
 
 
 def road_now(model_road):
@@ -242,6 +249,7 @@ def road_now(model_road):
 
 # ---------- roads on the flood map ----------
 RN = json.load(open(P('road_net.json'), encoding='utf-8')) if os.path.exists(P('road_net.json')) else None
+ELEVATED = re.compile('ทางพิเศษ|ทางด่วน|ยกระดับ|ลอยฟ้า|มอเตอร์เวย์|ต่างระดับ|ข้ามแยก|สะพาน|โทลล์เวย์|ดอนเมืองโทลล์')
 def flooded_roads(dep, min_m=0.10, cap=2000):
     """road pieces standing in >= min_m of water: [name, class, max depth cm, length m, [[lon, lat], ...]] (deepest first, at most cap)
     and the same summed per road name (for the list)"""
@@ -252,6 +260,7 @@ def flooded_roads(dep, min_m=0.10, cap=2000):
             L = sum(math.hypot((b[0] - a[0]) * KX, (b[1] - a[1]) * KY) for a, b in zip(run, run[1:]))
             out.append([nm, cls, round(best * 100), round(L), run])
     for nm, cls, pts in RN['ways']:
+        if nm and ELEVATED.search(nm): continue          # expressways, flyovers, bridges stand above the water
         run = []; best = 0.0
         for x, y in pts:
             d = float(dep[cell(x, y)])
@@ -260,12 +269,16 @@ def flooded_roads(dep, min_m=0.10, cap=2000):
                 close(run, best); run = []; best = 0.0
         close(run, best)
     out.sort(key=lambda r: (-r[2], -r[3]))
+    return out[:cap], road_names(out)
+
+
+def road_names(out):
     by = collections.OrderedDict()
     for nm, cls, cm, L, run in out:
         if not nm: continue
         b = by.setdefault(nm, [nm, cls, 0, 0.0, run[len(run) // 2]]); b[2] = max(b[2], cm); b[3] += L
     names = sorted(by.values(), key=lambda r: (-r[2], -r[3]))[:40]
-    return out[:cap], [[n, c, cm, round(L / 1000, 1), at] for n, c, cm, L, at in names]
+    return [[n, c, cm, round(L / 1000, 1), at] for n, c, cm, L, at in names]
 
 
 def city_mask():
@@ -345,14 +358,24 @@ def dry_sensors():
             if r.get('lat') and r.get('status') == 'ปกติ']
 
 
-def layer(key, label, dep, src, onset, city, roads_min=0.10, dry=None):
+def combine(field, rain, bank, road):
+    """depth, source (1 rain, 2 over the bank, 3 road sensor, 4 floodway field water) and the depth used for roads
+    (communities and roads only: field water stays on open land and does not flood roads)"""
+    comm = np.maximum(np.maximum(rain, bank), road); dep = np.maximum(comm, field); dep[WATER] = 0; comm[WATER] = 0
+    src = np.where(dep < 0.05, 0, np.where(road >= dep - 1e-9, 3, np.where(bank >= dep - 1e-9, 2,
+                   np.where(rain >= dep - 1e-9, 1, 4)))).astype(float)
+    return dep, src, comm
+
+
+def layer(key, label, dep, src, onset, city, roads_min=0.10, dry=None, road_dep=None, wet=None):
     box = crop(dep)
     j, i = cell(*SUAN_SIAM)
-    roads, names = flooded_roads(dep, roads_min)
-    if dry:   # drop modelled road pieces within 300 m of a sensor that reads dry
+    roads, names = flooded_roads(dep if road_dep is None else road_dep, roads_min)
+    if dry:   # drop modelled road pieces within 300 m of a sensor that reads dry (unless forecast rain floods the spot)
         far = lambda x, y: all(math.hypot((x - a) * KX, (y - b) * KY) > 300 for a, b in dry)
-        roads = [r for r in roads if far(*r[4][len(r[4]) // 2])]
-        keep = {r[0] for r in roads}; names = [n for n in names if n[0] in keep]
+        rainy = lambda x, y: wet is not None and wet[cell(x, y)] >= roads_min
+        roads = [r for r in roads if far(*r[4][len(r[4]) // 2]) or rainy(*r[4][len(r[4]) // 2])]
+        names = road_names(roads)
     return dict(key=key, label=label, box=box, depth=pack(dep, box), src=pack(src, box, 1), onset=pack(onset, box, 1),
                 area10=area_km2(dep, city, 0.10), area30=area_km2(dep, city, 0.30), area50=area_km2(dep, city, 0.50),
                 area10_built=area_km2(dep, city & BUILT, 0.10), area10_open=area_km2(dep, city & ~BUILT, 0.10),
@@ -381,10 +404,9 @@ def main():
     NONE = 255
     # ---- now: measured canal levels and flooded roads only ----
     rdep = road_now(M.get('road', []))
-    dc0, _, _, vols0, _ = canal_overflow(F['scenarios'][0]['stations'], F['scenarios'][0]['districts'], use_now=True)
-    dep0 = np.maximum(dc0, rdep); dep0[WATER] = 0
-    src0 = np.where(dep0 < 0.05, 0, np.where(dc0 >= dep0 - 1e-9, 2, 3)).astype(float)
-    L0 = layer('now', 'ตอนนี้', dep0, src0, np.where(dep0 >= 0.05, 0, NONE).astype(float), city, dry=dry_sensors())
+    fd0, _, bk0, _, _, vols0 = canal_overflow(F['scenarios'][0]['stations'], F['scenarios'][0]['districts'], use_now=True)
+    dep0, src0, rd0 = combine(fd0, np.zeros((H, W)), bk0, rdep)
+    L0 = layer('now', 'ตอนนี้', dep0, src0, np.where(dep0 >= 0.05, 0, NONE).astype(float), city, dry=dry_sensors(), road_dep=rd0)
     if TR:
         fd = datetime.strptime(TR['fetched'][:10], '%Y-%m-%d'); recent = (fd - timedelta(days=2)).strftime('%m-%d')
         rp = [(r[1], r[2]) for r in TR['rows'] if r[3] >= recent and r[4] < 4 and 100.3 < r[1] < 101 and 13.4 < r[2] < 14.1]
@@ -404,12 +426,12 @@ def main():
         over = R24 > lim[..., None]
         on_r = np.where(over.any(-1), np.minimum(hrs, np.argmax(over, -1) * 3 + 24), NONE)
         ex = np.where(WATER, 0, np.maximum(0, r24max - lim) / 1000.0)                      # m of rain the drains cannot take
-        dc, on_c, used, vols, src = canal_overflow(sc['stations'], sc['districts'], rain_ex=ex, rain_on=on_r)
-        dep = np.maximum(dc, rdep); dep[WATER] = 0
-        src = np.where(dep < 0.05, 0, np.where(rdep >= dep - 1e-9, 3, np.maximum(src, 1))).astype(float)
-        onset = np.where(src == 3, 0, np.where(dep >= 0.05, on_c, NONE)).astype(float)
+        fdc, rnc, bkc, on_c, used, vols = canal_overflow(sc['stations'], sc['districts'], rain_ex=ex, rain_on=on_r)
+        dep, src, rd = combine(fdc, rnc, bkc, rdep)
+        onset = np.where((src == 3) | (src == 4), 0, np.where(dep >= 0.05, on_c, NONE)).astype(float)
         dr = np.where(src == 1, dep, 0)
-        L = layer(sc['key'], sc['label'], dep, src, onset, city)
+        # measured dry road sensors win, unless the forecast rain floods that spot
+        L = layer(sc['key'], sc['label'], dep, src, onset, city, dry=dry_sensors(), road_dep=rd, wet=rnc)
         L.update(r24max=round(float(r24max.max()), 1), rain_cells=int(((dr >= 0.10) & city).sum()), canal_vol=vols)
         res['layers'].append(L)
     # ---- hindcast: 25 Sep 2026 with the rain that fell (as if the forecast were perfect), limits from data before that day ----

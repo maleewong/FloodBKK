@@ -11,7 +11,7 @@
 Only the Python standard library is needed. The site is a public web page, not an official API: requests are
 kept slow and few. Run from anywhere; paths are relative to this file.
 """
-import json, os, re, sys, time, subprocess, ssl, html
+import csv, json, os, re, sys, time, subprocess, ssl, html
 import urllib.request, urllib.parse
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
@@ -36,9 +36,21 @@ def get(path, data=None, timeout=60, tries=3):
 
 
 def ms_to_utc(s):
+    """site time -> UTC 'YYYY-MM-DDTHH:MM'. Accepts '/Date(ms)/', a local ISO time '2026-10-05T18:05:00' or '05/10/2569 18:05'"""
     m = re.search(r'/Date\((-?\d+)\)/', s or '')
+    if m: return datetime.fromtimestamp(int(m[1]) / 1000, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M')
+    m = re.match(r'(\d{4})-(\d+)-(\d+)[T ](\d+):(\d+)', s or '')
+    if m: return (datetime(*map(int, m.groups())) - timedelta(hours=7)).strftime('%Y-%m-%dT%H:%M')
+    return th_to_utc(s)
+
+
+def th_to_utc(s):
+    """'26/09/2569 13:45' (Bangkok time, Buddhist year) -> '2026-09-26T06:45' (UTC)"""
+    m = re.match(r'\s*(\d+)/(\d+)/(\d{4})\s+(\d+):(\d+)', s or '')
     if not m: return None
-    return datetime.fromtimestamp(int(m[1]) / 1000, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M')
+    y = int(m[3]); y -= 543 if y > 2400 else 0
+    t = datetime(y, int(m[2]), int(m[1]), int(m[4]), int(m[5])) - timedelta(hours=7)
+    return t.strftime('%Y-%m-%dT%H:%M')
 
 
 def snapshot():
@@ -53,12 +65,24 @@ def snapshot():
                           ms_to_utc(w['site_timestamp']), w['txtStatus_en'], w['wl_in'], w['wl_out01'], w['wl_out02'],
                           w['left_bank'], w['right_bank'], w['warning'], w['critical'], w['warning_out01'], w['critical_out01'],
                           w['max_in_day'], w['max_in_yesterday'], w['river_name']])
-    for f in F['dtTbl']:
-        snap['F'].append([f['flood_code'], f['flood_id'], f['flood_shortname'] or f['flood_name'], f['road_name'], f['district_id'],
-                          f['districtName'], f['latitude'], f['longitude'], ms_to_utc(f['site_timestamp']), f['flood'],
-                          f['flood_max'], f['flood_max_time'], f['chkStatustxt_en'] or 'Normal', f['typesite']])
+    # road sensors: since 5 Oct 2026 dtTbl has no district_id / coordinates / epoch time; floodTbl carries the coordinates.
+    # Merge both by code and fall back between the old and new field names, so either format works.
+    did_of = {}
+    for w in W + R:
+        if w.get('district_name') and w.get('district_id') is not None: did_of[w['district_name']] = w['district_id']
+    if os.path.exists(P('road_sensor.csv')):
+        for r in csv.DictReader(open(P('road_sensor.csv'), encoding='utf-8-sig')):
+            if r.get('district') and r.get('district_id'): did_of.setdefault(r['district'], int(r['district_id']))
+    extra = {f.get('flood_code'): f for f in (F.get('floodTbl') or [])}
+    for f0 in F['dtTbl']:
+        f = {**extra.get(f0.get('flood_code'), {}), **{k: v for k, v in f0.items() if v is not None}}
+        dname = f.get('districtName') or f.get('district_name')
+        ts = ms_to_utc(f.get('site_timestamp') or f.get('site_timestatmpTH'))
+        snap['F'].append([f['flood_code'], f.get('flood_id'), f.get('flood_shortname') or f.get('flood_short_name') or f.get('flood_name'),
+                          f.get('road_name'), f.get('district_id', did_of.get(dname)), dname, f.get('latitude'), f.get('longitude'), ts,
+                          f.get('flood'), f.get('flood_max'), f.get('flood_max_time'), f.get('chkStatustxt_en') or 'Normal', f.get('typesite')])
     for t in F['dtTblTunel']:
-        snap['T'].append([t['flood_code'], t['flood_name'], t['latitude'], t['longitude'], ms_to_utc(t['site_timestamp']), t['flood'], t['flood_max']])
+        snap['T'].append([t['flood_code'], t.get('flood_name'), t.get('latitude'), t.get('longitude'), ms_to_utc(t.get('site_timestamp') or t.get('site_timestatmpTH')), t.get('flood'), t.get('flood_max')])
     for r in R:
         snap['R'].append([r['rain_code'], r['rain_shortname'], r['district_id'], r['district_name'], r['latitude'], r['longitude'],
                           ms_to_utc(r['site_timestamp']), r['rf15min'], r['rf1hr'], r['rf3hr'], r['rf6hr'], r['rf12hr'], r['rf24hr'],
