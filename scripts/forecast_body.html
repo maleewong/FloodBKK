@@ -27,6 +27,7 @@
 .tlc h4{margin:0 0 2px;font-size:13.5px;display:flex;align-items:center;gap:8px}
 .tli{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800;color:var(--bg);flex:none}
 .tlc .bars{margin:4px 0 2px}
+.tlh{margin:6px 0 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}
 .cmp td,.cmp th{white-space:normal}
 .cmp td.v{font-family:var(--mono);text-align:right}
 .adv{display:grid;gap:12px}
@@ -290,9 +291,18 @@ const blg=a=>`<div class="blg">${a.map(([c,t])=>`<span><i style="background:${c}
 // what to do when, as a timeline: pumps to start, rain peaks, canals reaching critical, the pre-drain deadline, the end of the window
 function timeline(i,S,pre){const ev={};const add=(h,o)=>{(ev[h]=ev[h]||[])[o.now?'unshift':'push'](o)};
   const pumps=S.pumps.filter(r=>r.start!=null).map(r=>({r,mx:Math.max(...r.series)})).filter(p=>p.mx-p.r.now>0.5).sort((a,b)=>b.mx-a.mx),mxP=Math.max(1,...pumps.map(p=>p.mx));
+  // how long: the model's 3-h schedule. The last 6 h are not used to stop a pump (the model sees nothing after 48 h,
+  // so it always lets the pumps slow down at the very end); a pump whose extra pumping ends earlier gets a "reduce" event
+  const KE=Math.max(1,K-2),hiOf=p=>k=>p.r.series[k]>p.r.now+0.5;
+  pumps.forEach(p=>{const on=hiOf(p),ks=[];for(let k=p.r.start;k<KE;k++)if(on(k))ks.push(k);
+    const last=ks.length?ks[ks.length-1]:p.r.start,gaps=ks.length<(last-p.r.start+1);
+    p.until=last<KE-1?last+1:null;p.dur=p.until!=null?`ถึง ${tTxt(F.times[p.until])}`:gaps?'เป็นช่วง ๆ ตามฝน จนครบ 48 ชม.':'ต่อเนื่องจนครบ 48 ชม.'});
   const byStart={};pumps.forEach(p=>(byStart[p.r.start]=byStart[p.r.start]||[]).push(p));
+  const byEnd={};pumps.filter(p=>p.until!=null).forEach(p=>(byEnd[p.until]=byEnd[p.until]||[]).push(p));
+  Object.entries(byEnd).forEach(([k,ps])=>add(+k*DT,{c:'var(--ok)',ic:'↓',t:`ลดเครื่องกลับเท่าเดิมได้ ${ps.length} สถานี`,
+    body:`<p class="note">${ps.map(p=>`${esc(short(p.r.name))} (กลับไปราว ${fmt(Math.max(p.r.now,p.r.series[Math.min(K-1,p.until)]),1)} ลบ.ม./วิ.)`).join(', ')}</p>`}));
   Object.entries(byStart).forEach(([k,ps])=>add(+k*DT,{c:'var(--accent)',ic:'P',t:`เดินเครื่องสูบเพิ่ม${+k===0?'ทันที':''} ${ps.length} สถานี`,
-    body:`<div class="bars">${ps.slice(0,6).map(p=>bar(i,'p',p.r,esc(short(p.r.name)),[[Math.min(p.r.now,p.mx),'var(--axis)'],[Math.max(0,p.mx-p.r.now),'var(--accent)']],`${fmt(p.r.now,1)} → ${fmt(p.mx,1)}`,mxP)).join('')}</div>${ps.length>6?`<p class="note">และอีก ${ps.length-6} สถานี</p>`:''}`}));
+    body:`<div class="bars">${ps.slice(0,6).map(p=>bar(i,'p',p.r,`${esc(short(p.r.name))} <span class="note">${p.dur}</span>`,[[Math.min(p.r.now,p.mx),'var(--axis)'],[Math.max(0,p.mx-p.r.now),'var(--accent)']],`${fmt(p.r.now,1)} → ${fmt(p.mx,1)}`,mxP)).join('')}</div>${ps.length>6?`<p class="note">และอีก ${ps.length-6} สถานี</p>`:''}`}));
   // rain: the wettest hour of each day-part (12 h) when it rains
   const v=S.city_mm;for(let a=0;a<v.length;a+=12){const seg=v.slice(a,a+12),m=Math.max(...seg);if(m<0.3)continue;const k=a+seg.indexOf(m),tot=seg.reduce((x,y)=>x+y,0);
     add(k,{c:rIcol(m),ic:'R',t:`ฝนตกมากสุดช่วงนี้ ${fmt(m,1)} มม./ชม. (${RI.find(([tt])=>m<tt)[2].replace(/ \(.*/,'')})`,body:`<p class="note">12 ชม. นี้ฝนรวม ${fmt(tot,1)} มม. (เฉลี่ยทั้งเมือง)</p>`})}
@@ -304,9 +314,11 @@ function timeline(i,S,pre){const ev={};const add=(h,o)=>{(ev[h]=ev[h]||[])[o.now
     body:`<div class="bars">${rs.slice(0,5).map(r=>bar(i,'c',r,`${esc(short(r.name))} <span class="note">${esc(r.district||'')}</span>`,[[Math.max(0,Math.min(OVR,pkOf(r)-r.crit)),'var(--serious)']],'+'+fmt(pkOf(r)-r.crit,2),OVR)).join('')}</div>`}));
   const now0=S.stations.filter(r=>r.crit!=null&&r.now>=r.crit).length,end=S.stations.filter(r=>endOf(r)==='วิกฤต').length;
   add(0,{c:'var(--ink)',ic:'•',now:1,t:'ตอนนี้',body:`<p class="note">สถานีวัดน้ำที่เกินเกณฑ์วิกฤตอยู่ ${now0} จุด${pumps.length?'':' ไม่ต้องเดินเครื่องเพิ่ม'}</p>`});
-  const H=v.length;add(H,{c:'var(--muted)',ic:'✓',t:'ครบ 48 ชม.',body:`<p class="note">ฝนรวม ${fmt(S.total_mm,0)} มม. (เฉลี่ยทั้งเมือง) ยังเกินวิกฤต ${end} จุด${end<now0?` ลดลง ${now0-end} จุด`:end>now0?` เพิ่มขึ้น ${end-now0} จุด`:''}</p>`});
+  const keep=pumps.filter(p=>p.until==null).length;
+  const H=v.length;add(H,{c:'var(--muted)',ic:'✓',t:'ครบ 48 ชม.',body:`<p class="note">ฝนรวม ${fmt(S.total_mm,0)} มม. (เฉลี่ยทั้งเมือง) ยังเกินวิกฤต ${end} จุด${end<now0?` ลดลง ${now0-end} จุด`:end>now0?` เพิ่มขึ้น ${end-now0} จุด`:''}${keep?`, ${keep} สถานียังต้องเดินเครื่องเพิ่มต่อหลังจากนี้ (ดูว่าต้องสูบอีกกี่วันที่<a href="bkk_model.html">หน้าสถานการณ์ปัจจุบัน</a>)`:''}</p>`});
   const hs=Object.keys(ev).map(Number).sort((a,b)=>a-b);
-  return `<div class="tl">${hs.map(hh=>{const d=hTime(hh),es=ev[hh];return `<div class="tle"><div class="tlt">${String(d.getUTCHours()).padStart(2,'0')}:00<small>${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}${hh?` · +${hh} ชม.`:''}</small></div>
+  const how=pumps.length?`<p class="note tlh">ตัวเลข "สูบจริง → ตามโมเดล" คืออัตรารวมที่ควรเดินเครื่อง (ลบ.ม./วิ.) ไม่ใช่เปิดเพิ่มซ้ำทุกรอบ ระบบคำนวณใหม่ทุกชั่วโมงจากระดับน้ำล่าสุด ถ้ารอบถัดไปยังแนะนำอัตราเดิม แปลว่าให้เดินเครื่องต่อที่อัตรานั้น ถ้าน้ำลดลงตัวเลขจะลดลงเอง ช่วง 6 ชม. สุดท้ายของ 48 ชม. ไม่ใช้บอกเวลาหยุด เพราะโมเดลยังไม่เห็นฝนหลังจากนั้น</p>`:'';
+  return how+`<div class="tl">${hs.map(hh=>{const d=hTime(hh),es=ev[hh];return `<div class="tle"><div class="tlt">${String(d.getUTCHours()).padStart(2,'0')}:00<small>${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}${hh?` · +${hh} ชม.`:''}</small></div>
     <div class="tlr"><span class="tld${es.some(x=>x.now)?' now':''}" style="color:${es[0].c}"></span></div>
     <div>${es.map(x=>`<div class="tlc" style="border-left-color:${x.c}"><h4><span class="tli" style="background:${x.c}">${x.ic}</span>${x.t}</h4>${x.body||''}</div>`).join('')}</div></div>`}).join('')}</div>`}
 $('#advs').innerHTML=SC.map((S,i)=>{
