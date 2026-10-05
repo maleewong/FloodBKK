@@ -1,11 +1,13 @@
-# Publish the pages in site/ to GitHub Pages whenever they are pushed (from the laptop with publish.bat + GitHub Desktop).
-# No schedule: nothing runs by itself, nothing needs re-running every month; the site stays online between pushes.
+# Publish the pages to GitHub Pages.
+# The laptop (auto_update.bat) force-pushes the three pages to the branch `site-data` (always ONE commit, so the
+# repository does not grow by ~1.5 MB every hour) and then commits site_version.txt + the daily data files to main,
+# which starts this workflow. The pages are taken from `site-data`; if that branch is missing, from site/ on main.
 name: publish
 
 on:
   push:
     branches: [main]
-    paths: ["site/**"]
+    paths: ["site/**", "site_version.txt", ".github/workflows/update.yml"]
   workflow_dispatch:
 
 permissions:
@@ -25,9 +27,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
+      - name: Pages from the site-data branch
+        id: pick
+        run: |
+          if git fetch --depth 1 origin site-data 2>/dev/null; then
+            mkdir -p pub && git --work-tree=pub checkout FETCH_HEAD -- . && echo "dir=pub" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=site" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          path: ${{ steps.pick.outputs.dir }}
       - id: deployment
         uses: actions/deploy-pages@v4
