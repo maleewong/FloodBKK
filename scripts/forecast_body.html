@@ -109,6 +109,7 @@
 const D=JSON.parse(document.getElementById('data').textContent),F=D.F;
 const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg';
 const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const plainTxt=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.replace(/\s+/g,' ').trim()};   // tooltip text without tags
 const fmt=(v,d=0)=>v==null||isNaN(v)?'–':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -240,7 +241,7 @@ function highlight(i,k,x){const M_=MAPS[i];if(!M_)return;const g=M_.gH;g.innerHT
   if(at){zoomTo(at[0],at[1],w);M_.svg.scrollIntoView({behavior:'smooth',block:'center'})}}
 const ITEMS=[];
 const bar=(i,k,x,label,segs,val,mx)=>{ITEMS.push([i,k,x]);const id=ITEMS.length-1;
-  return `<button type="button" class="bar" data-b="${id}" title="${esc(label)}"><span class="bl">${label}</span><span class="bt">${segs.filter(s=>s[0]>0).map(([v,c])=>`<i style="width:${(v/mx*100).toFixed(1)}%;background:${c}"></i>`).join('')}</span><span class="bv">${val}</span></button>`};
+  return `<button type="button" class="bar" data-b="${id}" title="${esc(plainTxt(label))}"><span class="bl">${label}</span><span class="bt">${segs.filter(s=>s[0]>0).map(([v,c])=>`<i style="width:${(v/mx*100).toFixed(1)}%;background:${c}"></i>`).join('')}</span><span class="bv">${val}</span></button>`};
 const blg=a=>`<div class="blg">${a.map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')}</div>`;
 $('#advs').innerHTML=SC.map((S,i)=>{
   // canals that reach critical, most severe first (the part above critical; overflow capped)
