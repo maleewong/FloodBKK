@@ -121,7 +121,7 @@ fleet = sum(v[1] for v in rep.values()) / max(1, sum(v[0] for v in rep.values())
 pump_measured = [[d, round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / 1e6, 2),
                   round(sum(pdays[d].get(c, (0, 0))[1] for c in _codes) / max(1, sum(pdays[d].get(c, (0, 0))[0] for c in _codes)), 3)] for d in days3]
 rate_now = np.array([rep[p['id']][1] / 86400 if p['id'] in rep else p['cap'] * fleet for p in PU])
-cap_full = np.array([p['cap'] * AVAIL for p in PU])
+cap_full = np.array([p['cap'] * p.get('avail', AVAIL) for p in PU])   # avail: best sustained day in the pump records (build_model)
 TUN = np.array([M['net']['names'][e[2]] in {t['name'] for t in M.get('tunnels') or []} for e in E])   # BMA tunnels (tunnels.py)
 FIXED = TUN | np.array([M['net']['names'][e[2]] in (M.get('cap_cal') or {}) for e in E])
 capE = np.array([e[5] if FIXED[k] else e[5] * V_MS / M['net']['V0'] for k, e in enumerate(E)])   # tunnels / measured canals: as given
@@ -154,12 +154,33 @@ DRAW = cal['drawdown_m_per_h']['p75']
 T0 = [np.minimum(W0, cap1), np.clip(W0 - cap1, 0, cap2), np.maximum(0, W0 - cap1 - cap2)]
 TR = [S * DRAW * DT_H, S * lam * DRAW * DT_H, S * lam * DRAW * DT_H]
 
+# ---------- rain that already fell (rain gauges, last 6 h) and has not reached the canals yet ----------
+def _num(x):
+    try:
+        v = float(x); return None if v < 0 else v
+    except (TypeError, ValueError): return None
+_snap = json.load(open(P('snapshot.json'), encoding='utf-8'))
+_rg = {x[0]: (_num(x[9]), _num(x[10])) for x in _snap['R']}          # rf3hr, rf6hr (mm)
+r3 = np.zeros(n); r36 = np.zeros(n)
+for i, x in enumerate(N):
+    ws = [(w, _rg[c]) for c, w in (x[6] or []) if c in _rg and _rg[c][0] is not None]
+    if not ws: continue
+    sw = sum(w for w, _ in ws)
+    r3[i] = sum(w * v[0] for w, v in ws) / sw
+    r36[i] = sum(w * max(0.0, (v[1] if v[1] is not None else v[0]) - v[0]) for w, v in ws) / sw
+_m3 = lambda mm: C * mm / 1000 * A * 1e6
+PENDING = [_m3(r3 * LAG[1] + r36 * LAG[2]), _m3(r3 * LAG[2])]      # still to arrive in step 0 and step 1 (same lag as the forecast)
+print(f'measured rain last 3 h {float((r3 * A).sum() / A.sum()):.1f} mm, 3-6 h {float((r36 * A).sum() / A.sum()):.1f} mm (city mean): '
+      f'{float(sum(x.sum() for x in PENDING)) / 1e6:.2f} million m3 still to reach the canals')
+
+
 def inflow(rain_node_h):
-    """m3 entering each node in each step: lagged runoff + base"""
+    """m3 entering each node in each step: lagged runoff of the forecast rain + runoff of the measured rain still on its way + base"""
     step = rain_node_h.reshape(n, K, DT_H).sum(2)                  # mm per step
     q = C * step / 1000 * A[:, None] * 1e6                          # m3 per step
     out = np.zeros_like(q)
     for lag, w in enumerate(LAG): out[:, lag:] += w * q[:, :K - lag]
+    out[:, 0] += PENDING[0]; out[:, 1] += PENDING[1]
     return out + base * A[:, None] * DT_H * 3600
 
 def solve(rain_node_h, pump_cap_k, label):
@@ -200,7 +221,7 @@ dists = sorted(set(geo.values()))
 res = dict(made=time.strftime('%Y-%m-%d %H:%M'), fetched=M['fetched'], forecast_fetched=FC['fetched'], source=FC['source'],
            start=t_all[i0].strftime('%Y-%m-%dT%H:%M'), dt_h=DT_H, steps=K,
            times=[(t_all[i0] + timedelta(hours=DT_H * k)).strftime('%Y-%m-%dT%H:%M') for k in range(K + 1)],
-           assumptions=dict(heavy_mm=HEAVY_MM, mult=MULT, D_LOW=D_LOW, drawdown_m_h=DRAW, no_gauge_below=NO_ST_BELOW, avail=AVAIL, outlet=OUTLET, v=V_MS, C=C, base=base, lag=LAG,
+           assumptions=dict(pending_mm3=round(float(sum(x.sum() for x in PENDING)) / 1e6, 3), heavy_mm=HEAVY_MM, mult=MULT, D_LOW=D_LOW, drawdown_m_h=DRAW, no_gauge_below=NO_ST_BELOW, avail=AVAIL, outlet=OUTLET, v=V_MS, C=C, base=base, lag=LAG,
                             fleet_util_now=round(fleet, 2), lambda_zone=lam_z, pump_day=last, pump_days=days3),
            points=FC['points'], ens_totals=[round(float(v), 1) for v in sorted(tot_m)], scenarios=[])
 print('rain start', res['start'], 'members', len(tot_m), 'P90 member', m90, 'max member', mmax)

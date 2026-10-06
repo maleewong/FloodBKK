@@ -68,6 +68,23 @@ for sid, v in wr['water'].items():
         pts.append([ts, vals[0], vals[1]])
     hourly[code] = sorted(pts)
 
+# ---- canal readings kept by every update (data/history/canal_*.csv): the latest reading in each hour, last 14 days ----
+import glob
+_cut = (datetime.strptime(fetched, '%Y-%m-%d %H:%M') - timedelta(days=14)).strftime('%Y-%m-%d %H')
+_hist = {}
+for fn in sorted(glob.glob(os.path.join('history', 'canal_????-??*.csv'))):   # monthly readings (not canal_stations.csv)
+    for r in csv.DictReader(open(fn, encoding='utf-8-sig')):
+        if not r.get('measured') or r['measured'][:13] < _cut or r.get('status') in ('out of order', 'temporarily out of order'): continue
+        v = num(r['wl_in_m'])
+        if v is None: continue
+        k = (r['code'], r['measured'][:13] + ':00')
+        if k not in _hist or r['measured'] > _hist[k][0]: _hist[k] = (r['measured'], v, num(r['wl_out_m']))
+for (code, ts), (_, v, vo) in _hist.items():
+    db.execute('insert or ignore into canal_hourly values (?,?,?,?,?)', (code, ts, v, vo, None))
+    hourly.setdefault(code, []).append([ts, v, vo])
+for code in hourly: hourly[code] = sorted({p[0]: p for p in hourly[code]}.values())
+if _hist: print('canal hourly from history:', len(_hist), 'station-hours')
+
 # ---- road flood sensors ----
 road = []; seen = set()
 for x in snap['F']:
@@ -170,7 +187,7 @@ data = dict(
     canal=[{k: c[k] for k in ('code', 'name', 'district_id', 'district', 'in_bkk', 'lat', 'lon', 'is_gate', 'river', 'status', 'measured',
                               'wl_in', 'wl_out', 'gate1', 'left_bank', 'right_bank', 'warning', 'critical', 'freeboard', 'head_in_out',
                               'max_in_today', 'max_in_yesterday')} for c in canal],
-    hourly=hourly, road=road, rain=rain,
+    hourly={c: v[-48:] for c, v in hourly.items()}, road=road, rain=rain,
     rain_daily=[[d, round(max(rain_daily[d]), 1), round(st.median(rain_daily[d]), 1)] if d in rain_daily else [d, None, None] for d in days],
     pump_daily=[[d, round(pump_daily.get(d, 0))] for d in days],
     pump_station=[dict(code=p['code'], name=p['name'], cap=round(st.median(p['cap'])) if p['cap'] else 0, vol=round(p['vol']), days=p['days'])

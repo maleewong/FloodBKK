@@ -1,7 +1,7 @@
 """Pack the model page data: static network + calibration + the latest snapshot (stdlib only).
 Canal capacities measured from the level profile (canal_profile.py) replace the width-based ones in the model.
 run by update.py / render.py; writes data/model_data.json"""
-import json, os
+import collections, csv, json, os
 from datetime import datetime, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__)); DATA = os.path.join(HERE, '..', 'data')
@@ -46,6 +46,18 @@ def main():
     net = json.load(open(P('network.json')))
     import tunnels
     tun = tunnels.apply(net)          # drainage tunnels in operation (links intake canal -> outlet pump)
+    # pumping a station has really sustained: the highest daily mean in the pump records (pump_daily.csv, measured).
+    # On the wettest days (25-26 Sep 2026) the busiest stations ran 50-65 % of nameplate, not 85 %. A station with
+    # >= 60 measured days that reached >= 20 % of its capacity gets avail = clip(1.1 x best day, 0.5, 0.85); others 0.85.
+    days = collections.defaultdict(list)
+    if os.path.exists(P('pump_daily.csv')):
+        for r in csv.DictReader(open(P('pump_daily.csv'), encoding='utf-8-sig')):
+            try: days[r['code']].append(float(r['discharged_m3'] or 0) / 86400)
+            except ValueError: pass
+    for p in net['pumps']:
+        v = days.get(p['id'], []); best = max(v, default=0.0)
+        if p.get('src') == 'telemetry' and len(v) >= 60 and p['cap'] > 0 and best >= 0.2 * p['cap']:
+            p['avail'] = round(min(0.85, max(0.5, 1.1 * best / p['cap'])), 2); p['best_day'] = round(best, 1)
     print('tunnels', [(t['name'], t['cap'], t['pump'], t['intake_m']) for t in tun])
     cal = json.load(open(P('calibration.json')))
     snap = json.load(open(P('snapshot.json')))

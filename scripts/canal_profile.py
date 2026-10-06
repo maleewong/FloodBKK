@@ -27,6 +27,15 @@ LINES = [dict(
     pump='WL.PKN.01',                 # last gauge = pump sump: its reach is drawn down by the pumps, not used for the flow
     calibrate='คลองประเวศบุรีรมย์',  # model capacity of this canal is set from the measured flow
     width=33.3, depth=2.5, n=0.030,   # width: BMA 2557 report (median, weighted by length); depth, n: assumptions
+), dict(
+    key='saensaep',
+    title='คลองแสนแสบ: หนองจอก → มีนบุรี → บางกะปิ → ประตูน้ำ',
+    canals=['คลองแสนแสบ'],
+    gauges=['WL.SSB.13', 'WL.SSB.12', 'WL.SSB.11', 'WL.SSB.10', 'WL.SSB.09', 'WL.SSB.08', 'WL.SSB.07', 'WL.SSB.06',
+            'WL.SSB.04', 'WL.SSB.03', 'WL.SSB.02', 'WL.SSB.01'],
+    gates=['WL.SSB.12', 'WL.SSB.10', 'WL.SSB.09', 'WL.SSB.04'],   # gate / pump structures: head lost there is not friction
+    pump=None, calibrate=None,        # shown only: the gates control the levels, so a single canal flow is not derived
+    width=27.3, depth=3.0, n=0.030,
 )]
 STEEP = 2.0      # a reach is a bottleneck when its slope is >= STEEP x the median slope of the line
 MAX_OFF_M = 300  # gauges farther than this from the mapped canal are shown but not used (position along the canal unsure)
@@ -126,19 +135,20 @@ def compute(line, net, stations, latest):
         reaches.append(dict(up=a['code'], down=b['code'], km0=a['km'], km1=b['km'], L=round(L, 2),
                             drop=round(a['now'] - b['now'], 2), slope=round(s_now, 4),
                             slope48=round(statistics.median(s48), 4) if len(s48) >= 6 else round(s_now, 4), n48=len(s48),
-                            pump=(b['code'] == line['pump'])))
-    use = [r for r in reaches if not r['pump'] and r['slope48'] > 0]
+                            pump=(b['code'] == line.get('pump')),
+                            gate=(a['code'] in line.get('gates', ()) or b['code'] in line.get('gates', ()))))
+    use = [r for r in reaches if not r['pump'] and not r['gate'] and r['slope48'] > 0]
     med = statistics.median([r['slope48'] for r in use]) if use else None
     for r in reaches:
         r['ratio'] = round(r['slope48'] / med, 2) if med else None
-        r['bottleneck'] = bool(med and not r['pump'] and r['slope48'] >= STEEP * med)
+        r['bottleneck'] = bool(med and not r['pump'] and not r['gate'] and r['slope48'] >= STEEP * med)
         r['conveyance'] = round(math.sqrt(med / r['slope48']), 2) if med and r['slope48'] > 0 else None
     ref = [r for r in use if not r['bottleneck']]
     qs = [manning(line['width'], line['depth'], line['n'], r['slope48'] / 1000) for r in ref]
     q = round(statistics.median(qs), 1) if qs else None
     lo = round(manning(line['width'], line['depth'], 0.035, statistics.median([r['slope48'] for r in ref]) / 1000), 1) if ref else None
     hi = round(manning(line['width'], line['depth'], 0.025, statistics.median([r['slope48'] for r in ref]) / 1000), 1) if ref else None
-    return dict(key=line['key'], title=line['title'], canal=line['calibrate'], gauges=gauges, reaches=reaches,
+    return dict(key=line['key'], title=line['title'], canal=line.get('calibrate'), gates=line.get('gates', []), gauges=gauges, reaches=reaches,
                 median_slope=round(med, 4) if med else None, q=q, q_range=[lo, hi],
                 assume=dict(width=line['width'], depth=line['depth'], n=line['n']), latest=latest,
                 window_h=WINDOW_H)

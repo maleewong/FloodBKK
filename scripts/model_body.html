@@ -65,6 +65,7 @@
 .as td,.as th{white-space:normal;vertical-align:top}
 .as td:first-child{white-space:nowrap}
 .kind{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.ptabs{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 8px}.ptabs button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:3px 12px;cursor:pointer}.ptabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);border-color:var(--accent);font-weight:600}
 .k-cal{background:var(--accent-soft)} .k-ass{background:var(--warn-soft)} .k-dat{background:var(--seq-0)}
 .ver{display:grid;gap:18px;min-width:0}.ver>div{min-width:0}.ver h3{font-size:.95rem;margin:0 0 6px;font-weight:600}.ver .ok{color:var(--ok);font-weight:700}.ver .tbl{max-height:300px}
 .pgrid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px;align-items:start}
@@ -134,6 +135,13 @@
     <ul class="defs" id="tunDefs" style="margin-top:10px"></ul>
   </section>
 
+  <section class="panel" id="surfPanel" hidden>
+    <div class="panel-h"><h2>น้ำนอกคลอง: ถนนที่ท่วมอยู่กับการเปิดเครื่องสูบ<span class="src m">ตรวจวัด</span><span class="src p">โมเดล</span></h2><span class="note meta"><span>คลิกแถวเพื่อดูบนแผนที่</span></span></div>
+    <p class="note" id="surfNote" style="margin:0 0 8px"></p>
+    <div class="tbl"><table id="tSurf"></table></div>
+    <ul class="defs" id="surfDefs" style="margin-top:10px"></ul>
+  </section>
+
   <section class="panel advice" aria-live="polite">
     <div class="panel-h"><h2 id="advH">คำแนะนำจากโมเดล<span class="src p">โมเดล</span></h2></div>
     <div class="advgrid">
@@ -147,6 +155,7 @@
 
   <section class="panel" id="profPanel" hidden>
     <div class="panel-h"><h2 id="profH">ระดับน้ำตามแนวคลอง<span class="src m">ตรวจวัด</span></h2><span class="note" id="profNote"></span></div>
+    <div class="ptabs" id="profTabs" role="group" aria-label="เลือกแนวคลอง" hidden></div>
     <p class="callout" id="profText"></p>
     <div class="chart" id="cProf"></div>
     <ul class="defs" id="profDefs" style="margin-top:10px"></ul>
@@ -469,19 +478,22 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
 })();
 
 // ---------- water level along a canal line (measured) ----------
-(()=>{const P=(M.profiles||[])[0];if(!P||!P.gauges||P.gauges.length<3)return;$('#profPanel').hidden=false;
-  const G=P.gauges,R=P.reaches,U=G.filter(g=>g.used),nk=R.find(r=>r.bottleneck),pr=R.find(r=>r.pump);
+(()=>{const PS=(M.profiles||[]).filter(P=>P.gauges&&P.gauges.length>=3);if(!PS.length)return;$('#profPanel').hidden=false;
+  if(PS.length>1){$('#profTabs').hidden=false;$('#profTabs').innerHTML=PS.map((P,i)=>`<button type="button" data-i="${i}"${i?'':' aria-pressed="true"'}>${esc(P.title.split(/[:→]/)[0].trim())}</button>`).join('');
+    $('#profTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#profTabs').querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',q===b?'true':'false'));draw(PS[+b.dataset.i])})}
+  const draw=P=>{$('#cProf').innerHTML='';
+  const G=P.gauges,R=P.reaches,U=G.filter(g=>g.used),nk=R.find(r=>r.bottleneck),pr=R.find(r=>r.pump),GT=new Set(P.gates||[]);
   const short=s=>String(s||'').replace(/^ค\.|^ปตร\.|^สน\./,'').replace(/^คลอง/,'');
   $('#profH').firstChild.textContent='ระดับน้ำตามแนวคลอง: '+P.title+' ';
   $('#profNote').textContent=`ค่าล่าสุด ${thDT(P.latest)} น., แถบ = ช่วงต่ำสุด–สูงสุด ${P.window_h} ชม. ปรับทุกชั่วโมง`;
   const gName=c=>(G.find(g=>g.code===c)||{}).name||c;
   $('#profText').textContent=nk?`คอขวดช่วง ${gName(nk.up)} → ${gName(nk.down)}: ระดับน้ำลดลง ${fmt(nk.drop,2)} ม. ใน ${fmt(nk.L,1)} กม. ชันกว่าช่วงปกติของคลอง ${fmt(nk.ratio,1)} เท่า (ค่ามัธยฐาน ${P.window_h} ชม.) แปลว่าน้ำต้องใช้แรงดันมากเพื่อผ่านช่วงนี้ คลองช่วงนี้รับน้ำได้ราว ${Math.round((nk.conveyance||0)*100)}% ของช่วงปกติ น้ำจึงค้างอยู่ด้านเหนือน้ำ (ลาดกระบัง) ทั้งที่สถานีสูบปลายทางยังสูบได้`
-    :`ยังไม่พบช่วงที่ระดับน้ำลดชันผิดปกติ (เกณฑ์: ชันกว่าค่ามัธยฐานของคลอง 2 เท่าขึ้นไป)`;
+    :`ยังไม่พบช่วงที่ระดับน้ำลดชันผิดปกติ (เกณฑ์: ชันกว่าค่ามัธยฐานของคลอง 2 เท่าขึ้นไป ไม่นับช่วงที่มีประตูน้ำหรือสถานีสูบ)`;
   const w=900,h=300,l=52,r=20,t=26,b=58;
   const km1=Math.max(...G.map(g=>g.km)),vals=[];G.forEach(g=>[g.now,g.lo48,g.hi48,g.warn,g.crit].forEach(v=>v!=null&&vals.push(v)));
   const lo=Math.floor((Math.min(...vals)-.15)*5)/5,hi=Math.ceil((Math.max(...vals)+.15)*5)/5;
   const x=k=>l+k/km1*(w-l-r),y=v=>t+(1-(v-lo)/(hi-lo))*(h-t-b);
-  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'ระดับน้ำตามแนวคลองประเวศบุรีรมย์ถึงสถานีสูบพระโขนง'});$('#cProf').appendChild(g);
+  const g=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':'ระดับน้ำตามแนวคลอง '+P.title});$('#cProf').appendChild(g);
   const A=el('g',{class:'ax'},g),GR=el('g',{class:'grid'},g);
   for(let v=Math.ceil(lo*2)/2;v<=hi+1e-9;v+=.5){el('line',{x1:l,x2:w-r,y1:y(v),y2:y(v)},GR);el('text',{x:l-6,y:y(v)+4,'text-anchor':'end'},A).textContent=fmt(v,1)}
   el('text',{x:l-6,y:t-10,'text-anchor':'end'},A).textContent='ม.รทก.';
@@ -497,7 +509,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   G.forEach(q=>{const x0=x(q.km);if(q.crit!=null)el('line',{x1:x0-14,x2:x0+14,y1:y(q.crit),y2:y(q.crit),stroke:'var(--crit)','stroke-width':2},g);
     if(q.warn!=null)el('line',{x1:x0-10,x2:x0+10,y1:y(q.warn),y2:y(q.warn),stroke:'var(--warn)','stroke-width':2},g)});
   // current level, coloured by reach
-  R.forEach(rr=>{el('line',{x1:x(rr.km0),x2:x(rr.km1),y1:y(G.find(q=>q.code===rr.up).now),y2:y(G.find(q=>q.code===rr.down).now),stroke:rr.bottleneck?'var(--crit)':rr.pump?'var(--muted)':'var(--accent)','stroke-width':rr.bottleneck?4:2.4,'stroke-dasharray':rr.pump?'5 4':null,'stroke-linecap':'round'},g)});
+  R.forEach(rr=>{el('line',{x1:x(rr.km0),x2:x(rr.km1),y1:y(G.find(q=>q.code===rr.up).now),y2:y(G.find(q=>q.code===rr.down).now),stroke:rr.bottleneck?'var(--crit)':rr.pump||rr.gate?'var(--muted)':'var(--accent)','stroke-width':rr.bottleneck?4:2.4,'stroke-dasharray':rr.gate?'2 4':rr.pump?'5 4':null,'stroke-linecap':'round'},g)});
   // slope labels
   R.forEach(rr=>{if(x(rr.km1)-x(rr.km0)<60)return;const yy=(y(G.find(q=>q.code===rr.up).now)+y(G.find(q=>q.code===rr.down).now))/2;
     const st=rr.bottleneck||rr.slope48>2*(P.median_slope||1);const tx=el('text',{x:(x(rr.km0)+x(rr.km1))/2+(st?10:0),y:yy-(st?14:8),'text-anchor':st?'start':'middle','font-size':11,fill:rr.bottleneck?'var(--crit)':'var(--ink-2)'},g);tx.textContent=`${fmt(rr.slope48*100,1)} ซม./กม.`});
@@ -506,6 +518,7 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   G.forEach((q,i)=>{const x0=x(q.km);
     const lb=el('text',{x:x0,y:h-b+30+(i%2)*14,'text-anchor':i===0?'start':i===G.length-1?'end':'middle','font-size':11,fill:q.used?'var(--ink-2)':'var(--muted)'},g);lb.textContent=short(q.name);
     el('line',{x1:x0,x2:x0,y1:h-b,y2:h-b+4,stroke:'var(--axis)'},g);
+    if(GT.has(q.code))el('rect',{x:x0-6,y:h-b-12,width:12,height:12,fill:'none',stroke:'var(--muted)','stroke-width':1.5},g);
     if(q.now==null)return;
     const c=el('circle',{cx:x0,cy:y(q.now),r:q.used?5.5:4.5,fill:q.used?'var(--surface)':'var(--line)',stroke:q.now>=q.crit?'var(--crit)':q.now>=q.warn?'var(--warn)':'var(--ok)','stroke-width':2.2,tabindex:0,style:'cursor:pointer'},g);
     const show=e=>{tp.innerHTML=`<b>${esc(q.name)}</b> (${esc(q.district||'')})<br>ระดับน้ำ ${fmt(q.now,2)} ม.รทก. (${thDT(q.measured)} น.)<br>เตือน ${fmt(q.warn,2)} / วิกฤต ${fmt(q.crit,2)}${q.bank!=null?` / ตลิ่ง ${fmt(q.bank,2)}`:''}<br>${P.window_h} ชม.: ${fmt(q.lo48,2)}–${fmt(q.hi48,2)} ม.<br>กม. ${fmt(q.km,1)} จากต้นสาย${q.used?'':`<br><i>ไม่ใช้คำนวณ: ห่างจากแนวคลองในแผนที่ ${fmt(q.off_m)} ม.</i>`}`;
@@ -514,12 +527,43 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   host.insertAdjacentHTML('afterbegin','<div class="chips"><span><i class="dot" style="background:var(--accent)"></i>ระดับน้ำล่าสุด</span><span><i class="dot" style="background:var(--crit)"></i>ช่วงคอขวด</span><span><i class="dot" style="background:var(--muted)"></i>ช่วงที่สถานีสูบดึงน้ำลง</span><span><i class="dot" style="background:var(--accent);opacity:.3;border-radius:2px"></i>ช่วง 48 ชม.</span><span><i class="dot" style="background:var(--warn);border-radius:1px;height:3px"></i>เกณฑ์เตือน</span><span><i class="dot" style="background:var(--crit);border-radius:1px;height:3px"></i>เกณฑ์วิกฤต</span></div>');
   const cc=(M.cap_cal||{})[P.canal],ex=G.filter(q=>!q.used&&q.now!=null),a=P.assume;
   const li=[];
-  if(P.q)li.push(`<li><b>ความจุ${esc(P.canal)}ที่ใช้ในโมเดล:</b> ${fmt(P.q,1)} ลบ.ม./วิ. (ช่วง ${fmt(P.q_range[0],0)}–${fmt(P.q_range[1],0)}) คำนวณจากความชันผิวน้ำที่วัดได้ในช่วงปกติ (${fmt(P.median_slope*100,1)} ซม./กม.) ด้วยสมการแมนนิ่ง กว้าง ${a.width} ม. ลึก ${a.depth} ม. n ${a.n} (ช่วง 0.025–0.035)${cc?`, เดิมโมเดลใช้ ${fmt(cc.before,1)} จากกว้าง × ลึก × ความเร็วสมมติ`:''} ปรับใหม่ทุกชั่วโมง</li>`);
+  if(P.q&&P.canal)li.push(`<li><b>ความจุ${esc(P.canal)}ที่ใช้ในโมเดล:</b> ${fmt(P.q,1)} ลบ.ม./วิ. (ช่วง ${fmt(P.q_range[0],0)}–${fmt(P.q_range[1],0)}) คำนวณจากความชันผิวน้ำที่วัดได้ในช่วงปกติ (${fmt(P.median_slope*100,1)} ซม./กม.) ด้วยสมการแมนนิ่ง กว้าง ${a.width} ม. ลึก ${a.depth} ม. n ${a.n} (ช่วง 0.025–0.035)${cc?`, เดิมโมเดลใช้ ${fmt(cc.before,1)} จากกว้าง × ลึก × ความเร็วสมมติ`:''} ปรับใหม่ทุกชั่วโมง</li>`);
   li.push(`<li><b>คอขวด:</b> ช่วงที่ผิวน้ำชันกว่าค่ามัธยฐานของคลอง ${2} เท่าขึ้นไป (คิดจากค่ามัธยฐาน ${P.window_h} ชม. ไม่ใช่ค่าชั่วโมงเดียว) ช่วงสุดท้ายก่อนสถานีสูบไม่นับ เพราะเครื่องสูบดึงน้ำลง</li>`);
-  li.push(`<li><b>คลองพระโขนงดูปกติ:</b> ระดับน้ำปลายทางต่ำเพราะสถานีสูบพระโขนงดึงน้ำออก (กำลังสูบราว 173 ลบ.ม./วิ.) คลองประเวศฯ ส่งน้ำมาได้น้อยกว่านั้นมาก ปัญหาจึงอยู่ที่ตัวคลองช่วงต้นน้ำ ไม่ใช่สถานีสูบ, อุโมงค์บึงหนองบอนไม่ได้เชื่อมกับคลองประเวศฯ โดยตรง</li>`);
+  if(P.key==='prawet')li.push(`<li><b>คลองพระโขนงดูปกติ:</b> ระดับน้ำปลายทางต่ำเพราะสถานีสูบพระโขนงดึงน้ำออก (กำลังสูบราว 173 ลบ.ม./วิ.) คลองประเวศฯ ส่งน้ำมาได้น้อยกว่านั้นมาก ปัญหาจึงอยู่ที่ตัวคลองช่วงต้นน้ำ ไม่ใช่สถานีสูบ, อุโมงค์บึงหนองบอนไม่ได้เชื่อมกับคลองประเวศฯ โดยตรง</li>`);
   const off=G.filter(q=>q.now==null);if(off.length)li.push(`<li><b>ไม่มีค่าล่าสุด:</b> ${off.map(q=>esc(q.name)).join(', ')} (สถานีขัดข้อง แสดงเฉพาะเกณฑ์)</li>`);
   if(ex.length)li.push(`<li><b>ไม่ใช้คำนวณ:</b> ${ex.map(q=>esc(q.name)).join(', ')} (ตำแหน่งห่างจากแนวคลองในแผนที่เกิน 300 ม.) แสดงเป็นจุดสีเทา</li>`);
-  $('#profDefs').innerHTML=li.join('');
+  if(GT.size)li.push(`<li><b>ประตูน้ำ / สถานีสูบในแนวคลอง:</b> ${G.filter(q=>GT.has(q.code)).map(q=>esc(q.name)).join(', ')} (กรอบสี่เหลี่ยมที่แกนล่าง) ช่วงที่ติดประตูน้ำเป็นเส้นประจาง ระดับน้ำต่างกันเพราะการเปิดปิดบาน ไม่ใช่ความฝืดของคลอง จึงไม่นับคำนวณคอขวดและความจุ${P.q&&!P.canal?`, ช่วงปกติให้ความจุราว ${fmt(P.q,0)} ลบ.ม./วิ. (ช่วง ${fmt(P.q_range[0],0)}–${fmt(P.q_range[1],0)}) แสดงเพื่อเทียบเท่านั้น ไม่ได้ใช้แทนค่าในโมเดล`:''}</li>`);
+  $('#profDefs').innerHTML=li.join('');};
+  draw(PS[0]);
+})();
+
+// ---------- water outside the canals (streets): what the pumps are for ----------
+(()=>{const SF=PL.surface;if(!SF)return;const R=SF.roads||[],V=SF.volume0||{},A=SF.assumptions||{};
+  if(!R.length&&!(V.rain_mm3>0.01))return;$('#surfPanel').hidden=false;
+  $('#surfNote').innerHTML=`ข้อมูล ณ ${thDT(PL.fetched)}: ฝนที่ตกแล้วแต่ยังไม่ลงคลอง ${fmt(V.rain_mm3,2)} ล้าน ลบ.ม., น้ำบนถนนรอบเซนเซอร์ที่ท่วม ${R.length} จุด ราว ${fmt((V.streets_mm3||0)*1e6,0)} ลบ.ม. `+
+    `น้ำบนถนนไหลลงคลองผ่านท่อระบายได้เร็วสุด ${fmt(A.gamma_mm_h,0)} มม./ชม. และช้าลงเมื่อน้ำในคลองช่วงนั้นสูง จึงต้องสูบน้ำคลองลงก่อน ถนนจึงแห้งเร็วขึ้น`;
+  const hr=v=>v==null?'> 48':fmt(v,1),pc=v=>Math.round(Math.max(0,Math.min(1,v||0))*100);
+  const bar=v=>`<span style="display:inline-block;vertical-align:middle;width:46px;height:8px;background:var(--line);border-radius:4px;margin-left:6px;overflow:hidden"><span style="display:block;height:100%;width:${pc(v)}%;background:var(--down)"></span></span>`;
+  const cause=r=>r.kind==='persistent_canal'?`<b style="color:var(--down)">น้ำค้างระดับเดียวกับคลอง</b> <span class="note">(ท่วม ${fmt(r.wet_h,0)} ชม.)</span>`
+    :r.kind==='persistent_local'?`<b>ท่วมขังนาน คลองไม่สูง</b> <span class="note">(${fmt(r.wet_h,0)} ชม. ที่ลุ่มหรือท่ออุดตันเฉพาะจุด การสูบคลองไม่ช่วย)</span>`
+    :(r.block_now>0.5?'<b>ฝน + คลองดันท่อ</b>':'<b>ฝนเกินท่อชั่วคราว</b>');
+  const rows=R.map(r=>{const gain=(r.clear_h_current??48)-(r.clear_h_plan??48);
+    return `<tr data-x="${r.lon}" data-y="${r.lat}" style="cursor:pointer"><td class="l"><b>${esc(short(r.name))}</b><br><span class="note">เขต${esc(r.district)}</span></td>
+      <td class="num">${fmt(r.depth_cm,0)}</td><td class="num">${fmt(r.vol_m3,0)}</td>
+      <td class="num">${r.canal_excess_m>0?'+'+fmt(r.canal_excess_m,2):'<span class="note">ไม่เกิน</span>'}</td>
+      <td class="num">${pc(r.block_now)}%${bar(r.block_now)}</td><td class="num">${pc(r.block_plan)}%</td>
+      <td class="num">${hr(r.clear_h_current)}</td><td class="num"><b>${hr(r.clear_h_plan)}</b>${gain>=0.5?` <span class="note">(เร็วขึ้น ${fmt(gain,1)})</span>`:''}</td>
+      <td class="l">${cause(r)}${r.sink?`<br><span class="note">น้ำออก: ${esc(short(r.sink))}</span>`:''}</td></tr>`}).join('');
+  $('#tSurf').innerHTML=`<thead><tr><th class="l">ถนน (เซนเซอร์)</th><th>ลึก<br>ซม.</th><th>น้ำบนถนน<br>ลบ.ม.</th><th>คลองเกิน<br>เกณฑ์เตือน ม.</th><th>ท่อถูกคลองดัน<br>สูบเท่าเดิม</th><th>ท่อถูกดัน<br>โมเดล A</th><th>ลดลง 90%<br>สูบเท่าเดิม ชม.</th><th>ลดลง 90%<br>โมเดล A ชม.</th><th class="l">สาเหตุ (จากข้อมูลเซนเซอร์)</th></tr></thead><tbody>${rows||'<tr><td class="l" colspan="9"><span class="note">ขณะนี้ไม่มีเซนเซอร์ถนนที่น้ำท่วม</span></td></tr>'}</tbody>`;
+  $('#tSurf').onclick=e=>{const tr=e.target.closest('tr[data-x]');if(tr){zoomTo(+tr.dataset.x,+tr.dataset.y,W/8);$('#mapbox').scrollIntoView({behavior:'smooth',block:'center'})}};
+  const PP=(SF.purpose||[]).filter(p=>p.streets.length);
+  $('#surfDefs').innerHTML=[
+    ...PP.slice(0,6).map(p=>`<li><b>${esc(short(p.name))}${p.add_m3s>=1?` สูบเพิ่ม ${fmt(p.add_m3s,1)} ลบ.ม./วิ.`:''}:</b> รับน้ำจากถนน ${p.streets.map(c=>esc(short((R.find(r=>r.code===c)||{}).name||c))).join(', ')}${p.faster_h>=0.5?` ถนนแห้งเร็วขึ้นรวม ${fmt(p.faster_h,1)} ชม.`:' (ในโมเดล การสูบเพิ่มไม่ทำให้ถนนกลุ่มนี้แห้งเร็วขึ้นภายใน 48 ชม.: ท่อยังรับได้อยู่แล้ว หรือเป็นจุดท่วมขังเฉพาะที่)'}</li>`),
+    ...(SF.skipped&&SF.skipped.length?[`<li><b>ไม่นับ ${SF.skipped.length} เซนเซอร์:</b> ${SF.skipped.map(x=>esc(short(x.name))+' '+fmt(x.depth_cm,0)+' ซม.').join(', ')} ค่าเกือบเท่าเดิมตลอด 24 ชม. (น่าจะเป็นค่าตั้งศูนย์ของเซนเซอร์ ไม่ใช่น้ำ)</li>`]:[]),
+    `<li><b>สาเหตุ:</b> น้ำค้างระดับเดียวกับคลอง = ท่วม 5 ซม. ขึ้นไปต่อเนื่องเกิน 12 ชม. และคลองช่วงนั้นสูง ถนนจะลดลงตามระดับคลองเท่านั้น จึงต้องสูบน้ำคลองลง, ท่วมขังนาน คลองไม่สูง = ท่วมเกิน 12 ชม. ทั้งที่คลองช่วงนั้นไม่สูง โมเดลไม่ให้ลดเอง (แสดง > 48 ชม.) ต้องแก้ที่จุดนั้น เช่น ลอกท่อหรือเครื่องสูบเคลื่อนที่, ฝนเกินท่อชั่วคราว = เพิ่งท่วมหลังฝนและคลองยังรับได้ จะลดเองเมื่อฝนหยุด</li>`,
+    `<li><b>ท่อถูกคลองดัน:</b> สัดส่วนที่ท่อระบายจากถนนลงคลองรับน้ำไม่ได้เพราะน้ำในคลองช่วงนั้นสูง (0% = ระบายได้เต็มที่, 100% = คลองถึงระดับวิกฤต ท่อระบายไม่ได้) คิดจากปริมาตรน้ำทั้งช่วงคลองรอบสถานีวัดที่ใกล้ที่สุด ไม่ใช่จุดเดียว</li>`,
+    `<li><b>น้ำบนถนน (ประมาณ):</b> ความลึกจากเซนเซอร์ × พื้นที่ต่ำรอบเซนเซอร์ในรัศมี ${fmt(A.radius_m,0)} ม. (ความสูงพื้นดิน 120 ม.) × ${fmt((A.road_share||0)*100,0)}% (ส่วนที่เป็นถนนและที่ต่ำ) ค่านี้ยังไม่ได้ปรับเทียบ ใช้ดูลำดับมากน้อย</li>`,
+    `<li><b>ฝนที่ยังไม่ลงคลอง:</b> ฝนจากสถานีวัดฝน 6 ชม. ล่าสุด (${esc(A.rain_lag||'')}) × สัดส่วนน้ำท่า ${fmt(A.C,2)} × พื้นที่รับน้ำ ไหลลงคลองด้วยท่อระบายของพื้นที่นั้น</li>`].join('');
 })();
 
 // ---------- assumptions table ----------
@@ -531,11 +575,12 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
   ['ความจุคลอง','ass',Object.values(CL).map(c=>`${c.label}: กว้าง ${c.w} ม. ลึก ${c.d} ม.`).join(', ')+`, คลองช่วง 6 กม. แรกที่ไหลเข้าสถานีสูบ ถือว่ารับน้ำได้เท่ากำลังสูบ (ลดลงตามระยะ)`+Object.entries(M.cap_cal||{}).map(([k,v])=>`, ${k}: ${fmt(v.after,1)} ลบ.ม./วิ. จากระดับน้ำที่วัดได้ (เดิม ${fmt(v.before,1)}) ดูกราฟระดับน้ำตามแนวคลอง`).join('')],
   ['ความเร็วน้ำ','ass','0.5 ม./วิ. (ค่าระมัดระวัง) เทียบกรณีศึกษา SWE ปี 2561 แล้วค่า 0.65–0.7 ให้ผลใกล้กว่า ปรับได้'],
   ['พื้นที่รับน้ำ','dat',`แบ่งพื้นที่ กทม. เป็นตาราง 300 ม. แต่ละช่องส่งน้ำเข้าจุดต่อคลองที่ใกล้ที่สุด รวม ${fmt(N.reduce((a,n)=>a+n[2],0),0)} ตร.กม.`],
+  ['น้ำนอกคลอง (2 ชั้น)','ass',`นอกจากน้ำในคลอง โมเดลมีน้ำอีกชั้นหนึ่งนอกคลอง: น้ำบนถนนรอบเซนเซอร์ที่ท่วม และฝน 6 ชม. ล่าสุดที่ยังไม่ลงคลอง น้ำชั้นนี้ไหลลงคลองผ่านท่อระบาย ไม่เกิน ${fmt(((PL.surface||{}).assumptions||{}).gamma_mm_h,0)} มม./ชม. ของพื้นที่ (กทม. ออกแบบไว้ราว 60) และลดลงเป็นสัดส่วนเมื่อน้ำในช่วงคลองนั้นสูงขึ้นจนถึงระดับวิกฤต วันแรกคำนวณทีละ 3 ชม. หลังจากนั้นทีละวัน`],
   ['ฝน','ass','หน้านี้ถือว่าไม่มีฝนตกเพิ่ม (กรณีมีฝนดูหน้าคาดการณ์ฝน) ฝนย้อนหลังใช้ปรับเทียบเท่านั้น'],
   ['สัดส่วนฝนที่ต้องสูบ (C)','cal',`${cal.C} จากสมการปริมาณสูบรายวันกับฝน ${cal.n_days} วัน (R² ${cal.r2}) ${cal.n_tel} สถานีที่รายงานค่า รวมผลการซึม ระเหย และน้ำที่ค้างในพื้นที่แล้ว, ทดลองปรับเทียบโดยรันโมเดลจริงทุกวันได้ C ใกล้เคียงกัน (0.66)`],
   ['น้ำพื้นฐาน','cal',`${cal.base_m3s_km2} ลบ.ม./วิ./ตร.กม. (น้ำเสียและน้ำซึมที่ต้องสูบแม้ไม่มีฝน) จากค่าคงที่ของสมการเดียวกัน ได้จากสถานีเขตชั้นในซึ่งหนาแน่น จึงน่าจะสูงเกินจริงในเขตชานเมือง`],
   ['น้ำเกินเกณฑ์ในคลอง','cal','ระดับน้ำปัจจุบันที่สูงกว่าเกณฑ์เตือนภัย × พื้นที่ผิวน้ำคลองรอบจุดต่อ × ตัวคูณพื้นที่เก็บน้ำของแต่ละโซน (ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด รวมน้ำบนพื้นที่ข้างคลอง)'],
-  ['เครื่องสูบใช้งานได้','ass',`โมเดล LP ใช้ 85% ของกำลังสูบ ช่วงฝนตกหนัก ก.ค.–ต.ค. สถานีใช้จริงสูงสุดค่ามัธยฐาน ${Math.round(cal.pump_used_median*100)}% (ส่วนหนึ่งเพราะน้ำไม่มากพอ ไม่ใช่เครื่องเสีย)`],
+  ['เครื่องสูบใช้งานได้','cal',`${PU.filter(p=>p.avail).length} สถานีที่มีมาตรวัดครบ ใช้อัตราสูบสูงสุดต่อวันที่เคยทำได้จริง × 1.1 (ระหว่าง 50–85% ของกำลังสูบ เช่น ${PU.filter(p=>p.avail).slice(0,3).map(p=>`${short(p.name)} ${Math.round(p.avail*100)}%`).join(', ')}) สถานีอื่นใช้ 85%, ช่วงฝนตกหนัก ก.ค.–ต.ค. สถานีใช้จริงสูงสุดค่ามัธยฐาน ${Math.round(cal.pump_used_median*100)}% (ส่วนหนึ่งเพราะน้ำไม่มากพอ ไม่ใช่เครื่องเสีย)`],
   ['ทางออกขอบเขต','ass',`${OU.length} จุดที่คลองหลักไหลออกด้านใต้ไปสมุทรปราการ/สมุทรสาคร ให้ระบายได้จุดละ 5 ลบ.ม./วิ. ด้านเหนือและตะวันออกถือว่าปิด ฝั่งตะวันออก (หนองจอก ลาดกระบัง คลองสามวา) จึงมักขึ้นว่าระบายไม่ทัน ซึ่งตรงกับบทบาทพื้นที่รับน้ำ/ฟลัดเวย์ของ กทม. แต่ควรตรวจกับกำลังสูบจริงของกรมชลประทานด้านท้ายน้ำ`],
   ['อุโมงค์ระบายน้ำ','dat',`${(M.tunnels||[]).length} อุโมงค์ที่ กทม. ใช้งานอยู่ (เส้นประบนแผนที่): `+(M.tunnels||[]).map(t=>`${t.name.replace('อุโมงค์ระบายน้ำ','')} ${t.cap} ลบ.ม./วิ. ยาว ${t.km} กม. ออกที่${t.pump}`).join(', ')+'. น้ำไหลทางเดียวจากคลองที่รับน้ำไปสถานีสูบปลายอุโมงค์ ไม่เกินกำลังสูบของสถานีนั้น, อุโมงค์บึงหนองบอนรับน้ำจากคลองรอบบึง ไม่ได้รับจากคลองประเวศฯ โดยตรง'],
   ['สิ่งที่ยังไม่รวม','ass','อุโมงค์ขนาดเล็ก (เช่น สุขุมวิท 26, 36, 42) บ่อหน่วงน้ำ (แก้มลิง) ท่อระบายน้ำ การบริหารประตูระบายน้ำภายใน และน้ำขึ้นน้ำลง'],
@@ -598,7 +643,8 @@ const STS=[['วิกฤต','--crit'],['เตือนภัย','--warn'],['
     ['--s2','ระยะยาว',`<p>${Gt('ทั่วไป: ทำทางผันน้ำ/อุโมงค์ เพิ่มกำลังสูบด้านท้ายพื้นที่ที่น้ำค้าง ติดมาตรวัดอัตราสูบให้ครบ')}${PL.not_reporting&&PL.not_reporting.length?` (ปัจจุบัน ${Vc(PL.not_reporting.length+' สถานี')}ไม่มีค่า)`:''}</p>`]];
   $('#pRecs').innerHTML=R2.map(([c,t,p])=>`<div class="rec"><span class="tag" style="background:var(${c})">${esc(t)}</span><div class="rb">${p.startsWith('<')?p:`<p>${p}</p>`}</div></div>`).join('')+
     `<ul class="defs" style="margin:0"><li><b class="cv">ตัวหนา</b> คำนวณจากข้อมูลล่าสุด (เปลี่ยนทุกครั้งที่อัปเดต)</li><li><span class="gen">ตัวจาง</span> คำแนะนำทั่วไปที่ไม่ขึ้นกับข้อมูล</li></ul>`;
-  $('#planCaveat').textContent=`ข้อควรระวัง: ปริมาตรน้ำ${z}ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด ได้ค่าพื้นที่เก็บน้ำเทียบเท่า ${fmt(PL.assumptions.lambda_zone[z],0)} เท่าของผิวน้ำคลอง (ราว ${fmt(PL.volume0[z],0)} ล้าน ลบ.ม.) ซึ่งรวมน้ำบนพื้นที่ข้างคลองและน้ำที่ไหลเข้าจากทางเหนือไว้ด้วย ความจุคลองและทางออกขอบเขตเป็นค่าสมมติ ตัวเลขวันจึงใช้เทียบระหว่างทางเลือกได้ดีกว่าใช้เป็นค่าพยากรณ์`;
+  $('#planCaveat').textContent=`ข้อควรระวัง: ปริมาตรน้ำ${z}ปรับเทียบจากอัตราที่ระดับน้ำลดจริงใน 24 ชม. ล่าสุด ได้ค่าพื้นที่เก็บน้ำเทียบเท่า ${fmt(PL.assumptions.lambda_zone[z],0)} เท่าของผิวน้ำคลอง (ราว ${fmt(PL.volume0[z],0)} ล้าน ลบ.ม.) ซึ่งรวมน้ำบนพื้นที่ข้างคลองและน้ำที่ไหลเข้าจากทางเหนือไว้ด้วย ความจุคลองและทางออกขอบเขตเป็นค่าสมมติ ตัวเลขวันจึงใช้เทียบระหว่างทางเลือกได้ดีกว่าใช้เป็นค่าพยากรณ์`+
+    (((PL.assumptions.lambda_status||{})[z]||'fit')!=='fit'?` รอบนี้${PL.assumptions.lambda_status[z].replace('คงค่าเดิม','ใช้ค่าพื้นที่เก็บน้ำของรอบก่อน')} เพราะช่วงฝนตกอัตราน้ำลดไม่ได้สะท้อนน้ำที่ค้างอยู่`:'');
 })();
 
 // ---------- verification ----------

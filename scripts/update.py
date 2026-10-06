@@ -11,7 +11,7 @@
 Only the Python standard library is needed. The site is a public web page, not an official API: requests are
 kept slow and few. Run from anywhere; paths are relative to this file.
 """
-import csv, json, os, re, sys, time, subprocess, ssl, html
+import collections, csv, json, os, re, sys, time, subprocess, ssl, html
 import urllib.request, urllib.parse
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
@@ -53,6 +53,205 @@ def th_to_utc(s):
     return t.strftime('%Y-%m-%dT%H:%M')
 
 
+def append_csv(fn, head, rows, key=2):
+    """append rows to a CSV, skipping rows whose first `key` columns are already in it; a file with an older
+    header is kept as <name>_v1.csv and a new file is started. On Linux the file is locked while this runs, so the
+    hourly run, the 10-minute collection and the nightly history download can write the same file safely."""
+    try:
+        import fcntl
+    except ImportError:
+        return _append_csv(fn, head, rows, key)
+    lkd = os.path.join(os.path.dirname(fn) or '.', '.locks'); os.makedirs(lkd, exist_ok=True)
+    with open(os.path.join(lkd, os.path.basename(fn) + '.lock'), 'w') as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        return _append_csv(fn, head, rows, key)
+
+
+def _append_csv(fn, head, rows, key=2):
+    seen = set()
+    if os.path.exists(fn):
+        rd = list(csv.reader(open(fn, encoding='utf-8-sig')))
+        if rd and rd[0] != head:
+            os.replace(fn, fn[:-4] + '_v1.csv'); rd = []
+        seen = {tuple(r[:key]) for r in rd[1:]}
+    nz = lambda x: '' if x is None else str(x)
+    new = [r for r in rows if r[1] and tuple(nz(x) for x in r[:key]) not in seen]
+    with open(fn, 'a', newline='', encoding='utf-8-sig') as f:
+        w = csv.writer(f)
+        if not seen and not (os.path.exists(fn) and os.path.getsize(fn) > 3): w.writerow(head)
+        w.writerows(new)
+    return len(new)
+
+
+HIST = lambda *a: os.path.join(DATA, 'history', *a)
+T0 = time.time()      # start of this run (for runs_<month>.csv)
+
+
+def archive(snap):
+    """keep every measured reading (for later models: machine learning, reinforcement learning, re-calibration)
+       data/history/<kind>_<YYYY-MM>.csv  one row per station and measured time (local time), never overwritten
+       data/history/snap/<YYYYMMDD_HH>.json.gz  the whole snapshot of this update"""
+    import gzip
+    os.makedirs(HIST('snap'), exist_ok=True)
+    loc = lambda u: (datetime.fromisoformat(u) + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M') if u else None
+    now = datetime.now(timezone(timedelta(hours=7))); mon = now.strftime('%Y-%m')
+    with gzip.open(HIST('snap', now.strftime('%Y%m%d_%H') + '.json.gz'), 'wt', encoding='utf-8') as f:
+        json.dump(snap, f, ensure_ascii=False, separators=(',', ':'))
+    kinds = dict(
+        canal=(['code', 'measured', 'wl_in_m', 'wl_out_m', 'wl_out2_m', 'gate1', 'gate2', 'gate3', 'status', 'max_in_today_m'],
+               [(x[0], loc(x[11]), x[13], x[14], x[15], x[8], x[9], x[10], x[12], x[22]) for x in snap['W']]),
+        road=(['code', 'measured', 'depth_cm', 'max_cm', 'status'], [(x[0], loc(x[8]), x[9], x[10], x[12]) for x in snap['F']]),
+        rain=(['code', 'measured', 'rf15m_mm', 'rf1h_mm', 'rf3h_mm', 'rf6h_mm', 'rf12h_mm', 'rf24h_mm'],
+              [(x[0], loc(x[6]), x[7], x[8], x[9], x[10], x[11], x[12]) for x in snap['R']]),
+        tunnel=(['code', 'measured', 'depth_cm', 'max_cm'], [(x[0], loc(x[4]), x[5], x[6]) for x in snap['T']]))
+    n = sum(append_csv(HIST(f'{k}_{mon}.csv'), h, r) for k, (h, r) in kinds.items())
+    # station lists with coordinates, banks and thresholds (they change rarely; a new row only when something changes)
+    st = (['code', 'name', 'district_id', 'district', 'lat', 'lon', 'system', 'gates', 'left_bank_m', 'right_bank_m',
+           'warning_m', 'critical_m', 'warning_out_m', 'critical_out_m', 'river', 'first_seen'],
+          [(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[16], x[17], x[18], x[19], x[20], x[21], x[24], now.strftime('%Y-%m-%d %H:%M')) for x in snap['W']])
+    append_csv(HIST('canal_stations.csv'), *st, key=15)
+    append_csv(HIST('road_sensors.csv'), ['code', 'name', 'road', 'district_id', 'district', 'lat', 'lon', 'type', 'first_seen'],
+               [(x[0], x[2], x[3], x[4], x[5], x[6], x[7], x[13], now.strftime('%Y-%m-%d %H:%M')) for x in snap['F']], key=8)
+    append_csv(HIST('rain_stations.csv'), ['code', 'name', 'district_id', 'district', 'lat', 'lon', 'first_seen'],
+               [(x[0], x[1], x[2], x[3], x[4], x[5], now.strftime('%Y-%m-%d %H:%M')) for x in snap['R']], key=6)
+    print(f'history: +{n} readings (data/history)')
+
+
+def backfill(max_gap_h=2.5):
+    """after a gap (computer off or asleep): the BMA station pages keep the last ~48 h of hourly canal levels.
+    If the previous update is more than `max_gap_h` hours ago, pull them and add the missing hours to the history
+    (status 'backfill'). Road sensors and Traffy cannot be filled this way (Traffy is re-read 14 days back anyway)."""
+    fn = HIST('last_update.txt'); now = datetime.now(timezone(timedelta(hours=7))).replace(tzinfo=None)
+    last = None
+    if os.path.exists(fn):
+        try: last = datetime.strptime(open(fn).read().strip(), '%Y-%m-%d %H:%M')
+        except ValueError: last = None
+    open(fn, 'w').write(now.strftime('%Y-%m-%d %H:%M'))
+    if last is not None and (now - last).total_seconds() < max_gap_h * 3600: return
+    if last is None:            # first run with the history: keep the hourly pull already on disk (1-3 Oct 2026)
+        last = datetime(2000, 1, 1); print('history: adding the hourly canal levels already on disk (wr_raw.json)')
+    else:
+        print(f'gap since {last:%Y-%m-%d %H:%M} ({(now - last).total_seconds() / 3600:.0f} h): filling canal levels from the station pages')
+        hourly()
+    wr = json.load(open(P('wr_raw.json'), encoding='utf-8')); idmap = {str(a): b for a, b in json.load(open(P('idmap.json'), encoding='utf-8'))['w']}
+    by = collections.defaultdict(list); t0 = last.strftime('%Y-%m-%d %H:%M')
+    for wid, v in wr['water'].items():
+        code = idmap.get(wid)
+        if not code: continue
+        for row in v.get('data') or []:
+            try:
+                d, t = (row[0].split(' ') + ['00:00'])[:2]; dd, mm, yy = d.split('/'); yy = int(yy) - (543 if int(yy) > 2400 else 0)
+                ts = f'{yy:04d}-{int(mm):02d}-{int(dd):02d} {t}'
+            except (ValueError, IndexError): continue
+            if ts <= t0: continue
+            val = lambda k: row[k] if len(row) > k and row[k] not in ('', '-') else None
+            by[ts[:7]].append((code, ts, val(1), val(2), val(3), None, None, None, 'backfill', None))
+    head = ['code', 'measured', 'wl_in_m', 'wl_out_m', 'wl_out2_m', 'gate1', 'gate2', 'gate3', 'status', 'max_in_today_m']
+    n = sum(append_csv(HIST(f'canal_{m}.csv'), head, rows) for m, rows in by.items())
+    print(f'backfill: +{n} hourly canal readings')
+
+
+def export_daily(redo_days=3):
+    """one CSV per kind and day (data/history/daily/<kind>/<kind>_YYYY-MM-DD.csv) for days that are over: these are the
+    files pushed to GitHub (each is written once, so the repository grows only by the data itself). The last
+    `redo_days` days are rewritten each time (backfill can still add to them)."""
+    import glob
+    today = datetime.now(timezone(timedelta(hours=7))).strftime('%Y-%m-%d')
+    redo = (datetime.now(timezone(timedelta(hours=7))) - timedelta(days=redo_days)).strftime('%Y-%m-%d')
+    col = dict(canal=1, road=1, rain=1, tunnel=1, traffy=2, advice_pumps=0, advice_plan=0, runs=0, pump_hourly=1, river=1)
+    n = 0
+    for kind, c in col.items():
+        days = collections.defaultdict(list); head = None
+        for fn in sorted(glob.glob(HIST(f'{kind}_????-??.csv'))):
+            rd = csv.reader(open(fn, encoding='utf-8-sig')); h = next(rd, None)
+            if head is None: head = h
+            elif h != head: continue
+            for r in rd:
+                if len(r) > c and r[c][:10] < today: days[r[c][:10]].append(r)
+        if not head: continue
+        os.makedirs(HIST('daily', kind), exist_ok=True)
+        for d, rows in days.items():
+            out = HIST('daily', kind, f'{kind}_{d}.csv')
+            if os.path.exists(out) and d < redo: continue
+            with open(out, 'w', newline='', encoding='utf-8-sig') as f:
+                w = csv.writer(f); w.writerow(head); w.writerows(sorted(rows, key=lambda r: (r[c], r[0])))
+            n += 1
+    if n: print(f'history: {n} daily files written (data/history/daily)')
+
+
+def archive_outputs():
+    """after the models: what was measured and what the models advised at this update (state -> action log),
+    the pump volumes, and the rain forecast that was used (to score forecasts against the rain that fell)"""
+    import gzip
+    now = datetime.now(timezone(timedelta(hours=7))); run = now.strftime('%Y-%m-%d %H:%M'); mon = now.strftime('%Y-%m')
+    if os.path.exists(P('pump_daily.csv')):
+        rows = list(csv.reader(open(P('pump_daily.csv'), encoding='utf-8-sig')))
+        if rows: append_csv(HIST('pump_daily.csv'), rows[0], rows[1:])
+    if os.path.exists(P('forecast_raw.json')):
+        FR = json.load(open(P('forecast_raw.json'), encoding='utf-8'))
+        os.makedirs(HIST('forecast'), exist_ok=True)
+        fn = HIST('forecast', now.strftime('%Y%m%d_%H') + '.json.gz')
+        if not os.path.exists(fn):
+            with gzip.open(fn, 'wt', encoding='utf-8') as f:
+                json.dump({k: FR[k] for k in ('fetched', 'source', 'time', 'points', 'det')}, f, separators=(',', ':'))
+    if os.path.exists(P('forecast.json')):
+        F = json.load(open(P('forecast.json'), encoding='utf-8'))
+        rows = []
+        for sc in F['scenarios']:
+            for p in sc['pumps']:
+                rows.append((run, sc['key'], p['id'], p['now'], p['series'][0], max(p['series']), p.get('start'), p['cap']))
+        append_csv(HIST(f'advice_pumps_{mon}.csv'), ['run', 'scenario', 'pump', 'measured_m3s', 'advised_first_m3s', 'advised_max_m3s',
+                                                     'start_step', 'capacity_m3s'], rows, key=3)
+    if os.path.exists(P('plan.json')):
+        PL = json.load(open(P('plan.json'), encoding='utf-8'))
+        rows = [(run, sc, z, d.get('50%'), d.get('90%'), PL['volume0'].get(z), PL['assumptions']['lambda_zone'].get(z))
+                for sc in ('current', 'plan', 'mobile', 'trunk') for z, d in PL[sc]['days'].items()]
+        append_csv(HIST(f'advice_plan_{mon}.csv'), ['run', 'scenario', 'zone', 'days_50', 'days_90', 'volume0_mm3', 'lambda'], rows, key=3)
+    archive_model(now)
+    export_daily()
+
+
+def code_version():
+    """short fingerprint of the model code (scripts/*.py, *.html, *.js): changes whenever the model changes"""
+    import glob, hashlib
+    h = hashlib.sha1()
+    for fn in sorted(glob.glob(os.path.join(HERE, '*.py')) + glob.glob(os.path.join(HERE, '*.html')) + glob.glob(os.path.join(HERE, '*.js'))):
+        h.update(os.path.basename(fn).encode()); h.update(open(fn, 'rb').read().replace(b'\r\n', b'\n'))
+    return h.hexdigest()[:10]
+
+
+def archive_model(now, t_start=None):
+    """what the models predicted at this run, to score them later against what was measured:
+       data/history/model/<YYYYMMDD_HH>_forecast.json.gz  48-h canal levels per station, zones, pumps (forecast + extreme)
+       data/history/model/<YYYYMMDD_HH>_plan.json.gz      30-day plan (and _plan_v068 sensitivity)
+       data/history/model/<YYYYMMDD_HH>_flood.json.gz     flood map (every 3 h)
+       data/history/runs_<YYYY-MM>.csv                    one row per run: code version, inputs, key parameters"""
+    import gzip
+    os.makedirs(HIST('model'), exist_ok=True); tag = now.strftime('%Y%m%d_%H')
+    files = [('forecast.json', 'forecast'), ('plan.json', 'plan'), ('plan_v068.json', 'plan_v068')] + ([('flood.json', 'flood')] if now.hour % 3 == 0 else [])
+    for src, name in files:
+        out = HIST('model', f'{tag}_{name}.json.gz')
+        if os.path.exists(P(src)) and not os.path.exists(out):
+            with open(P(src), 'rb') as f, gzip.open(out, 'wb') as g: g.write(f.read())
+    S = json.load(open(P('snapshot.json'), encoding='utf-8')) if os.path.exists(P('snapshot.json')) else {}
+    PL = json.load(open(P('plan.json'), encoding='utf-8')) if os.path.exists(P('plan.json')) else {}
+    FC = json.load(open(P('forecast.json'), encoding='utf-8')) if os.path.exists(P('forecast.json')) else {}
+    A = PL.get('assumptions', {}); lam = A.get('lambda_zone') or {}
+    av = A.get('avail'); av = av if isinstance(av, (int, float)) else None
+    ok = lambda k, i: sum(1 for x in S.get(k, []) if x[i] not in (None, '', -99))
+    tot = {sc['key']: sc.get('total_mm') for sc in FC.get('scenarios', [])}
+    import socket
+    row = (now.strftime('%Y-%m-%d %H:%M'), code_version(), socket.gethostname(), S.get('fetched'),
+           ok('W', 13), len(S.get('W', [])), ok('F', 9), len(S.get('F', [])), ok('R', 8), len(S.get('R', [])),
+           FC.get('forecast_fetched'), tot.get('forecast'), tot.get('extreme'), A.get('v'), av,
+           *[lam.get(z) for z in ('ชั้นในและฝั่งตะวันตก', 'เหนือ', 'ตะวันออกรอบนอก')],
+           round(time.time() - (t_start or T0)))
+    append_csv(HIST(f'runs_{now:%Y-%m}.csv'),
+               ['run', 'code_version', 'host', 'bma_fetched_utc', 'canal_ok', 'canal_n', 'road_ok', 'road_n', 'rain_ok', 'rain_n',
+                'rain_forecast_fetched', 'forecast_total_mm', 'extreme_total_mm', 'plan_v', 'pump_avail_default',
+                'lambda_inner_west', 'lambda_north', 'lambda_east', 'run_seconds'], [row], key=1)
+
+
 def snapshot():
     t0 = time.time()
     W = json.loads(get('/water/PageMap/GoogleMap', b''))
@@ -88,6 +287,8 @@ def snapshot():
                           ms_to_utc(r['site_timestamp']), r['rf15min'], r['rf1hr'], r['rf3hr'], r['rf6hr'], r['rf12hr'], r['rf24hr'],
                           r['rf_7_now'], r['rf_0_now']])
     json.dump(snap, open(P('snapshot.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+    try: archive(snap)
+    except Exception as e: print('บันทึกประวัติไม่สำเร็จ (ข้าม):', e)
     # keep the water_id -> code map current (used for the hourly pull)
     json.dump(dict(w=[[w['water_id'], w['water_code']] for w in W]), open(P('idmap.json'), 'w', encoding='utf-8'), ensure_ascii=False)
     print(f'snapshot: canal {len(W)} · road {len(snap["F"])} · rain {len(R)} · tunnel {len(snap["T"])} ({time.time() - t0:.0f} s)')
@@ -145,7 +346,7 @@ def traffy(days=14):
     """flood reports from Traffy Fondue (public API), last `days` days -> data/traffy_flood.json"""
     end = datetime.now(timezone(timedelta(hours=7))).date(); start = end - timedelta(days=days)
     SC = dict(start=0, inprogress=1, forward=2, follow=3, finish=4, irrelevant=5)
-    rows = []; off = 0
+    rows = []; arch = []; off = 0
     while off < 60000:
         q = urllib.parse.urlencode(dict(output_format='geojson', start=str(start), end=str(end + timedelta(days=1)),
                                         problem_type='น้ำท่วม', limit=1000, offset=off))
@@ -156,6 +357,9 @@ def traffy(days=14):
         for f in fs:
             p = f['properties']; lon, lat = f['geometry']['coordinates']
             recent = p.get('timestamp', '') >= str(end - timedelta(days=4)) and SC.get(p.get('state_type_latest'), 9) < 4
+            arch.append((p.get('ticket_id'), p.get('state_type_latest') or '', (p.get('timestamp') or '')[:16].replace('T', ' '),
+                         (p.get('last_activity') or '')[:16].replace('T', ' '), round(lon, 6), round(lat, 6), p.get('district') or '',
+                         p.get('subdistrict') or '', re.sub(r'\s+', ' ', p.get('description') or ''), p.get('photo_url') or ''))
             rows.append([p.get('ticket_id'), round(lon, 5), round(lat, 5), (p.get('timestamp') or '')[5:16], SC.get(p.get('state_type_latest'), 9),
                          p.get('district') or '', re.sub(r'\s+', ' ', p.get('description') or '')[:60] if recent else ''])
         if len(fs) < 1000: break
@@ -165,7 +369,12 @@ def traffy(days=14):
                cols=['ticket', 'lon', 'lat', 'time', 'state', 'district', 'desc'],
                states=['รอรับเรื่อง', 'กำลังดำเนินการ', 'ส่งต่อ', 'ติดตาม', 'เสร็จสิ้น', 'ไม่เกี่ยวข้อง'], rows=rows)
     json.dump(out, open(P('traffy_flood.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
-    print(f'Traffy flood reports: {len(rows)}')
+    os.makedirs(HIST(), exist_ok=True)
+    by = collections.defaultdict(list)
+    for r in arch: by[r[2][:7] or 'unknown'].append(r)
+    nn = sum(append_csv(HIST(f'traffy_{k}.csv'), ['ticket', 'state', 'reported', 'last_activity', 'lon', 'lat', 'district',
+                                                   'subdistrict', 'description', 'photo_url'], v) for k, v in by.items())
+    print(f'Traffy flood reports: {len(rows)} (+{nn} new or changed in data/history)')
 
 
 def forecast():
@@ -223,6 +432,8 @@ if __name__ == '__main__':
         rebuild(plan='--no-plan' not in args); sys.exit(0)
     try:
         snapshot()
+        try: backfill()
+        except Exception as e: print('เติมช่วงที่ขาดไม่สำเร็จ (ข้าม):', e)
         if '--no-pump' not in args: pumps()
         if '--hourly' in args: hourly()
         if '--no-forecast' not in args:
@@ -237,4 +448,6 @@ if __name__ == '__main__':
         print('(หน้าเว็บยังใช้ข้อมูลชุดเดิมได้ตามปกติ)')
         sys.exit(1)
     rebuild(plan='--no-plan' not in args)
+    try: archive_outputs()
+    except Exception as e: print('บันทึกผลโมเดลไม่สำเร็จ (ข้าม):', e)
     print('\nเสร็จแล้ว: เปิดหน้าเว็บใหม่ (F5)')

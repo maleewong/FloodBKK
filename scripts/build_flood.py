@@ -213,7 +213,7 @@ def canal_overflow(stations, districts, use_now=False, rain_ex=None, rain_on=Non
                   if r.get('district') == name and r.get('crit') is not None]
             hmax = max([h for h in hs if h > 0], default=0.2)
             lmax = float(np.median(GR[seed])) + hmax if seed.any() else None
-            field = np.maximum(field, spread_volume(vc, region, seed, cap=0.5, lmax=lmax))
+            field = np.maximum(field, spread_volume(vc, region, seed, cap=0.45, lmax=lmax))   # fields: shallow sheet, < 50 cm
         if vr >= 1e4:
             dd = spread_volume(vr, dm, dm, cap=0.6); rain = np.maximum(rain, dd); wet_rain.add(name)
             w = dd >= 0.05; on[w] = np.minimum(on[w], float(rain_on[dm].min()) if rain_on is not None else 255)
