@@ -1,2 +1,3 @@
 ﻿run,code_version,host,bma_fetched_utc,canal_ok,canal_n,road_ok,road_n,rain_ok,rain_n,rain_forecast_fetched,forecast_total_mm,extreme_total_mm,plan_v,pump_avail_default,lambda_inner_west,lambda_north,lambda_east,run_seconds
+2026-10-05 23:26,42fb585579,xk39prj2z,2026-10-05T16:20:06.000Z,310,311,251,251,124,124,2026-10-05T16:20:09.000Z,14.5,43.5,0.5,0.85,5.0,1.0,144.5,366
 2026-10-05 23:34,32e78aebf9,MTriTUF,2026-10-05T16:20:06.000Z,310,311,251,251,124,124,2026-10-05T16:20:13.000Z,14.5,43.5,0.5,0.85,5.0,1.0,144.5,881
