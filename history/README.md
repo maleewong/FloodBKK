@@ -81,3 +81,11 @@ GitHub เก็บเฉพาะ `daily/` + ข้อมูลสถานี 
 - `canal_widths2557.json`, `pump_report2557.json`, `control_levels2557.json`: จากแผนปฏิบัติการฯ กทม. 2557
 - `road_net.json`, `road_segments.json`, `osm_residential.json`: ถนนและหมู่บ้านจาก OpenStreetMap
 - `scripts/tunnels.py`: อุโมงค์ระบายน้ำ 5 แห่ง (ความจุ จุดรับน้ำ ทางออก แหล่งอ้างอิง)
+
+## Rolling verification (since 11 Oct 2026, scripts/verify.py, called by update.py every run; does not change the plan)
+- verify_pred_YYYY-MM.csv  run, code, horizon_h (24/48), zone, district, ex_now, ex_model: excess above warning (m) per gauge now
+  and what the "current" scenario of plan_lp expects at +24/+48 h
+- verify_score_YYYY-MM.csv the same + ex_obs: measured excess at run + horizon (+-40 min). Persistence (ex_now) is the baseline.
+- ../verify_summary.json    last 7 days per zone/district and horizon: MAE model, MAE persistence, bias, skill = 1 - MAE_model/MAE_persistence
+- east_gates_YYYY-MM.csv   east gates with a downstream level: wl_in, wl_out, head (out - in), gate opening, fitted inflow and ECF of
+  that run -> later fit of Q_in = sum k_g max(0, h_out - h_in)
