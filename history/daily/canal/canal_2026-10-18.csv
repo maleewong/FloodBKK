@@ -3079,6 +3079,7 @@ WL.WSV.01,2026-10-18 10:30,0.14,,,,,,out of order,0.23
 WL.BBN.01,2026-10-18 10:35,0.14,,,,,,out of order,0.3
 WL.KKD.04,2026-10-18 10:35,-0.89,,,,,,Normal,-0.65
 WL.JKK.01,2026-10-18 10:40,0.12,,,,,,out of order,0.13
+WL.KBU.02,2026-10-18 11:05,0.51,,,,,,out of order,0.51
 WL.KKS.03,2026-10-18 11:05,-0.75,,,,,,temporarily out of order,-0.75
 WL.ANG.01,2026-10-18 11:10,0.79,,,,,,Normal,
 WL.BBU.02,2026-10-18 11:10,0.38,,,,,,Normal,
@@ -5707,7 +5708,9 @@ WL.KKD.04,2026-10-18 19:35,-0.97,,,,,,Normal,-0.65
 WL.KPM.03,2026-10-18 19:55,-0.18,,,,,,temporarily out of order,-0.14
 WL.SSB.04,2026-10-18 19:55,-0.61,-0.63,,7.5,7.5,,temporarily out of order,-0.49
 WL.BCN.02,2026-10-18 20:00,0.48,,,,,,temporarily out of order,0.54
+WL.BTL.01,2026-10-18 20:05,-1.04,,,,,,out of order,-0.85
 WL.BYI.01,2026-10-18 20:05,0.8,,,,,,temporarily out of order,0.8
+WL.KKD.02,2026-10-18 20:05,-1.04,,,,,,out of order,-1.03
 WL.ANG.01,2026-10-18 20:10,0.78,,,,,,Normal,
 WL.BBU.02,2026-10-18 20:10,0.37,,,,,,Normal,
 WL.BKH.01,2026-10-18 20:10,-0.09,,,,,,Normal,
