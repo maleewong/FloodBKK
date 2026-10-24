@@ -1,0 +1,807 @@
+{
+ "made": "2026-10-25 01:24",
+ "schema": 1,
+ "code": {
+  "all": "e0ce742ee1",
+  "files": {
+   "adjust_network.py": "7a3a28d97a",
+   "build.py": "d2c11ea2d2",
+   "build_dem.py": "492cbf187b",
+   "build_flood.py": "4d0a6277c7",
+   "build_model.py": "57f621ae4e",
+   "build_network.py": "e9351a606f",
+   "build_outer.py": "2ab1858bff",
+   "build_ponding.py": "91f18f88e3",
+   "build_roadnet.py": "31b02b1ccd",
+   "build_roads.py": "7f2c6501b3",
+   "calibrate.py": "699fe77fec",
+   "canal_profile.py": "1ac343c771",
+   "cloudflare_worker.js": "3c748ab663",
+   "collect.py": "be21970ffe",
+   "data_qc.py": "95f206f78b",
+   "fetch_history.py": "e3eaf07a20",
+   "forecast_body.html": "a7e86f0d50",
+   "forecast_lp.py": "0734ad6a4e",
+   "gates.js": "63dffb5b07",
+   "load_res.py": "3b916d9f53",
+   "merge_incoming.py": "caf34f8020",
+   "model_body.html": "7333e080c8",
+   "model_core.js": "fa32f2e9db",
+   "plan_lp.py": "14e4f70233",
+   "ponding_body.html": "a3b5bcf501",
+   "pump_reported.py": "48dc932a5c",
+   "render.py": "476db27566",
+   "serve.py": "6497d4d73f",
+   "solver.js": "b030548f87",
+   "status.py": "5517d0bd16",
+   "template.html": "c058ab10da",
+   "tunnels.py": "937b6554f1",
+   "update.py": "9476e654a2",
+   "update_button.html": "b310de7119",
+   "verify.py": "9cf721af15",
+   "app/add_backup_key.sh": "e6527e3f04",
+   "app/auto_update.sh": "5010d86ea7",
+   "app/backup_send.sh": "4b77518ca2",
+   "app/collect.sh": "2765ee3509",
+   "app/enable_push.sh": "7071f7b52e",
+   "app/health.py": "87ffd224ae",
+   "app/history.sh": "a5d6a6d914",
+   "app/past_east.sh": "3ecff50fb8"
+  }
+ },
+ "health": {
+  "problems": [],
+  "info": [
+   "อัปเดตสำเร็จล่าสุด 1.0 ชม. ที่แล้ว",
+   "เก็บค่าทุก 10 นาที ล่าสุด 10 นาทีที่แล้ว",
+   "ดึงย้อนหลังรอบคืนล่าสุดจบ 24 ชม. ที่แล้ว",
+   "ระดับน้ำแม่น้ำ (กรมชลฯ) ล่าสุด 0.5 วันที่แล้ว",
+   "สำรองลงโน้ตบุ๊กล่าสุด 0.5 วันที่แล้ว",
+   "ดิสก์ VPS ใช้ไป 14% (ว่าง 43.7 GB), data/history ของ FloodBKK 0.39 GB",
+   "λ เหนือ 5.0, ฝั่งธนบุรี 1.0, ชั้นใน 1.0, ตะวันออกรอบนอก 5.3, ประตูตะวันออก 0.005"
+  ]
+ },
+ "plan": {
+  "made": "2026-10-25 01:21",
+  "fetched": "2026-10-25 01:20",
+  "qc": [
+   {
+    "label": "current (fit 0)",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 5.2e-15,
+    "ub_viol": 0.0,
+    "seconds": 12.4
+   },
+   {
+    "label": "current",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 6.94e-15,
+    "ub_viol": 0.0,
+    "seconds": 12.0
+   },
+   {
+    "label": "plan",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 6.94e-15,
+    "ub_viol": 0.0,
+    "seconds": 12.5
+   },
+   {
+    "label": "plan+mobile",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 5.2e-15,
+    "ub_viol": 0.0,
+    "seconds": 7.0
+   },
+   {
+    "label": "plan+gates open",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 8.67e-16,
+    "ub_viol": 0.0,
+    "seconds": 6.5
+   },
+   {
+    "label": "plan+trunk x2",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 1.73e-15,
+    "ub_viol": 0.0,
+    "seconds": 6.9
+   }
+  ],
+  "_error": null,
+  "params": "model_params.json 2026-10-17a",
+  "lambda_zone": {
+   "เหนือ": 5.0,
+   "ฝั่งธนบุรี": 1.0,
+   "ชั้นใน": 1.0,
+   "ตะวันออกรอบนอก": 5.3
+  },
+  "lambda_status": {
+   "เหนือ": "คงค่าเดิม: สถานีเกินเตือน ≥ 5 ซม. ไม่ถึง 3 แห่ง",
+   "ฝั่งธนบุรี": "คงค่าเดิม: สถานีเกินเตือน ≥ 5 ซม. ไม่ถึง 3 แห่ง",
+   "ชั้นใน": "คงค่าเดิม: สถานีเกินเตือน ≥ 5 ซม. ไม่ถึง 3 แห่ง",
+   "ตะวันออกรอบนอก": "fit"
+  },
+  "east_cap_factor": 0.005,
+  "east_inflow_m3s": 13.89,
+  "q_obs_rule": "relative",
+  "east_r_obs_day": 0.1046,
+  "C_east": 0.33,
+  "pump_reported": {
+   "WL.KKS.01": 2.1,
+   "WL.KKS.04": 3.5,
+   "WL.STR.01": 1.7,
+   "WL.KTY.01": 4.2,
+   "WL.KJK.01": 0.6,
+   "WL.WSI.01": 2.5,
+   "WL.CNS.01": 4.2,
+   "WL.BJK.01": 0.8,
+   "WL.CPA.01": 6.2,
+   "WL.PSC.01": 2.1,
+   "WL.SBT.01": 0.8,
+   "RE01": 1.2,
+   "RE07": 0.6,
+   "RE18": 1.0,
+   "RE19": 0.8,
+   "RE21": 0.3,
+   "RE26": 0.2,
+   "RE27": 0.3,
+   "RE28": 0.2,
+   "RE29": 0.2,
+   "RE30": 0.2,
+   "RE32": 6.2,
+   "RE34": 24.2,
+   "RE37": 1.1,
+   "RE44": 8.3,
+   "RW03": 0.3,
+   "RW04": 1.2,
+   "RW05": 0.8,
+   "RW08": 2.1,
+   "RW09": 0.1,
+   "RW12": 0.6,
+   "RW15": 0.6,
+   "RW17": 1.2,
+   "RW18": 0.6,
+   "RW19": 0.8,
+   "RW21": 0.3,
+   "RW28": 2.1,
+   "RW29": 0.6,
+   "RW34": 0.3,
+   "RW35": 0.3,
+   "RW36": 0.1,
+   "TN.NBN": 8.3,
+   "TN.PRM": 4.2
+  },
+  "pump_reported_rule": {
+   "frac_high": 0.9,
+   "high_share": 0.25,
+   "fleet": 0.138,
+   "zone_share": {
+    "ตะวันออกรอบนอก": 0.2,
+    "ฝั่งธนบุรี": 0.0,
+    "เหนือ": 0.0,
+    "ชั้นใน": 0.0
+   }
+  },
+  "not_reporting": 6,
+  "days_current": {
+   "ชั้นใน": {
+    "50%": 0.1,
+    "90%": 0.2
+   },
+   "ตะวันออกรอบนอก": {
+    "50%": 4.0,
+    "90%": 6.0
+   },
+   "ฝั่งธนบุรี": {
+    "50%": 0.0,
+    "90%": 0.0
+   },
+   "เหนือ": {
+    "50%": 0.0,
+    "90%": 0.0
+   },
+   "รวมทั้งเมือง": {
+    "50%": 4.0,
+    "90%": 6.0
+   }
+  },
+  "days_plan": {
+   "ชั้นใน": {
+    "50%": 0.1,
+    "90%": 0.2
+   },
+   "ตะวันออกรอบนอก": {
+    "50%": 3.0,
+    "90%": 4.0
+   },
+   "ฝั่งธนบุรี": {
+    "50%": 0.0,
+    "90%": 0.0
+   },
+   "เหนือ": {
+    "50%": 0.0,
+    "90%": 0.0
+   },
+   "รวมทั้งเมือง": {
+    "50%": 3.0,
+    "90%": 4.0
+   }
+  },
+  "qc_warning": null
+ },
+ "forecast": {
+  "made": "2026-10-25 01:22",
+  "fetched": "2026-10-25 01:20",
+  "forecast_fetched": "2026-10-24T18:20:19.000Z",
+  "qc": [
+   {
+    "label": "forecast pre-drain",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 2.91e-16,
+    "bound_viol": 0.0,
+    "seconds": 31.2
+   },
+   {
+    "label": "forecast no pre-drain",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 3.39e-16,
+    "bound_viol": 0.0,
+    "seconds": 31.7
+   },
+   {
+    "label": "extreme pre-drain",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 7.11e-16,
+    "bound_viol": 0.0,
+    "seconds": 22.5
+   },
+   {
+    "label": "extreme no pre-drain",
+    "status": 0,
+    "eq_abs_m3": 0.0,
+    "eq_rel": 8.32e-16,
+    "bound_viol": 0.0,
+    "seconds": 29.5
+   }
+  ],
+  "_error": null,
+  "scenarios": [
+   {
+    "key": "forecast",
+    "city_mm": [
+     0.0,
+     0.0,
+     0.0,
+     0.05,
+     1.34,
+     0.53,
+     0.02,
+     0.0,
+     0.02,
+     0.12,
+     0.15,
+     0.09,
+     0.16,
+     0.39,
+     0.37,
+     0.08,
+     0.03,
+     0.01,
+     0.02,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.03,
+     0.02,
+     0.01,
+     0.01,
+     0.01,
+     0.01,
+     0.03,
+     0.01,
+     0.0,
+     0.01,
+     0.11,
+     0.29,
+     0.22,
+     0.26,
+     1.65,
+     1.29,
+     0.37,
+     0.38,
+     0.12,
+     0.01,
+     0.16,
+     1.58,
+     0.17,
+     0.0,
+     0.0
+    ],
+    "onset": null
+   },
+   {
+    "key": "extreme",
+    "city_mm": [
+     0.0,
+     0.01,
+     0.0,
+     0.15,
+     4.03,
+     1.58,
+     0.05,
+     0.0,
+     0.06,
+     0.36,
+     0.46,
+     0.26,
+     0.49,
+     1.17,
+     1.12,
+     0.25,
+     0.1,
+     0.02,
+     0.05,
+     0.01,
+     0.0,
+     0.01,
+     0.01,
+     0.1,
+     0.06,
+     0.02,
+     0.04,
+     0.02,
+     0.04,
+     0.09,
+     0.03,
+     0.01,
+     0.04,
+     0.32,
+     0.87,
+     0.66,
+     0.78,
+     4.94,
+     3.88,
+     1.12,
+     1.15,
+     0.36,
+     0.04,
+     0.47,
+     4.74,
+     0.5,
+     0.0,
+     0.0
+    ],
+    "onset": null
+   }
+  ]
+ },
+ "verify": {
+  "made": "2026-10-25 01:24",
+  "window_days": 7,
+  "note": "m above warning; persistence = no change from the run",
+  "rows": [
+   {
+    "group": "คลองสามวา",
+    "horizon_h": 24,
+    "n": 71,
+    "mae_model": 0.012,
+    "mae_persistence": 0.012,
+    "bias_model": -0.006,
+    "skill": 0.01
+   },
+   {
+    "group": "คลองสามวา",
+    "horizon_h": 48,
+    "n": 71,
+    "mae_model": 0.008,
+    "mae_persistence": 0.019,
+    "bias_model": -0.003,
+    "skill": 0.58
+   },
+   {
+    "group": "จอมทอง",
+    "horizon_h": 24,
+    "n": 2,
+    "mae_model": 0.005,
+    "mae_persistence": 0.01,
+    "bias_model": -0.005,
+    "skill": 0.5
+   },
+   {
+    "group": "จอมทอง",
+    "horizon_h": 48,
+    "n": 2,
+    "mae_model": 0.005,
+    "mae_persistence": 0.01,
+    "bias_model": -0.005,
+    "skill": 0.5
+   },
+   {
+    "group": "ชั้นใน",
+    "horizon_h": 24,
+    "n": 25,
+    "mae_model": 0.135,
+    "mae_persistence": 0.234,
+    "bias_model": -0.134,
+    "skill": 0.42
+   },
+   {
+    "group": "ชั้นใน",
+    "horizon_h": 48,
+    "n": 23,
+    "mae_model": 0.089,
+    "mae_persistence": 0.197,
+    "bias_model": -0.088,
+    "skill": 0.55
+   },
+   {
+    "group": "ชั้นในและฝั่งตะวันตก",
+    "horizon_h": 24,
+    "n": 9,
+    "mae_model": 0.024,
+    "mae_persistence": 0.043,
+    "bias_model": -0.024,
+    "skill": 0.44
+   },
+   {
+    "group": "ชั้นในและฝั่งตะวันตก",
+    "horizon_h": 48,
+    "n": 9,
+    "mae_model": 0.003,
+    "mae_persistence": 0.064,
+    "bias_model": -0.003,
+    "skill": 0.95
+   },
+   {
+    "group": "ตะวันออกรอบนอก",
+    "horizon_h": 24,
+    "n": 1777,
+    "mae_model": 0.053,
+    "mae_persistence": 0.022,
+    "bias_model": -0.041,
+    "skill": -1.41
+   },
+   {
+    "group": "ตะวันออกรอบนอก",
+    "horizon_h": 48,
+    "n": 1583,
+    "mae_model": 0.054,
+    "mae_persistence": 0.041,
+    "bias_model": -0.046,
+    "skill": -0.32
+   },
+   {
+    "group": "ทวีวัฒนา",
+    "horizon_h": 24,
+    "n": 17,
+    "mae_model": 0.0,
+    "mae_persistence": 0.032,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "ทวีวัฒนา",
+    "horizon_h": 48,
+    "n": 17,
+    "mae_model": 0.0,
+    "mae_persistence": 0.032,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "ทั้งหมด",
+    "horizon_h": 24,
+    "n": 2109,
+    "mae_model": 0.053,
+    "mae_persistence": 0.042,
+    "bias_model": -0.043,
+    "skill": -0.28
+   },
+   {
+    "group": "ทั้งหมด",
+    "horizon_h": 48,
+    "n": 1896,
+    "mae_model": 0.048,
+    "mae_persistence": 0.057,
+    "bias_model": -0.041,
+    "skill": 0.16
+   },
+   {
+    "group": "บางกะปิ",
+    "horizon_h": 24,
+    "n": 3,
+    "mae_model": 0.133,
+    "mae_persistence": 0.2,
+    "bias_model": -0.133,
+    "skill": 0.33
+   },
+   {
+    "group": "บางกะปิ",
+    "horizon_h": 48,
+    "n": 2,
+    "mae_model": 0.1,
+    "mae_persistence": 0.2,
+    "bias_model": -0.1,
+    "skill": 0.5
+   },
+   {
+    "group": "บางขุนเทียน",
+    "horizon_h": 24,
+    "n": 79,
+    "mae_model": 0.041,
+    "mae_persistence": 0.054,
+    "bias_model": -0.041,
+    "skill": 0.24
+   },
+   {
+    "group": "บางขุนเทียน",
+    "horizon_h": 48,
+    "n": 69,
+    "mae_model": 0.037,
+    "mae_persistence": 0.058,
+    "bias_model": -0.037,
+    "skill": 0.37
+   },
+   {
+    "group": "บางบอน",
+    "horizon_h": 24,
+    "n": 62,
+    "mae_model": 0.03,
+    "mae_persistence": 0.086,
+    "bias_model": -0.029,
+    "skill": 0.65
+   },
+   {
+    "group": "บางบอน",
+    "horizon_h": 48,
+    "n": 64,
+    "mae_model": 0.004,
+    "mae_persistence": 0.11,
+    "bias_model": -0.003,
+    "skill": 0.96
+   },
+   {
+    "group": "บางแค",
+    "horizon_h": 24,
+    "n": 88,
+    "mae_model": 0.022,
+    "mae_persistence": 0.057,
+    "bias_model": -0.022,
+    "skill": 0.61
+   },
+   {
+    "group": "บางแค",
+    "horizon_h": 48,
+    "n": 88,
+    "mae_model": 0.0,
+    "mae_persistence": 0.078,
+    "bias_model": -0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "ป้อมปราบศัตรูพ่าย",
+    "horizon_h": 24,
+    "n": 2,
+    "mae_model": 0.203,
+    "mae_persistence": 0.4,
+    "bias_model": -0.197,
+    "skill": 0.49
+   },
+   {
+    "group": "ป้อมปราบศัตรูพ่าย",
+    "horizon_h": 48,
+    "n": 2,
+    "mae_model": 0.203,
+    "mae_persistence": 0.4,
+    "bias_model": -0.197,
+    "skill": 0.49
+   },
+   {
+    "group": "ฝั่งธนบุรี",
+    "horizon_h": 24,
+    "n": 266,
+    "mae_model": 0.026,
+    "mae_persistence": 0.058,
+    "bias_model": -0.026,
+    "skill": 0.56
+   },
+   {
+    "group": "ฝั่งธนบุรี",
+    "horizon_h": 48,
+    "n": 258,
+    "mae_model": 0.011,
+    "mae_persistence": 0.072,
+    "bias_model": -0.011,
+    "skill": 0.85
+   },
+   {
+    "group": "ภาษีเจริญ",
+    "horizon_h": 24,
+    "n": 12,
+    "mae_model": 0.001,
+    "mae_persistence": 0.027,
+    "bias_model": -0.001,
+    "skill": 0.97
+   },
+   {
+    "group": "ภาษีเจริญ",
+    "horizon_h": 48,
+    "n": 12,
+    "mae_model": 0.0,
+    "mae_persistence": 0.028,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "มีนบุรี",
+    "horizon_h": 24,
+    "n": 238,
+    "mae_model": 0.032,
+    "mae_persistence": 0.02,
+    "bias_model": -0.03,
+    "skill": -0.59
+   },
+   {
+    "group": "มีนบุรี",
+    "horizon_h": 48,
+    "n": 235,
+    "mae_model": 0.024,
+    "mae_persistence": 0.038,
+    "bias_model": -0.022,
+    "skill": 0.37
+   },
+   {
+    "group": "ลาดกระบัง",
+    "horizon_h": 24,
+    "n": 506,
+    "mae_model": 0.099,
+    "mae_persistence": 0.017,
+    "bias_model": -0.099,
+    "skill": -4.68
+   },
+   {
+    "group": "ลาดกระบัง",
+    "horizon_h": 48,
+    "n": 458,
+    "mae_model": 0.083,
+    "mae_persistence": 0.033,
+    "bias_model": -0.079,
+    "skill": -1.53
+   },
+   {
+    "group": "วังทองหลาง",
+    "horizon_h": 24,
+    "n": 1,
+    "mae_model": 1.13,
+    "mae_persistence": 1.13,
+    "bias_model": -1.13,
+    "skill": 0.0
+   },
+   {
+    "group": "สวนหลวง",
+    "horizon_h": 24,
+    "n": 20,
+    "mae_model": 0.071,
+    "mae_persistence": 0.168,
+    "bias_model": -0.071,
+    "skill": 0.57
+   },
+   {
+    "group": "สวนหลวง",
+    "horizon_h": 48,
+    "n": 20,
+    "mae_model": 0.071,
+    "mae_persistence": 0.168,
+    "bias_model": -0.071,
+    "skill": 0.57
+   },
+   {
+    "group": "สะพานสูง",
+    "horizon_h": 24,
+    "n": 13,
+    "mae_model": 0.001,
+    "mae_persistence": 0.012,
+    "bias_model": 0.001,
+    "skill": 0.91
+   },
+   {
+    "group": "สะพานสูง",
+    "horizon_h": 48,
+    "n": 13,
+    "mae_model": 0.001,
+    "mae_persistence": 0.012,
+    "bias_model": 0.001,
+    "skill": 0.91
+   },
+   {
+    "group": "สายไหม",
+    "horizon_h": 24,
+    "n": 32,
+    "mae_model": 0.261,
+    "mae_persistence": 0.85,
+    "bias_model": -0.217,
+    "skill": 0.69
+   },
+   {
+    "group": "สายไหม",
+    "horizon_h": 48,
+    "n": 23,
+    "mae_model": 0.0,
+    "mae_persistence": 0.85,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "หนองจอก",
+    "horizon_h": 24,
+    "n": 949,
+    "mae_model": 0.037,
+    "mae_persistence": 0.026,
+    "bias_model": -0.016,
+    "skill": -0.44
+   },
+   {
+    "group": "หนองจอก",
+    "horizon_h": 48,
+    "n": 806,
+    "mae_model": 0.051,
+    "mae_persistence": 0.049,
+    "bias_model": -0.038,
+    "skill": -0.04
+   },
+   {
+    "group": "หนองแขม",
+    "horizon_h": 24,
+    "n": 14,
+    "mae_model": 0.0,
+    "mae_persistence": 0.021,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "หนองแขม",
+    "horizon_h": 48,
+    "n": 14,
+    "mae_model": 0.0,
+    "mae_persistence": 0.021,
+    "bias_model": 0.0,
+    "skill": 1.0
+   },
+   {
+    "group": "เหนือ",
+    "horizon_h": 24,
+    "n": 32,
+    "mae_model": 0.261,
+    "mae_persistence": 0.85,
+    "bias_model": -0.217,
+    "skill": 0.69
+   },
+   {
+    "group": "เหนือ",
+    "horizon_h": 48,
+    "n": 23,
+    "mae_model": 0.0,
+    "mae_persistence": 0.85,
+    "bias_model": 0.0,
+    "skill": 1.0
+   }
+  ]
+ },
+ "data": {
+  "fetched": "2026-10-25 01:20",
+  "stations": 311,
+  "with_level": 310
+ },
+ "model_params_version": "2026-10-17a"
+}
