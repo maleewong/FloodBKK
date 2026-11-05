@@ -1,5 +1,6 @@
 ﻿code,measured,wl_in_m,wl_out_m,wl_out2_m,gate1,gate2,gate3,status,max_in_today_m
 WL.KSK.01,2026-11-04 00:00,-1.07,,,,,,temporarily out of order,-1.04
+WL.PSR.06,2026-11-04 00:00,0.23,,,,,,out of order,0.28
 WL.RSK.01,2026-11-04 00:05,0.34,,,,,,temporarily out of order,0.34
 WL.ANG.01,2026-11-04 00:10,0.53,,,,,,Normal,
 WL.BBU.02,2026-11-04 00:10,-0.05,,,,,,Normal,
